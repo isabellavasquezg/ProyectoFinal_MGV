@@ -1,22 +1,43 @@
 <script>
 import TablasEquipos from '../components/TablasEquipos.vue';
+import TablaSedes from '../components/TablaSedes.vue';
+import TablaResponsables from '../components/TablaResponsables.vue';
+import TablaServicios from '../components/TablaServicios.vue';
 import FiltrosMenu from '../components/FiltrosMenu.vue';
+
 export default {
     components: {
         FiltrosMenu,
-        TablasEquipos
+        TablasEquipos,
+        TablaSedes,
+        TablaResponsables,
+        TablaServicios
     },
     name: "GeneralEquipos",
     data() {
         return {
-            seccion:"General"
+            seccion: "General",
+            vistaActual: "Equipos"
         };
     },
     methods: {
         cambiarSeccion(seccionNueva){
             this.seccion = seccionNueva;
+        },
+        cambiarVista(vistaNueva) {
+            this.vistaActual = vistaNueva;
+            this.seccion = "General";
         }
     },
+    computed: {
+        tituloVista() {
+            return this.vistaActual;
+        },
+        mostrarSecciones() {
+            // Solo mostrar las pestañas de secciones para la vista de Equipos
+            return this.vistaActual === 'Equipos';
+        }
+    }
 };
 </script>
 <template>
@@ -25,12 +46,12 @@ export default {
     </div>
     <div class="menuPrincipal">
         <div class="menuPrincipal--navbar">
-            <button class="navbar--opciones">Equipos</button>
-            <button class="navbar--opciones">Responsables</button>
-            <button class="navbar--opciones">Sedes</button>
-            <button class="navbar--opciones">Servicios</button>
+            <button class="navbar--opciones" @click="cambiarVista('Equipos')">Equipos</button>
+            <button class="navbar--opciones" @click="cambiarVista('Responsables')">Responsables</button>
+            <button class="navbar--opciones" @click="cambiarVista('Sedes')">Sedes</button>
+            <button class="navbar--opciones" @click="cambiarVista('Servicios')">Servicios</button>
         </div>
-        <div class="menuPrincipal--secciones">
+        <div class="menuPrincipal--secciones" v-if="mostrarSecciones">
                 <button class="secciones--botones" @click="cambiarSeccion('General')">General</button>
                 <button class="secciones--botones" @click="cambiarSeccion('Registro')">Registro Historico</button>
                 <button class="secciones--botones" @click="cambiarSeccion('MetrologiaA')">Metrologia administrativa</button>
@@ -47,7 +68,10 @@ export default {
                 </div>
             </div>
             <div class="tablaPrincipal--contenedor">
-                <TablasEquipos :seccion="seccion" />    
+                <TablasEquipos v-if="vistaActual === 'Equipos'" :seccion="seccion" />
+                <TablaResponsables v-if="vistaActual === 'Responsables'" />
+                <TablaSedes v-if="vistaActual === 'Sedes'" />
+                <TablaServicios v-if="vistaActual === 'Servicios'" />
             </div>
         </div>
     </div>
