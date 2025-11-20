@@ -67,7 +67,7 @@
     </div>
 </div>
 </template>
-<style>
+<style scoped>
     body{
         margin: 0;
         font-family: sans-serif;
@@ -94,7 +94,7 @@
     }
     /*------------------Navbar------------------- */
     .menuPrincipal--navbar{
-        padding-left: 30%;
+        padding-left: 35%;
         box-sizing: border-box;
         background-color: #ffffffbb;
         height: 7%;

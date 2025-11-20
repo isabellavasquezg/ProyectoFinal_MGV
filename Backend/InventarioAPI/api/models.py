@@ -46,12 +46,9 @@ class Responsable_Servicios(models.Model):
     correo_electronico = models.EmailField()
     documento = models.CharField(max_length=50)
     telefono = models.CharField(max_length=50)
-
     # Cargo del responsable (ej: Ingeniero Biomédico, Técnico, Coordinador)
     cargo = models.CharField(max_length=100)
 
-    # Servicio al que pertenece el responsable
-    servicio = models.ForeignKey(Servicio, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return f"{self.nombre} {self.apellido}"
@@ -65,7 +62,6 @@ class Equipo(models.Model):
     # Relación del equipo con sede y servicio
     sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True, related_name='equipos_sede')
     servicio = models.ForeignKey(Servicio, on_delete=models.SET_NULL, null=True)
-
     # Responsable asignado al equipo
     responsable = models.ForeignKey(Responsable_Servicios, on_delete=models.SET_NULL, null=True)
 

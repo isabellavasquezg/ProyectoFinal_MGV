@@ -1,4 +1,5 @@
 <script>
+import axios from "axios";
 // Importamos los componentes que usa esta vista
 import TablasEquipos from '../components/TablasEquipos.vue';
 import FiltrosMenu from '../components/FiltrosMenu.vue';
@@ -15,16 +16,28 @@ export default {
 
     data() {
         return {
-            // Sección actual seleccionada
-            seccion:"General"
+            seccion:"General",
+            filas: [],
+            nombre:"equipos"
         };
     },
 
     methods: {
-        // Cambia la sección según el botón que se presione
+        async listarEquipos(nombre) {
+            try {
+                const res = await axios.get(`http://127.0.0.1:8000/api/${nombre}/`);
+                this.filas = res.data.result;
+            } catch (err) {
+                console.error(err);
+                alert("Error al listar equipos");
+            }
+        },
         cambiarSeccion(seccionNueva){
             this.seccion = seccionNueva;
         }
+    },
+    mounted() {
+        this.listarEquipos(this.nombre);
     },
 };
 </script>
@@ -47,10 +60,10 @@ export default {
 
         <!-- Botones para cambiar entre secciones -->
         <div class="menuPrincipal--secciones">
-                <button class="secciones--botones" @click="cambiarSeccion('General')">General</button>
-                <button class="secciones--botones" @click="cambiarSeccion('Registro')">Registro Historico</button>
-                <button class="secciones--botones" @click="cambiarSeccion('MetrologiaA')">Metrologia administrativa</button>
-                <button class="secciones--botones" @click="cambiarSeccion('MetrologiaT')">Metrologia Tecnica</button>
+                <button class="secciones--botones" @click="cambiarSeccion('General'); listarEquipos('equipos')">General</button>
+                <button class="secciones--botones" @click="cambiarSeccion('Registro'); listarEquipos('registros')">Registro Historico</button>
+                <button class="secciones--botones" @click="cambiarSeccion('MetrologiaA'); listarEquipos('metrologiaA')">Metrologia administrativa</button>
+                <button class="secciones--botones" @click="cambiarSeccion('MetrologiaT'); listarEquipos('metrologiaT')">Metrologia Tecnica</button>
                 <button class="secciones--botones" @click="cambiarSeccion('Documentacion')">Documentación</button>
                 <button class="secciones--botones" @click="cambiarSeccion('Condicion')">Coondicion Funcionamiento</button>
         </div>
@@ -73,7 +86,7 @@ export default {
 
             <!-- Contenedor donde se muestra la tabla -->
             <div class="tablaPrincipal--contenedor">
-                <TablasEquipos :seccion="seccion" />    
+                <TablasEquipos :seccion="seccion" :filas="filas" />    
             </div>
 
         </div>
@@ -238,5 +251,7 @@ export default {
     .tablaPrincipal--contenedor{
         height: 85%;
         width: 100%;
+        overflow-x: auto; 
+        max-height: 100%;
     }
 </style>

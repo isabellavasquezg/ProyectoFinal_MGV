@@ -4,7 +4,7 @@ const router=createRouter({
     routes:[
         {
             path:'/',
-            name:'Login',
+            name:'Equipos',
             component:()=>import('../views/GeneralEquipos.vue'),
             props: true
         },
