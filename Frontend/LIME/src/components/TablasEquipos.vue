@@ -42,7 +42,7 @@ export default {
         <thead>
             <tr class="tabla--header">
                 <th class="tabla--headersCheck">
-                    <input id="checkHeader" type="checkbox" />
+                    <input id="checkHeader" type="checkbox"/>
                 </th>
                 <th class="tabla--headers">Sede</th>
                 <th class="tabla--headers">Servicio</th>
@@ -65,7 +65,7 @@ export default {
         </thead>
         <tbody>
             <tr class="tabla--fila" v-for="eq in filas" :key="eq.serie">
-                <td><input class="checkRow" type="checkbox" /></td>
+                <td><input class="checkRow" type="checkbox"  :checked="checkHeader"/></td>
                 <td>{{ eq.sede }}</td>
                 <td>{{ eq.servicio }}</td>
                 <td>{{ eq.responsable }}</td>
@@ -82,7 +82,7 @@ export default {
                 <td>{{ eq.clasificacion_riesgo }}</td>
                 <td>{{ eq.registro_invima }}</td>
                 <td>{{ eq.estado }}</td>
-                <td><button class="boton-tabla">Actualizar</button></td>
+                <td><button class="tabla--boton">Actualizar</button></td>
             </tr>
         </tbody>
     </table> 
@@ -127,7 +127,7 @@ export default {
                 <td>{{ re.forma_adquisicion }}</td>
                 <td>{{ re.tipo_documento }}</td>
                 <td>{{ re.numero_documento }}</td>
-                <td><button>Actualizar</button></td>
+                <td><button class="tabla--boton">Actualizar</button></td>
             </tr>
         </tbody>
     </table> 
@@ -158,7 +158,7 @@ export default {
                 <td>{{ ma.frecuencia_mantenimiento }} meses</td> 
                 <td>{{ ma.calibracion ? 'Sí' : 'No' }}</td>
                 <td>{{ ma.frecuencia_calibracion }}</td>
-                <td><button>Actualizar</button></td>
+                <td><button class="tabla--boton">Actualizar</button></td>
             </tr>
         </tbody>
     </table> 
@@ -191,7 +191,7 @@ export default {
                 <td>{{ mt.resolucion }}</td> 
                 <td>{{ mt.rango_trabajo }}</td> 
                 <td>{{ mt.error_maximo }}</td>
-                <td><button>Actualizar</button></td>
+                <td><button class="tabla--boton">Actualizar</button></td>
             </tr>
         </tbody>
     </table> 
@@ -230,7 +230,7 @@ export default {
                 <td>{{ doc.instructivo_manejo ? 'Sí' : 'No' }}</td> 
                 <td>{{ doc.protocolo_mantenimiento ? 'Sí' : 'No' }}</td> 
                 <td>{{ doc.frecuencia_metrologica }}</td>
-                <td><button>Actualizar</button></td>
+                <td><button class="tabla--boton">Actualizar</button></td>
             </tr>
         </tbody>
     </table> 
@@ -267,7 +267,7 @@ export default {
                 <td>{{ con.dimensiones }}</td> 
                 <td>{{ con.peso }}</td> 
                 <td>{{ con.otros }}</td>
-                <td><button>Actualizar</button></td>
+                <td><button class="tabla--boton">Actualizar</button></td>
             </tr>
         </tbody>
     </table>
@@ -313,5 +313,20 @@ export default {
         width: 16px;
         height: 16px;
         cursor: pointer;
+    }
+    .tabla--boton {
+        background-color: #0a346c;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .tabla--boton:hover {
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .tabla--boton:active {
+        transform: scale(0.98);
     }
 </style>
