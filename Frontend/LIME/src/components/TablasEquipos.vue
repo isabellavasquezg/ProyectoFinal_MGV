@@ -255,35 +255,18 @@ export default {
         </thead>
 
         <tbody>
-            <!-- Fila 1 -->
-            <tr class="tabla--fila">
+            <tr class="tabla--fila" v-for="con in filas" :key="con.serie">
                 <td><input class="checkRow" type="checkbox" /></td>
-                <td>Bomba de Infusión</td>
-                <td>Habitación 12</td>
-                <td>Philips</td>
-                <td>MX400</td>
-                <td>12345ABC</td>
-                <td>Alta</td>
-                <td>A</td>
-                <td>Medio</td>
-                <td>2020INV-123</td>
-                <td>Activo</td>
-                <td><button>Actualizar</button></td>
-            </tr>
-
-            <!-- Fila 2 -->
-            <tr class="tabla--fila">
-                <td><input class="checkRow"type="checkbox" /></td>
-                <td>Bomba de Infusión</td>
-                <td>Habitación 12</td>
-                <td>Mindray</td>
-                <td>BEN-800</td>
-                <td>98765XYZ</td>
-                <td>Media</td>
-                <td>B</td>
-                <td>Bajo</td>
-                <td>2021INV-442</td>
-                <td>En Mantenimiento</td>
+                <td>{{ con.sede }}</td> 
+                <td>{{ con.servicio }}</td>
+                <td>{{ con.serie_equipo }}</td> 
+                <td>{{ con.voltaje }}</td> 
+                <td>{{ con.corriente }}</td> 
+                <td>{{ con.humedad }}</td> 
+                <td>{{ con.temperatura }}</td> 
+                <td>{{ con.dimensiones }}</td> 
+                <td>{{ con.peso }}</td> 
+                <td>{{ con.otros }}</td>
                 <td><button>Actualizar</button></td>
             </tr>
         </tbody>

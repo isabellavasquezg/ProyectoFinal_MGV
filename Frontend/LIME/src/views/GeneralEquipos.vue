@@ -64,8 +64,8 @@ export default {
                 <button class="secciones--botones" @click="cambiarSeccion('Registro'); listarEquipos('registros')">Registro Historico</button>
                 <button class="secciones--botones" @click="cambiarSeccion('MetrologiaA'); listarEquipos('metrologiaA')">Metrologia administrativa</button>
                 <button class="secciones--botones" @click="cambiarSeccion('MetrologiaT'); listarEquipos('metrologiaT')">Metrologia Tecnica</button>
-                <button class="secciones--botones" @click="cambiarSeccion('Documentacion')">Documentación</button>
-                <button class="secciones--botones" @click="cambiarSeccion('Condicion')">Coondicion Funcionamiento</button>
+                <button class="secciones--botones" @click="cambiarSeccion('Documentacion'); listarEquipos('documentos')">Documentación</button>
+                <button class="secciones--botones" @click="cambiarSeccion('Condicion'); listarEquipos('condicion')">Coondicion Funcionamiento</button>
         </div>
 
         <!-- Contenedor principal de tabla + filtros -->

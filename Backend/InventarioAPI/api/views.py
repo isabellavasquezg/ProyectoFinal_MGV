@@ -253,7 +253,7 @@ class MetrologiaT(View):
         ]
 
         return JsonResponse({"result": data}, status=200, safe=False)
-class MetrologiaT(View): 
+class documentos(View): 
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
@@ -284,30 +284,90 @@ class MetrologiaT(View):
             filtros["estado__icontains"] = estado
 
         # Ejecutar filtro dinámico
-        metrologiast= MetrologiaTecnica.objects.filter(**filtros)
+        documentos= DocumentoEquipo.objects.filter(**filtros)
 
         # Si no se encontró nada
-        if not metrologiast.exists():
+        if not documentos.exists():
             return JsonResponse({"result": []}, status=200)
 
         # Convertir queryset en lista JSON
         data = [
             {
-                # --- 1. DATOS DE RELACIONES (Modelo MetrologiaTecnica) ---
-                # NOTA: La relación 'serie' en MetrologiaTecnica apunta al modelo Equipo.
-                'sede': mt.sede.nombre if mt.sede else None,  
-                'servicio': mt.servicio.nombre if mt.servicio else None,
-                # Se extrae la serie del Equipo asociado
-                'serie_equipo': mt.serie.serie if mt.serie else None, 
-                
-                # --- 2. PARÁMETROS TÉCNICOS PROPIOS DEL EQUIPO (Campos propios de MetrologiaTecnica) ---
-                'magnitud': mt.magnitud,
-                'rango_equipo': mt.rango_equipo,
-                'resolucion': mt.resolucion,
-                'rango_trabajo': mt.rango_trabajo,
-                'error_maximo': mt.error_maximo,
+               
+                # ...
+                'sede': doc.sede.nombre if doc.sede else None,
+                'servicio': doc.servicio.nombre if doc.servicio else None,
+                'serie_equipo': doc.serie.serie if doc.serie else None, 
+                'hoja_vida': doc.hoja_vida, # Booleano
+                'registro_importacion': doc.registro_importacion, # Booleano
+                'manual_operacion': doc.manual_operacion, # Booleano
+                'manual_mantenimiento': doc.manual_mantenimiento, # String (Manual de Servicio)
+                'guia_rapida': doc.guia_rapida, # Booleano
+                'instructivo_manejo': doc.instructivo_manejo, # Booleano
+                'protocolo_mantenimiento': doc.protocolo_mantenimiento, # Booleano
+                'frecuencia_metrologica': doc.frecuencia_metrologica, # String
+                # ...
             }
-            for mt in metrologiast
+            
+            for doc in documentos
+        ]
+
+        return JsonResponse({"result": data}, status=200, safe=False)
+class condicion(View): 
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+    def get(self, request):
+        filtros = {}
+        sede = request.GET.get("sede")
+        if sede:
+            filtros["sede__nombre__icontains"] = sede
+
+        servicio = request.GET.get("servicio")
+        if servicio:
+            filtros["servicio__nombre__icontains"] = servicio
+
+        marca = request.GET.get("marca")
+        if marca:
+            filtros["marca__icontains"] = marca
+
+        modelo = request.GET.get("modelo")
+        if modelo:
+            filtros["modelo__icontains"] = modelo
+
+        serie = request.GET.get("serie")
+        if serie:
+            filtros["serie__icontains"] = serie
+
+        estado = request.GET.get("estado")
+        if estado:
+            filtros["estado__icontains"] = estado
+
+        # Ejecutar filtro dinámico
+        condiciones= CondicionesFuncionamiento.objects.filter(**filtros)
+
+        # Si no se encontró nada
+        if not condiciones.exists():
+            return JsonResponse({"result": []}, status=200)
+
+        # Convertir queryset en lista JSON
+        data = [
+            {
+                # ...
+                'sede': con.sede.nombre if con.sede else None,
+                'servicio': con.servicio.nombre if con.servicio else None,
+                'serie_equipo': con.serie.serie if con.serie else None, 
+                'voltaje': con.voltaje,
+                'corriente': con.corriente,
+                'humedad': con.humedad,
+                'temperatura': con.temperatura,
+                'dimensiones': con.dimensiones,
+                'peso': con.peso,
+                'otros': con.otros,
+                # ...
+            }
+                        
+            for con in condiciones
         ]
 
         return JsonResponse({"result": data}, status=200, safe=False)
