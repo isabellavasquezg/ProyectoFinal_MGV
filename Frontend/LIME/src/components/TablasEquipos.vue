@@ -18,13 +18,13 @@ export default {
             case "General":
                 return "12px";
             case "Registro":
-                return "14px";
+                return "12px";
             case "MetrologiaA":
                 return "13px";
             case "MetrologiaT":
-                return "15px";
+                return "13px";
             case "Documentacion":
-                return "11px";
+                return "12px";
             default:
                 return "12px";
             }
@@ -42,6 +42,7 @@ export default {
                 <th class="tabla--headers">Sede</th>
                 <th class="tabla--headers">Servicio</th>
                 <th class="tabla--headers">Nombre Equipo</th>
+                <th class="tabla--headers">Codigo Inventario</th>
                 <th class="tabla--headers">Codigo IPS</th>
                 <th class="tabla--headers">Codigo ECRI</th>
                 <th class="tabla--headers">Responsable Servicio</th>
@@ -63,6 +64,7 @@ export default {
             <tr class="tabla--fila">
                 <td><input class="checkRow" type="checkbox" /></td>
                 <td>Principal</td>
+                <td>22223</td>
                 <td>Urgencias</td>
                 <td>Monitor de Signos</td>
                 <td>IPS-001</td>
@@ -84,6 +86,7 @@ export default {
             <tr class="tabla--fila">
                 <td><input class="checkRow"type="checkbox" /></td>
                 <td>Norte</td>
+                <td>2222s3</td>
                 <td>Hospitalización</td>
                 <td>Bomba de Infusión</td>
                 <td>IPS-002</td>
@@ -374,11 +377,7 @@ export default {
     </table>
 </template>
 <style>
-.tabla {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: Arial, sans-serif;
-}    /* --- Tabla general --- */
+    /* --- Tabla general --- */
     .tabla {
         width: 100%;
         border-collapse: collapse;

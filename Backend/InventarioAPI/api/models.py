@@ -46,18 +46,14 @@ class Equipo(models.Model):
     codigo_inventario = models.CharField(max_length=100)
     codigo_ips = models.CharField(max_length=100, null=True, blank=True)
     codigo_ecri = models.CharField(max_length=100, null=True, blank=True)
-
     ubicacion_fisica = models.CharField(max_length=200)
     marca = models.CharField(max_length=100)
     modelo = models.CharField(max_length=100)
     serie = models.CharField(max_length=150)
-
     clasificacion_misional = models.CharField(max_length=200, null=True, blank=True)
     clasificacion_ips = models.CharField(max_length=100, null=True, blank=True)
     clasificacion_riesgo = models.CharField(max_length=100, null=True, blank=True)
-
     registro_invima = models.CharField(max_length=200, null=True, blank=True)
-
     # Estado del equipo (activo/inactivo)
     estado = models.CharField(max_length=20, default="activo")  # activo / inactivo
     descripcion_baja = models.TextField(null=True, blank=True)

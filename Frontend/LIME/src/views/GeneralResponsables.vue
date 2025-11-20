@@ -1,94 +1,75 @@
 <script>
-// Importamos los componentes que usa esta vista
-import TablasEquipos from '../components/TablasEquipos.vue';
-import FiltrosMenu from '../components/FiltrosMenu.vue';
-
-export default {
-
-    // Registramos los componentes
-    components: {
-        FiltrosMenu,
-        TablasEquipos
-    },
-
-    name: "GeneralEquipos",
-
-    data() {
-        return {
-            // Sección actual seleccionada
-            seccion:"General"
-        };
-    },
-
-    methods: {
-        // Cambia la sección según el botón que se presione
-        cambiarSeccion(seccionNueva){
-            this.seccion = seccionNueva;
-        }
-    },
-};
 </script>
-
 <template>
 <div class="background"> 
-    
-    <!-- Barra lateral izquierda -->
-    <div class="slidebar"></div>
-
-    <!-- Contenedor principal -->
+    <div class="slidebar">
+    </div>
     <div class="menuPrincipal">
-
-        <!-- Barra superior de navegación -->
         <div class="menuPrincipal--navbar">
             <button class="navbar--opciones" @click="$router.push('/')">Equipos</button>
             <button class="navbar--opciones" @click="$router.push('/Responsables')">Responsables</button>
             <button class="navbar--opciones" @click="$router.push('/Servicios')">Servicios</button>
         </div>
-
-        <!-- Botones para cambiar entre secciones -->
-        <div class="menuPrincipal--secciones">
-                <button class="secciones--botones" @click="cambiarSeccion('General')">General</button>
-                <button class="secciones--botones" @click="cambiarSeccion('Registro')">Registro Historico</button>
-                <button class="secciones--botones" @click="cambiarSeccion('MetrologiaA')">Metrologia administrativa</button>
-                <button class="secciones--botones" @click="cambiarSeccion('MetrologiaT')">Metrologia Tecnica</button>
-                <button class="secciones--botones" @click="cambiarSeccion('Documentacion')">Documentación</button>
-                <button class="secciones--botones" @click="cambiarSeccion('Condicion')">Coondicion Funcionamiento</button>
-        </div>
-
-        <!-- Contenedor principal de tabla + filtros -->
         <div class="menuPrincipal--tablaPrincipal">
-
-            <!-- Filtros y botones laterales -->
             <div class="tablaPrincipal--filtros">
-
-                <!-- Componente de filtros dinámico por sección -->
-                <FiltrosMenu :seccion="seccion" />
-
-                <!-- Botones de acciones (agregar y eliminar) -->
+                <form class="tablaPrincipal--formFiltros">
+                    <input class="filtros--inputs" type="text" placeholder="Nombre de Responsable" />
+                    <input class="filtros--inputs" type="text" placeholder="Cargo" />
+                    <input class="filtros--inputs" type="text" placeholder="Telefono" />
+                    <input class="filtros--inputs" type="text" placeholder="Documento" />
+                    <button class="filtros--boton" type="submit">Filtrar</button>
+                </form>
                 <div class="tablaPricipal--menuBotones">
                         <button class="menuBotones--botones" type="button">Agregar</button>
                         <button class="menuBotones--botones" type="button">Eliminar</button>
                 </div>
             </div>
+            <div class="tablaPrincipal--contenedor"> 
+                <table class="tabla">
+                    <thead>
+                        <tr class="tabla--header">
+                            <th class="tabla--headersCheck">
+                                <input id="checkHeader" type="checkbox" />
+                            </th>
+                            <th class="tabla--headers">Nombre Responsable</th>
+                            <th class="tabla--headers">Cargo</th>
+                            <th class="tabla--headers">Telefono</th>
+                            <th class="tabla--headers">Documento</th>
+                            <th class="tabla--headers">Acciones</th>
+                        </tr> 
+                    </thead>
+                    <tbody>
+            
+                        <tr class="tabla--fila">
+                            <td><input class="checkRow" type="checkbox" /></td>
+                            <td>A</td>
+                            <td>Medio</td>
+                            <td>2020INV-123</td>
+                            <td>Activo</td>
+                            <td><button>Actualizar</button></td>
+                        </tr>
 
-            <!-- Contenedor donde se muestra la tabla -->
-            <div class="tablaPrincipal--contenedor">
-                <TablasEquipos :seccion="seccion" />    
+                    
+                        <tr class="tabla--fila">
+                            <td><input class="checkRow"type="checkbox" /></td>
+                            <td>Media</td>
+                            <td>B</td>
+                            <td>Bajo</td>
+                            <td>2021INV-442</td>
+                            <td><button>Actualizar</button></td>
+                        </tr>
+                    </tbody>
+                </table>   
             </div>
-
         </div>
     </div>
 </div>
 </template>
-
 <style>
-    /* Estilos base */
     body{
         margin: 0;
         font-family: sans-serif;
     }
-
-    /* Fondo general del layout */
     .background{
         background-color: #eeeeee;
         height: 100vh;
@@ -96,25 +77,22 @@ export default {
         display:flex;
         flex-direction: row;
     }
-
-    /* Barra lateral izquierda */
+    /*------------------Slidebar------------------- */
     .slidebar{
         background-color: #0a346c;
         width: 7%;
         height: 100%;
     }
-
-    /* Contenedor principal */
+    /*------------------Menu Principal------------------- */
     .menuPrincipal{
         width: 93%;
         height: 100%;
         display:flex;
         flex-direction: column;
     }
-
-    /* Navbar superior */
+    /*------------------Navbar------------------- */
     .menuPrincipal--navbar{
-        padding-left: 35%;
+        padding-left: 30%;
         box-sizing: border-box;
         background-color: #ffffffbb;
         height: 7%;
@@ -124,8 +102,6 @@ export default {
         display:flex;
         flex-direction: row;
     }
-
-    /* Botones de navegación */
     .navbar--opciones{
         background-color: transparent;
         color: #0a346c;
@@ -136,19 +112,15 @@ export default {
         padding: 10px 15px;
         transition: background-color 0.3s, color 0.3s;
     }
-
     .navbar--opciones:hover{
         border-bottom: 2px solid #00a89d;
     }
-
     .navbar--opciones:active{
         transform: scale(0.98);
     }
-
-    /* Contenedor principal donde va tabla y filtros */
+    /*------------------Tabla Principal------------------- */
     .menuPrincipal--tablaPrincipal{
         margin: 2% 2%;
-        margin-top: 0;
         box-sizing: border-box;
         width: 96%;
         height: 84%;
@@ -156,8 +128,6 @@ export default {
         display:flex;
         flex-direction: column;
     }
-
-    /* Botones para cambiar sección */
     .menuPrincipal--secciones{
         border-radius: 10px 10px 0 0;
         margin: 0 2%;
@@ -170,7 +140,6 @@ export default {
         flex-direction: row;
         align-items: center;
     }
-
     .secciones--botones{
         padding: 0 2%;
         height: 100%;
@@ -179,21 +148,16 @@ export default {
         background-color: #ffffff;
         color:#00a89d;
     }
-
     .secciones--botones:first-child{
         border-radius: 10px 10px 0 0;
     }
-
     .secciones--botones:hover{
         color: #ffffff;
         background-color: #00a89d;
     }
-
     .secciones--botones:active{
         transform: scale(0.98);
     }
-
-    /* Contenedor de filtros */
     .tablaPrincipal--filtros{
         padding-left: 3%;
         height: 15%;
@@ -204,8 +168,6 @@ export default {
         flex-direction: row;
         align-items: center;
     }
-
-    /* Contenedor de botones de acciones */
     .tablaPricipal--menuBotones{
         width: 20%;
         height: 60%;
@@ -213,7 +175,6 @@ export default {
         flex-direction: column;
         align-items: center;
     }
-
     .menuBotones--botones{
         width: 40%;
         height: 40%;
@@ -225,18 +186,55 @@ export default {
         cursor: pointer;
         transition: background-color 0.3s, transform 0.1s;
     }
-
     .menuBotones--botones:hover{
         box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     }
-
     .menuBotones--botones:active{
         transform: scale(0.98);
     }
-
-    /* Contenedor de la tabla */
     .tablaPrincipal--contenedor{
         height: 85%;
         width: 100%;
+    }
+        /* --- Tabla general --- */
+    .tabla {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: sans-serif;
+        font-size: 12px;
+    }
+
+    /* --- Encabezado --- */
+    .tabla--header {
+        background-color: #0a346c; /* azul oscuro elegante */
+        color: white;
+        text-align: left;
+    }
+
+    .tabla--headers,
+    .tabla--headersCheck {
+        padding: 10px 8px;
+        border-bottom: 2px solid #0a2540;
+        font-weight: bold;
+    }
+
+    /* --- Filas del cuerpo --- */
+    .tabla--fila td {
+        background-color: white;
+        color: #555; 
+        padding: 8px 6px;
+        border-bottom: 1px solid #e5e5e5;
+    }
+
+    /* --- Hover en filas --- */
+    .tabla--fila:hover td {
+        background-color: #f5f7fa;
+    }
+
+    /* --- Checkbox alineado --- */
+    .tabla input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
     }
 </style>
