@@ -1,47 +1,44 @@
 from django.db import models
 
 # -----------------------------
-# 1. SEDES
+# 1. SERVICIOS y SEDES (vinculados a una sede)
 # -----------------------------
-class Sede(models.Model):
-    nombre = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.nombre
-
-
-# -----------------------------
-# 2. SERVICIOS (vinculados a una sede)
-# -----------------------------
-class Servicio(models.Model):
-    nombre = models.CharField(max_length=100)
-    sede = models.ForeignKey(Sede, on_delete=models.CASCADE, related_name='servicios')
-
+class Servicio_Sedes(models.Model):
+    nombre_sede = models.CharField(max_length=100)
+    ubicacion_sede = models.CharField(max_length=200)
+    telefono_sede = models.CharField(max_length=50)
+    tipo_sede = models.CharField(max_length=100)
+    nombre_servicio = models.CharField(max_length=150)
+    descripcion_servicio = models.TextField(null=True, blank=True)
     def __str__(self):
         return f"{self.nombre} - {self.sede.nombre}"
 
 
 # -----------------------------
-# 3. RESPONSABLES
+# 2. RESPONSABLES
 # -----------------------------
-class Responsable(models.Model):
+class Responsable_Servicios(models.Model):
     nombre = models.CharField(max_length=150)
+    apellido = models.CharField(max_length=150)
+    correo_electronico = models.EmailField()
+    documento= models.CharField(max_length=50)
+    telefono = models.CharField(max_length=50)
+    cargo = models.CharField(max_length=100)
+    servicio = models.ForeignKey(Servicio_Sedes, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.nombre
 
 
 # -----------------------------
-# 4. EQUIPO (INFORMACIÓN GENERAL)
+# 3. EQUIPO (INFORMACIÓN GENERAL)
 # -----------------------------
 class Equipo(models.Model):
     # Relación con sede y servicio
-    sede = models.ForeignKey(Sede, on_delete=models.SET_NULL, null=True)
-    servicio = models.ForeignKey(Servicio, on_delete=models.SET_NULL, null=True)
-    responsable = models.ForeignKey(Responsable, on_delete=models.SET_NULL, null=True)
-
+    sede = models.ForeignKey(Servicio_Sedes, on_delete=models.SET_NULL, null=True, related_name='equipos_sede')
+    servicio = models.ForeignKey(Servicio_Sedes, on_delete=models.SET_NULL, null=True)
+    responsable = models.ForeignKey(Responsable_Servicios, on_delete=models.SET_NULL, null=True)
     # Información general del equipo
-    proceso = models.CharField(max_length=200)
     nombre_equipo = models.CharField(max_length=200)
     codigo_inventario = models.CharField(max_length=100)
     codigo_ips = models.CharField(max_length=100, null=True, blank=True)
@@ -64,10 +61,12 @@ class Equipo(models.Model):
 
 
 # -----------------------------
-# 5. REGISTRO HISTÓRICO
+# 4. REGISTRO HISTÓRICO
 # -----------------------------
 class RegistroHistorico(models.Model):
-    equipo = models.OneToOneField(Equipo, on_delete=models.CASCADE, related_name='historico')
+    sede=models.ForeignKey(Servicio_Sedes, on_delete=models.SET_NULL, null=True, related_name='registros_historicos_sede')
+    servicio=models.ForeignKey(Servicio_Sedes, on_delete=models.SET_NULL, null=True)
+    serie=models.ForeignKey(Equipo, on_delete=models.CASCADE, related_name='registros_historicos')
 
     tiempo_vida_util = models.CharField(max_length=50, null=True, blank=True)
     fecha_adquisicion = models.DateField(null=True, blank=True)
@@ -88,10 +87,12 @@ class RegistroHistorico(models.Model):
 
 
 # -----------------------------
-# 6. INVENTARIO DE DOCUMENTOS
+# 5. INVENTARIO DE DOCUMENTOS
 # -----------------------------
 class DocumentoEquipo(models.Model):
-    equipo = models.OneToOneField(Equipo, on_delete=models.CASCADE, related_name='documentos')
+    sede=models.ForeignKey(Servicio_Sedes, on_delete=models.SET_NULL, null=True, related_name='documentos_equipos_sede')
+    servicio=models.ForeignKey(Servicio_Sedes, on_delete=models.SET_NULL, null=True)
+    serie=models.ForeignKey(Equipo, on_delete=models.CASCADE, related_name='documentos_equipo')
 
     hoja_vida = models.BooleanField(default=False)
     registro_importacion = models.BooleanField(default=False)
@@ -107,14 +108,15 @@ class DocumentoEquipo(models.Model):
 
 
 # -----------------------------
-# 7. INFORMACIÓN METROLÓGICA ADMINISTRATIVA
+# 6. INFORMACIÓN METROLÓGICA ADMINISTRATIVA
 # -----------------------------
 class MetrologiaAdmin(models.Model):
-    equipo = models.OneToOneField(Equipo, on_delete=models.CASCADE, related_name='metrologia_admin')
+    sede=models.ForeignKey(Servicio_Sedes, on_delete=models.SET_NULL, null=True, related_name='metrologia_admin_sede')
+    servicio=models.ForeignKey(Servicio_Sedes, on_delete=models.SET_NULL, null=True)
+    serie=models.ForeignKey(Equipo, on_delete=models.CASCADE, related_name='metrologia_admin')
 
     mantenimiento = models.BooleanField(default=False)
     frecuencia_mantenimiento = models.IntegerField(default=0)
-
     calibracion = models.BooleanField(default=False)
     frecuencia_calibracion = models.CharField(max_length=100, null=True, blank=True)
 
@@ -123,10 +125,12 @@ class MetrologiaAdmin(models.Model):
 
 
 # -----------------------------
-# 8. INFORMACIÓN METROLÓGICA TÉCNICA
+# 7. INFORMACIÓN METROLÓGICA TÉCNICA
 # -----------------------------
 class MetrologiaTecnica(models.Model):
-    equipo = models.OneToOneField(Equipo, on_delete=models.CASCADE, related_name='metrologia_tecnica')
+    sede=models.ForeignKey(Servicio_Sedes, on_delete=models.SET_NULL, null=True, related_name='metrologia_tecnica_sede')
+    servicio=models.ForeignKey(Servicio_Sedes, on_delete=models.SET_NULL, null=True)
+    serie=models.ForeignKey(Equipo, on_delete=models.CASCADE, related_name='metrologia_tecnica')
 
     magnitud = models.CharField(max_length=150)
     rango_equipo = models.CharField(max_length=200)
@@ -139,16 +143,17 @@ class MetrologiaTecnica(models.Model):
 
 
 # -----------------------------
-# 9. CONDICIONES DE FUNCIONAMIENTO
+# 8. CONDICIONES DE FUNCIONAMIENTO
 # -----------------------------
 class CondicionesFuncionamiento(models.Model):
-    equipo = models.OneToOneField(Equipo, on_delete=models.CASCADE, related_name='condiciones')
+    sede=models.ForeignKey(Servicio_Sedes, on_delete=models.SET_NULL, null=True, related_name='condiciones_funcionamiento_sede')
+    servicio=models.ForeignKey(Servicio_Sedes, on_delete=models.SET_NULL, null=True)
+    serie=models.ForeignKey(Equipo, on_delete=models.CASCADE, related_name='condiciones_funcionamiento')
 
     voltaje = models.CharField(max_length=50)
     corriente = models.CharField(max_length=50, null=True, blank=True)
     humedad = models.CharField(max_length=50, null=True, blank=True)
     temperatura = models.CharField(max_length=100, null=True, blank=True)
-
     dimensiones = models.CharField(max_length=200)
     peso = models.CharField(max_length=50)
     otros = models.CharField(max_length=200, null=True, blank=True)

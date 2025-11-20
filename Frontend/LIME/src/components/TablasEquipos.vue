@@ -79,7 +79,7 @@ export default {
                 <td>Medio</td>
                 <td>2020INV-123</td>
                 <td>Activo</td>
-                <td><button>Actualizar</button></td>
+                <td><button class="boton-tabla">Actualizar</button></td>
             </tr>
 
             <!-- Fila 2 -->
