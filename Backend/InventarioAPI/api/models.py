@@ -5,7 +5,7 @@ from django.db import models
 # =============================
 class Sede(models.Model):
     nombre = models.CharField(max_length=150, unique=True)
-    ubicacion = models.CharField(max_length=250) # Ubicación física de la sede
+    ubicacion = models.CharField(max_length=250, null=True, blank=True) # Ubicación física de la sede
     
     class Meta:
         verbose_name_plural = "Sedes"
@@ -18,7 +18,7 @@ class Sede(models.Model):
 # =============================
 class Servicio(models.Model):
     sede = models.ForeignKey(Sede, on_delete=models.PROTECT, related_name='servicios')
-    nombre = models.CharField(max_length=150)
+    nombre = models.CharField(max_length=150, null=False, blank=False)
     
     class Meta:
         verbose_name_plural = "Servicios"
