@@ -34,22 +34,41 @@ export default {
         // ========================
         // EMITE AL PADRE TODOS LOS FILTROS
         // ========================
+        convertirABooleano(valor) {
+            if (valor === "Sí") {
+                return true;
+            } else if (valor === "No") {
+                return false;
+            }
+            // Devuelve el valor original (ej. si es texto vacío o si ya es un valor)
+            return valor;
+            },
         emitirFiltros() {
             // Construye un objeto con todos los filtros
             const filtros = {
                 sede: this.filtroSede,
                 servicio: this.filtroServicio,
                 numeroSerie: this.filtroNumeroSerie,
-                dinamico1: this.filtroDinamico1,
-                dinamico2: this.filtroDinamico2,
-                dinamico3: this.filtroDinamico3,
+                dinamico1: this.convertirABooleano(this.filtroDinamico1),
+                dinamico2: this.convertirABooleano(this.filtroDinamico2),
+                dinamico3: this.convertirABooleano(this.filtroDinamico3),
             };
 
             // Emite el evento al padre con los filtros
             this.$emit('aplicar-filtros', filtros);
         }
     },
+    watch: {
+        seccion() {
+            // Limpiar visualmente los filtros dinámicos cuando cambie la sección
+            this.filtroDinamico1 = "";
+            this.filtroDinamico2 = "";
+            this.filtroDinamico3 = "";
 
+            // (opcional) Si quieres emitir los filtros limpios al padre:
+            // this.emitirFiltros();
+        }
+    },
     // ========================
     // PLACEHOLDERS DINÁMICOS
     // ========================
@@ -57,31 +76,31 @@ export default {
         placeholderDinamico1() {
             switch (this.seccion) {
                 case 'General': return 'Marca';
-                case 'Registro': return 'Tiempo vida Util';
+                case 'Registro': return 'proveedor';
                 case 'MetrologiaA': return 'Frec. Manteniemiento';
                 case 'MetrologiaT': return 'Magnitud';
                 case 'Documentacion': return 'Hoja de Vida';
-                default: return 'Peso';
+                default: return 'Voltaje';
             }
         },
         placeholderDinamico2() {
             switch (this.seccion) {
                 case 'General': return 'Modelo';
-                case 'Registro': return 'Fecha Fabricacion';
+                case 'Registro': return 'Forma de Adquisición';
                 case 'MetrologiaA': return 'Frec. Calibración';
                 case 'MetrologiaT': return 'Rango Equipo';
-                case 'Documentacion': return 'Guia de Usuario';
-                default: return 'Voltaje';
+                case 'Documentacion': return 'Registro Importacion';
+                default: return 'Peso';
             }
         },
         placeholderDinamico3() {
             switch (this.seccion) {
-                case 'General': return 'Estado';
-                case 'Registro': return 'Adquisicion';
+                case 'General': return 'Código Inventario';
+                case 'Registro': return 'Tiene Garantia';
                 case 'MetrologiaA': return 'calibración';
                 case 'MetrologiaT': return 'Rango Trabajo';
-                case 'Documentacion': return 'Manual de Operación';
-                default: return 'Corriente';
+                case 'Documentacion': return 'Instructivo de Uso';
+                default: return 'Temperatura';
             }
         },
     }

@@ -49,11 +49,6 @@ export default {
             this.seccion = seccionNueva;
         },
 
-        /**
-         * Controla el menú desplegable de cada fila:
-         * - Cierra los demás
-         * - Alterna el seleccionado
-         */
         toggleDropdown(index) {
             this.equiposConEstado.forEach((fila, i) => {
                 if (i !== index) {
@@ -178,7 +173,7 @@ export default {
         </thead>
 
         <tbody>
-            <tr class="tabla--fila" v-for="(re, index) in filas" :key="re.serie_equipo">
+            <tr class="tabla--fila" v-for="(re, index) in equiposConEstado" :key="re.serie_equipo">
                 <td><input class="checkRow" type="checkbox" /></td>
 
                 <!-- Datos del registro -->
@@ -191,7 +186,7 @@ export default {
                 <td>{{ re.fecha_fabricacion }}</td>
                 <td>{{ re.nit }}</td>
                 <td>{{ re.proveedor }}</td>
-                <td>{{ re.en_garantia }}</td>
+                <td>{{ re.en_garantia ? 'Sí' : 'No' }}</td>
                 <td>{{ re.fecha_fin_garantia }}</td>
                 <td>{{ re.forma_adquisicion }}</td>
                 <td>{{ re.tipo_documento }}</td>
@@ -234,7 +229,7 @@ export default {
         </thead>
 
         <tbody>
-            <tr class="tabla--fila" v-for="(ma, index) in filas" :key="ma.serie_equipo">
+            <tr class="tabla--fila" v-for="(ma, index) in equiposConEstado" :key="ma.serie_equipo">
                 <td><input class="checkRow" type="checkbox" /></td>
 
                 <td>{{ ma.nombre_sede }}</td>
@@ -283,11 +278,11 @@ export default {
         </thead>
 
         <tbody>
-            <tr class="tabla--fila" v-for="(mt, index) in filas" :key="mt.serie">
+            <tr class="tabla--fila" v-for="(mt, index) in equiposConEstado" :key="mt.serie_equipo">
                 <td><input class="checkRow" type="checkbox" /></td>
 
-                <td>{{ mt.sede }}</td>
-                <td>{{ mt.servicio }}</td>
+                <td>{{ mt.nombre_sede }}</td>
+                <td>{{ mt.nombre_servicio }}</td>
                 <td>{{ mt.serie_equipo }}</td>
                 <td>{{ mt.magnitud }}</td>
                 <td>{{ mt.rango_equipo }}</td>
@@ -323,7 +318,7 @@ export default {
                 <th class="tabla--headers">Hoja de Vida</th>
                 <th class="tabla--headers">Reg. Importación</th>
                 <th class="tabla--headers">Manual Operación</th>
-                <th class="tabla--headers">Manual Servicio</th>
+                <th class="tabla--headers">Manual Mantenimiento</th>
                 <th class="tabla--headers">Guía Rápida</th>
                 <th class="tabla--headers">Instructivo Uso</th>
                 <th class="tabla--headers">Protocolo Mantenimiento</th>
@@ -333,16 +328,16 @@ export default {
         </thead>
 
         <tbody>
-            <tr class="tabla--fila" v-for="(doc, index) in filas" :key="doc.serie">
+            <tr class="tabla--fila" v-for="(doc, index) in equiposConEstado" :key="doc.serie_equipo">
                 <td><input class="checkRow" type="checkbox" /></td>
 
-                <td>{{ doc.sede }}</td>
-                <td>{{ doc.servicio }}</td>
+                <td>{{ doc.nombre_sede }}</td>
+                <td>{{ doc.nombre_servicio }}</td>
                 <td>{{ doc.serie_equipo }}</td>
                 <td>{{ doc.hoja_vida ? 'Sí' : 'No' }}</td>
                 <td>{{ doc.registro_importacion ? 'Sí' : 'No' }}</td>
                 <td>{{ doc.manual_operacion ? 'Sí' : 'No' }}</td>
-                <td>{{ doc.manual_mantenimiento }}</td>
+                <td>{{ doc.manual_mantenimiento ? 'Sí' : 'No' }}</td>
                 <td>{{ doc.guia_rapida ? 'Sí' : 'No' }}</td>
                 <td>{{ doc.instructivo_manejo ? 'Sí' : 'No' }}</td>
                 <td>{{ doc.protocolo_mantenimiento ? 'Sí' : 'No' }}</td>
@@ -385,11 +380,11 @@ export default {
         </thead>
 
         <tbody>
-            <tr class="tabla--fila" v-for="(con, index) in filas" :key="con.serie">
+            <tr class="tabla--fila" v-for="(con, index) in equiposConEstado" :key="con.serie_equipo">
                 <td><input class="checkRow" type="checkbox" /></td>
 
-                <td>{{ con.sede }}</td>
-                <td>{{ con.servicio }}</td>
+                <td>{{ con.nombre_sede }}</td>
+                <td>{{ con.nombre_servicio }}</td>
                 <td>{{ con.serie_equipo }}</td>
                 <td>{{ con.voltaje }}</td>
                 <td>{{ con.corriente }}</td>
@@ -397,7 +392,7 @@ export default {
                 <td>{{ con.temperatura }}</td>
                 <td>{{ con.dimensiones }}</td>
                 <td>{{ con.peso }}</td>
-                <td>{{ con.otros }}</td>
+                <td>{{ con.otros_requerimientos }}</td>
 
                 <!-- Dropdown acciones -->
                 <td class="dropdown-cell">

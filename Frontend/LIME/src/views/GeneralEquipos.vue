@@ -18,6 +18,8 @@ export default {
         return {
             seccion:"General",
             filas: [],
+
+            // Filtros que siempre estarán disponibles
             filtrosActuales: {
                 sede: '',
                 servicio: '',
@@ -30,49 +32,70 @@ export default {
     },
 
     methods: {
-        // 3. Modifica para aceptar un objeto de filtros
+
+        // Método que lista equipos con filtros o sin filtros
         async listarEquipos(filtros) {
-            // Si se proporcionan filtros, se usan esos. Si no, se usan los almacenados.
+
             const filtrosAUsar = filtros || this.filtrosActuales;
 
-            // Construir la URL con los parámetros de la API (ajustar según tu backend)
-            // Esto es solo un ejemplo de cómo se podría construir una query string
-            const params = new URLSearchParams({
-                sede: filtrosAUsar.sede,
-                servicio: filtrosAUsar.servicio,
-                serie: filtrosAUsar.numeroSerie,
-                f1: filtrosAUsar.dinamico1, // Nombres de parámetros a ajustar
-                f2: filtrosAUsar.dinamico2,
-                f3: filtrosAUsar.dinamico3,
-            }).toString();
-            
+            // Verifica si todos los filtros están vacíos
+            const todosVacios = Object.values(filtrosAUsar).every(v => v === "");
+
+            // Crear URL base sin parámetros
+            let url = `http://127.0.0.1:8000/api/${this.seccion}/`;
+
+            // Si hay filtros → agregarlos
+            if (!todosVacios) {
+                const params = new URLSearchParams({
+                    sede: filtrosAUsar.sede,
+                    servicio: filtrosAUsar.servicio,
+                    serie: filtrosAUsar.numeroSerie,
+                    f1: filtrosAUsar.dinamico1,
+                    f2: filtrosAUsar.dinamico2,
+                    f3: filtrosAUsar.dinamico3,
+                }).toString();
+
+                url += `?${params}`;
+            }
+
             try {
-                // Se agrega la query string a la URL
-                const url = `http://127.0.0.1:8000/api/${this.seccion}/?${params}`;
                 const res = await axios.get(url);
                 this.filas = res.data.result;
             } catch (err) {
                 console.error(err);
                 alert("Error al listar equipos");
             }
-        },  
-        // 2. Nuevo método para manejar el evento del componente hijo
+        },
+
+        // Manejar filtros emitidos desde el componente hijo
         filtrarEquipos(nuevosFiltros) {
-            // Almacena los nuevos filtros y llama a listarEquipos
+
+            // Guardar los filtros recibidos
             this.filtrosActuales = nuevosFiltros;
-            console.log(nuevosFiltros)
+
+            // Ejecutar búsqueda con ellos
             this.listarEquipos(nuevosFiltros);
         },
 
-        cambiarSeccion(seccionNueva){
+        // Cambio de sección
+        cambiarSeccion(seccionNueva) {
+
+            // Actualizamos la nueva sección de API
             this.seccion = seccionNueva;
-            // Opcional: podrías querer resetear los filtros al cambiar de sección
+
+            // Solo limpiar los filtros dinámicos
             this.filtrosActuales = {
-                sede: '', servicio: '', numeroSerie: '',
-                dinamico1: '', dinamico2: '', dinamico3: '',
-            }
+                ...this.filtrosActuales,  // conserva sede, servicio, serie
+                dinamico1: '',
+                dinamico2: '',
+                dinamico3: '',
+            };
+
+            // Nueva consulta con los filtros persistentes
+            this.listarEquipos(this.filtrosActuales);
         }
     },
+
     mounted() {
         this.listarEquipos();
     },

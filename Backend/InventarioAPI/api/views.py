@@ -219,18 +219,18 @@ class MetrologiaAdminView(View):
             filtros["equipo__servicio__nombre_servicio__icontains"] = servicio
         
         # Filtro por Marca del Equipo
-        frecuenciaM = request.GET.get("frecuencia_mantenimiento")
+        frecuenciaM = request.GET.get("f1")
         if frecuenciaM:
             # Acceso directo al campo 'marca' del objeto Equipo
             filtros["frecuencia_mantenimiento__icontains"] = frecuenciaM 
 
         # Filtro por Modelo del Equipo
-        frecuenciaC = request.GET.get("frecuencia_calibracion")
+        frecuenciaC = request.GET.get("f2")
         if frecuenciaC:
             filtros["frecuencia_calibracion__icontains"] = frecuenciaC
 
         # Filtro por Requisito de Calibración (Booleano)
-        calibracion_req = request.GET.get("calibracion")
+        calibracion_req = request.GET.get("f3")
         if calibracion_req in ('True', 'true', '1'):
             filtros["calibracion"] = True
         elif calibracion_req in ('False', 'false', '0'):
@@ -298,19 +298,19 @@ class MetrologiaTecnicaView(View):
             filtros["equipo__servicio__nombre_servicio__icontains"] = servicio
         
         # Filtro por Estado del Equipo
-        rangoE = request.GET.get("rango_equipo")
+        rangoE = request.GET.get("f2")
         if rangoE:
             filtros["rango_equipo__icontains"] = rangoE
 
         # 2. FILTROS PROPIOS DE METROLOGIA TÉCNICA
         
         # Filtro por Magnitud de Medida
-        magnitud = request.GET.get("magnitud")
+        magnitud = request.GET.get("f1")
         if magnitud:
             filtros["magnitud__icontains"] = magnitud
         
         # Filtro por Rango de Equipo
-        rangoT = request.GET.get("rango_trabajo")
+        rangoT = request.GET.get("f3")
         if rangoT:
             # Usamos __icontains para buscar valores parciales en el rango (si es un CharField)
             filtros["rango_trabajo__icontains"] = rangoT 
@@ -380,19 +380,19 @@ class DocumentoEquipoView(View): # Renombrado a DocumentoEquipoView
         # 2. FILTROS PROPIOS DE DOCUMENTO EQUIPO
         
         # Filtro por si tiene Hoja de Vida (Booleano)
-        hoja_vida = request.GET.get("hoja_vida")
+        hoja_vida = request.GET.get("f1")
         if hoja_vida in ('True', 'true', '1'):
             filtros["hoja_vida"] = True
         elif hoja_vida in ('False', 'false', '0'):
             filtros["hoja_vida"] = False
 
-        registro_importacion = request.GET.get("registro_importacion")
+        registro_importacion = request.GET.get("f2")
         if registro_importacion in ('True', 'true', '1'):
             filtros["registro_importacion"] = True
-        elif hoja_vida in ('False', 'false', '0'):
+        elif registro_importacion in ('False', 'false', '0'):
             filtros["registro_importacion"] = False
         
-        instructivo_manejo = request.GET.get("registro_importacion")
+        instructivo_manejo = request.GET.get("f3")
         if instructivo_manejo in ('True', 'true', '1'):
             filtros["instructivo_manejo"] = True
         elif instructivo_manejo in ('False', 'false', '0'):
@@ -464,19 +464,19 @@ class CondicionesFuncionamientoView(View): # Renombrado a CondicionesFuncionamie
         # 2. FILTROS PROPIOS DE CONDICIONES DE FUNCIONAMIENTO
         
         # Filtro por Voltaje
-        voltaje = request.GET.get("voltaje")
+        voltaje = request.GET.get("f1")
         if voltaje:
             # Filtro exacto o parcial, dependiendo de cómo se guarde el voltaje (ej. "120V")
             filtros["voltaje__icontains"] = voltaje 
 
         # Filtro por Peso (asumiendo que es un campo de texto/número)
-        peso = request.GET.get("peso")
+        peso = request.GET.get("f2")
         if peso:
             # Usamos icontains para ser flexibles, pero para números podrías usar __gte, __lte
             filtros["peso__icontains"] = peso 
 
         # Filtro por Rango de Temperatura
-        temperatura = request.GET.get("temperatura")
+        temperatura = request.GET.get("f3")
         if temperatura:
             filtros["temperatura__icontains"] = temperatura
 
