@@ -23,9 +23,9 @@ export default {
     },
 
     methods: {
-        async listarEquipos(nombre) {
+        async listarEquipos() {
             try {
-                const res = await axios.get(`http://127.0.0.1:8000/api/${nombre}/`);
+                const res = await axios.get(`http://127.0.0.1:8000/api/${this.seccion}/`);
                 this.filas = res.data.result;
             } catch (err) {
                 console.error(err);
@@ -60,27 +60,23 @@ export default {
 
         <!-- Botones para cambiar entre secciones -->
         <div class="menuPrincipal--secciones">
-                <button class="secciones--botones" @click="cambiarSeccion('General'); listarEquipos('equipos')">General</button>
-                <button class="secciones--botones" @click="cambiarSeccion('Registro'); listarEquipos('registros')">Registro Historico</button>
-                <button class="secciones--botones" @click="cambiarSeccion('MetrologiaA'); listarEquipos('metrologiaA')">Metrologia administrativa</button>
-                <button class="secciones--botones" @click="cambiarSeccion('MetrologiaT'); listarEquipos('metrologiaT')">Metrologia Tecnica</button>
-                <button class="secciones--botones" @click="cambiarSeccion('Documentacion'); listarEquipos('documentos')">Documentación</button>
-                <button class="secciones--botones" @click="cambiarSeccion('Condicion'); listarEquipos('condicion')">Coondicion Funcionamiento</button>
+                <button class="secciones--botones" :class="{ 'active': seccion === 'General' }"  @click="cambiarSeccion('General'); listarEquipos()">General</button>
+                <button class="secciones--botones" :class="{ 'active': seccion === 'Registro' }" @click="cambiarSeccion('Registro'); listarEquipos()">Registro Historico</button>
+                <button class="secciones--botones" :class="{ 'active': seccion === 'MetrologiaA' }" @click="cambiarSeccion('MetrologiaA'); listarEquipos()">Metrologia Administrativa</button>
+                <button class="secciones--botones" :class="{ 'active': seccion === 'MetrologiaT' }" @click="cambiarSeccion('MetrologiaT'); listarEquipos()">Metrologia Tecnica</button>
+                <button class="secciones--botones" :class="{ 'active': seccion === 'Documentacion' }" @click="cambiarSeccion('Documentacion'); listarEquipos()">Documentación</button>
+                <button class="secciones--botones" :class="{ 'active': seccion === 'Condicion' }" @click="cambiarSeccion('Condicion'); listarEquipos()">Coondicion Funcionamiento</button>
         </div>
-
         <!-- Contenedor principal de tabla + filtros -->
         <div class="menuPrincipal--tablaPrincipal">
-
             <!-- Filtros y botones laterales -->
             <div class="tablaPrincipal--filtros">
-
                 <!-- Componente de filtros dinámico por sección -->
                 <FiltrosMenu :seccion="seccion" />
-
                 <!-- Botones de acciones (agregar y eliminar) -->
                 <div class="tablaPricipal--menuBotones">
                         <button class="menuBotones--botones" type="button">Agregar</button>
-                        <button class="menuBotones--botones" type="button">Eliminar</button>
+                        <button class="menuBotones--botones" type="button">Desactivar</button>
                 </div>
             </div>
 
@@ -103,7 +99,7 @@ export default {
 
     /* Fondo general del layout */
     .background{
-        background-color: #eeeeee;
+        background-color: #ffffff;
         height: 100vh;
         width: 100vw;
         display:flex;
@@ -124,12 +120,12 @@ export default {
         display:flex;
         flex-direction: column;
     }
-
+    /*-----INICIO NAVBAR MENU----------*/ 
     /* Navbar superior */
     .menuPrincipal--navbar{
         padding-left: 35%;
         box-sizing: border-box;
-        background-color: #ffffffbb;
+        background-color: #f7f7f7a1;
         height: 7%;
         width: 100%;
         align-items: center;
@@ -147,7 +143,6 @@ export default {
         margin-left: 20px;
         cursor: pointer;
         padding: 10px 15px;
-        transition: background-color 0.3s, color 0.3s;
     }
 
     .navbar--opciones:hover{
@@ -155,8 +150,10 @@ export default {
     }
 
     .navbar--opciones:active{
-        transform: scale(0.98);
+        transform: scale(0.95);
     }
+    /*-----FIN NAVBAR MENU----------*/ 
+
 
     /* Contenedor principal donde va tabla y filtros */
     .menuPrincipal--tablaPrincipal{
@@ -165,11 +162,14 @@ export default {
         box-sizing: border-box;
         width: 96%;
         height: 84%;
-        background-color: #ffffff;
+        background-color: #f7f7f7a1;
         display:flex;
         flex-direction: column;
+        border-radius: 0 12px 12px 12px;
+        box-shadow: 2px 3px 3px rgba(0, 0, 0, 0.15), -2px 0 3px rgba(0, 0, 0, 0.15);
     }
 
+    /*-----INICIO SECCIONES DE CARPETA MENU --------*/
     /* Botones para cambiar sección */
     .menuPrincipal--secciones{
         border-radius: 10px 10px 0 0;
@@ -178,33 +178,58 @@ export default {
         box-sizing: border-box;
         height: 6%;
         width: 96%;
-        background-color: #ffffff;
+        background-color: transparent;
         display:flex;
         flex-direction: row;
-        align-items: center;
+        align-items: flex-end;
     }
 
     .secciones--botones{
         padding: 0 2%;
-        height: 100%;
+        margin-right: -20px;
+        height: 70%;
         border-radius: 5px 10px 0 0;
         border:none;
-        background-color: #ffffff;
-        color:#00a89d;
+        background-color: #88b5b0;
+        color:#ffffff;
+        border-radius: 12px 12px 0 0; 
+        box-shadow: 2px 0 3px rgba(0, 0, 0, 0.15), -2px 0 3px rgba(0, 0, 0, 0.15);
     }
-
     .secciones--botones:first-child{
-        border-radius: 10px 10px 0 0;
+        z-index: 6;
+    }
+    .secciones--botones:nth-child(2){
+        z-index: 5;
+    }
+    .secciones--botones:nth-child(3){
+        z-index: 4
+    }
+    .secciones--botones:nth-child(4){
+        z-index: 3
+    }
+    .secciones--botones:nth-child(5){
+        z-index: 2
+    }
+    .secciones--botones:last-child{
+        z-index: 1
+    }
+    .secciones--botones.active{
+        background-color:#008073;
+        z-index: 7;
+        height: 90%;
     }
 
     .secciones--botones:hover{
         color: #ffffff;
-        background-color: #00a89d;
+        background-color: #008073;
+        height: 80%;
+        z-index: 6;
     }
 
     .secciones--botones:active{
         transform: scale(0.98);
     }
+    /*-----FIN SECCIONES DE CARPETA MENU --------*/
 
     /* Contenedor de filtros */
     .tablaPrincipal--filtros{
@@ -232,7 +257,7 @@ export default {
         height: 40%;
         margin-bottom:2%;
         border-radius: 5px;
-        background-color: #00a89d;
+        background-color: #008073;
         color: #ffffff;
         border: none;
         cursor: pointer;
@@ -241,6 +266,7 @@ export default {
 
     .menuBotones--botones:hover{
         box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        transform: scale(1.03);
     }
 
     .menuBotones--botones:active{

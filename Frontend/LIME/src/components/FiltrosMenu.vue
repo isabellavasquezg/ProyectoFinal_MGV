@@ -73,7 +73,7 @@ export default {
         <input class="filtros--inputs" type="text" :placeholder="placeholderDinamico1" />
         <input class="filtros--inputs" type="text" :placeholder="placeholderDinamico2" />
         <input class="filtros--inputs" type="text" :placeholder="placeholderDinamico3" />
-        <button class="filtros--boton" type="submit">Filtrar</button>
+        <button class="filtros--boton" type="button">Filtrar</button>
     </form>
 </template>
 <style>
@@ -85,11 +85,12 @@ export default {
         align-items: center;
     }
     .filtros--inputs{
+        background-color: #f7f7f7a1;
         font-size: 13px;
         margin-right:1%;
         width: 18%;
         border: none;
-        border-bottom: 1px solid #cccccc;
+        border-bottom: 1px solid #a2a2a2;
     }
     .filtros--inputs:focus{
         outline: none;
@@ -98,15 +99,15 @@ export default {
     .filtros--boton{
         border-radius: 5px;
         height: 50%;
-        background-color: #00a89d;
+        background-color: #008073;
         margin-left: 2%;
         color: #ffffff;
         border: none;
         cursor: pointer;
-        transition: background-color 0.3s, transform 0.1s;
     }
     .filtros--boton:hover{
         box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        transform: scale(1.03);
     }
     .filtros--boton:active{
         transform: scale(0.98);

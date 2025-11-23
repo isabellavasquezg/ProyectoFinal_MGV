@@ -1,373 +1,513 @@
-# from django.http import JsonResponse
-# from django.views import View
-# from .models import Equipo, RegistroHistorico,MetrologiaAdmin,MetrologiaTecnica,CondicionesFuncionamiento,DocumentoEquipo,Sede,Servicio,Responsable_Servicios
-# import json
-# from django.utils.decorators import method_decorator
-# from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.views import View
+from .models import Sede, Servicio, Equipo, RegistroHistorico, MetrologiaAdmin, MetrologiaTecnica, DocumentoEquipo, CondicionesFuncionamiento, Mantenimiento, TrasladoEquipo
+import json
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
-# class Equipos(View): 
-#     @method_decorator(csrf_exempt)
-#     def dispatch(self, request, *args, **kwargs):
-#         return super().dispatch(request, *args, **kwargs)
-#     def get(self, request):
-#         filtros = {}
-#         sede = request.GET.get("sede")
-#         if sede:
-#             filtros["sede__nombre__icontains"] = sede
+# ================================================
+# VISTA: Equipos (Listado y Filtro por GET)
+# ================================================
 
-#         servicio = request.GET.get("servicio")
-#         if servicio:
-#             filtros["servicio__nombre__icontains"] = servicio
+class EquiposView(View): # Renombrado a EquiposView para claridad
 
-#         marca = request.GET.get("marca")
-#         if marca:
-#             filtros["marca__icontains"] = marca
+    # Desactiva la protección CSRF para esta clase/método (útil para APIs)
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
 
-#         modelo = request.GET.get("modelo")
-#         if modelo:
-#             filtros["modelo__icontains"] = modelo
+    def get(self, request, *args, **kwargs):
+        """
+        Maneja peticiones GET para listar y filtrar equipos dinámicamente.
+        Los parámetros de filtro se esperan en la URL (Query Params).
+        """
+        filtros = {}
 
-#         serie = request.GET.get("serie")
-#         if serie:
-#             filtros["serie__icontains"] = serie
+        # 1. FILTROS DE RELACIONES (Acceso a través de FK con __nombre)
+        # Filtro por Nombre de Sede (Búsqueda parcial, case-insensitive)
+        sede = request.GET.get("sede")
+        if sede:
+            filtros["sede__nombre_sede__icontains"] = sede
 
-#         estado = request.GET.get("estado")
-#         if estado:
-#             filtros["estado__icontains"] = estado
+        # Filtro por Nombre de Servicio
+        servicio = request.GET.get("servicio")
+        if servicio:
+            filtros["servicio__nombre_servicio__icontains"] = servicio
+        
+        # Filtro por Número de Serie
+        serie = request.GET.get("serie")
+        if serie:
+            filtros["serie_equipo__icontains"] = serie
 
-#         # Ejecutar filtro dinámico
-#         equipos = Equipo.objects.filter(**filtros)
+        # 2. FILTROS DE PROPIEDADES DIRECTAS (Equipo)
+        
+        # Filtro por Marca
+        marca = request.GET.get("marca")
+        if marca:
+            filtros["marca_equipo__icontains"] = marca
 
-#         # Si no se encontró nada
-#         if not equipos.exists():
-#             return JsonResponse({"result": []}, status=200)
+        # Filtro por Modelo
+        modelo = request.GET.get("modelo")
+        if modelo:
+            filtros["modelo_equipo__icontains"] = modelo
 
-#         # Convertir queryset en lista JSON
-#         data = [
-#             {
-#                 # Datos de Relaciones
-#                 'sede': e.sede.nombre if e.sede else None,                 # Corresponde a <td>{{ eq.sede }}</td>
-#                 'servicio': e.servicio.nombre if e.sede else None,         # Corresponde a <td>{{ eq.servicio }}</td>
-#                 'responsable': f"{e.responsable.nombre} {e.responsable.apellido}" if e.responsable else None, # ASUMIDO: Necesitas el responsable
+        # Filtro por Estado (activo, inactivo, de baja)
+        codigo_inventario = request.GET.get("codigo_inventario")
+        if codigo_inventario:
+            filtros["codigo_inventario__icontains"] = codigo_inventario
+
+        # Ejecutar filtro dinámico en la base de datos
+        # Usa select_related() para optimizar la consulta de las FK (sede y servicio)
+        equipos = Equipo.objects.select_related('sede', 'servicio').filter(**filtros)
+
+        # Si no se encontró ningún equipo
+        if not equipos.exists():
+            # Devolver una lista vacía con status 200 (OK)
+            return JsonResponse({"result": []}, status=200)
+
+        # 3. Serialización de la Data
+        data = [
+            {
+                # 3.1. Datos de Relaciones y Responsable
+                'id': e.id, # Incluir el ID siempre es útil
+                'nombre_sede': e.sede.nombre_sede if e.sede else None, 
+                # CORRECCIÓN: Usa e.servicio.nombre si e.servicio existe
+                'nombre_servicio': e.servicio.nombre_servicio if e.servicio else None,
+                'nombre_responsable': e.responsable_servicio, # Campo CharField  
+                # 3.2. Datos del Equipo (Equipo Base)
+                'nombre_equipo': e.nombre_equipo, 
+                'marca_equipo': e.marca_equipo, 
+                'modelo_equipo': e.modelo_equipo,
+                'serie_equipo': e.serie_equipo, 
+                'estado_equipo': e.estado_equipo, 
+                'codigo_inventario': e.codigo_inventario, 
+                'codigo_ips': e.codigo_ips, 
+                'codigo_ecri': e.codigo_ecri, 
+                'ubicacion_fisica': e.ubicacion_fisica, 
+                'clasificacion_misional': e.clasificacion_misional, 
+                'clasificacion_ips': e.clasificacion_ips, 
+                'clasificacion_riesgo': e.clasificacion_riesgo, 
+                'registro_invima': e.registro_invima,
+                'descripcion_baja':e.descripcion_baja,
+                'fecha_baja':e.fecha_baja_equipo,
+            }
+            for e in equipos
+        ]
+
+        # Devolver la respuesta en formato JSON
+        # safe=False si se devuelve un objeto que no es un diccionario (aquí no es necesario, pero es buena práctica si la lista 'data' fuera la respuesta principal)
+        return JsonResponse({"result": data}, status=200)
+    
+# ================================================
+# VISTA: RegistroHistorico (Adquisición, Proveedor)
+# ================================================
+
+class RegistroHistoricoView(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get(self, request, *args, **kwargs):
+        filtros = {}
+
+        # Filtro por SERIE del Equipo relacionado
+        serie = request.GET.get("serie")
+        if serie:
+            filtros["equipo__serie_equipo__icontains"] = serie 
+        
+        # Filtro por Nombre de Sede (Búsqueda parcial, case-insensitive)
+        sede = request.GET.get("sede")
+        if sede:
+            filtros["equipo__sede__nombre_sede__icontains"] = sede
+
+        # Filtro por Nombre de Servicio
+        servicio = request.GET.get("servicio")
+        if servicio:
+            filtros["equipo__servicio__nombre_servicio__icontains"] = servicio
+
+        # 2. NUEVOS FILTROS ESPECÍFICOS DE HISTÓRICO (Adquisición/Proveedor)
+
+        # Filtro por PROVEEDOR
+        proveedor = request.GET.get("proveedor")
+        if proveedor:
+            filtros["proveedor__icontains"] = proveedor
+
+        # Filtro por FORMA DE ADQUISICIÓN (compra, donación, leasing, etc.)
+        forma_adquisicion = request.GET.get("forma_adquisicion")
+        if forma_adquisicion:
+            filtros["forma_adquisicion__icontains"] = forma_adquisicion
+
+        # Filtro por GARANTÍA (Booleano)
+        en_garantia = request.GET.get("en_garantia")
+        if en_garantia in ('True', 'true', '1'):
+            filtros["en_garantia"] = True
+        elif en_garantia in ('False', 'false', '0'):
+            filtros["en_garantia"] = False
+
+        # Ejecutar filtro dinámico
+        # Usamos select_related('equipo') para optimizar el acceso a los datos del equipo
+        registros = RegistroHistorico.objects.select_related('equipo').filter(**filtros)
+
+        # Si no se encontró nada
+        if not registros.exists():
+            return JsonResponse({"result": []}, status=200)
+
+        # Convertir queryset en lista JSON
+        data = [
+            {
+                'id': r.id,
+                # Datos del Equipo (obtenidos a través de la relación)
+                'serie_equipo': r.equipo.serie_equipo if r.equipo else None,
+                'nombre_sede': r.equipo.sede.nombre_sede if r.equipo else None,
+                'nombre_servicio':r.equipo.servicio.nombre_servicio if r.equipo else None,
+                'estado_equipo':r.equipo.estado_equipo if r.equipo else None,
                 
-#                 # Datos del Equipo (Equipo Base)
-#                 'nombre_equipo': e.nombre_equipo,      # Corresponde a <td>{{ eq.nombre_equipo }}</td>
-#                 'marca': e.marca,                      # Corresponde a <td>{{ eq.marca }}</td>
-#                 'modelo': e.modelo,                    # Corresponde a <td>{{ eq.modelo }}</td>
-#                 'serie': e.serie,                      # Corresponde a <td>{{ eq.serie }}</td>
-#                 'estado': e.estado,                    # Corresponde a <td>{{ eq.estado }}</td>
-                
-#                 # Campos que faltan en tu consulta inicial, pero están en la tabla
-#                 'codigo_inventario': e.codigo_inventario, # Corresponde a <td>{{ eq.codigo_inventario }}</td>
-#                 'codigo_ips': e.codigo_ips,              # Corresponde a <td>{{ eq.codigo_ips }}</td>
-#                 'codigo_ecri': e.codigo_ecri,            # Corresponde a <td>{{ eq.codigo_ecri }}</td>
-#                 'ubicacion_fisica': e.ubicacion_fisica,  # Corresponde a <td>{{ eq.ubicacion_fisica }}</td>
-#                 'clasificacion_misional': e.clasificacion_misional, # Corresponde a <td>{{ eq.clasificacion_misional }}</td>
-#                 'clasificacion_ips': e.clasificacion_ips,          # Corresponde a <td>{{ eq.clasificacion_ips }}</td>
-#                 'clasificacion_riesgo': e.clasificacion_riesgo,    # Corresponde a <td>{{ eq.clasificacion_riesgo }}</td>
-#                 'registro_invima': e.registro_invima,
-#             }
-#             for e in equipos
-#         ]
+                # Información de adquisición y vida útil
+                'tiempo_vida_util': r.tiempo_vida_util,
+                'fecha_adquisicion': r.fecha_adquisicion, 
+                'propietario': r.propietario,
+                'fecha_fabricacion': r.fecha_fabricacion,
 
-#         return JsonResponse({"result": data}, status=200, safe=False)
-# class Registros(View): 
-#     @method_decorator(csrf_exempt)
-#     def dispatch(self, request, *args, **kwargs):
-#         return super().dispatch(request, *args, **kwargs)
-#     def get(self, request):
-#         filtros = {}
-#         sede = request.GET.get("sede")
-#         if sede:
-#             filtros["sede__nombre__icontains"] = sede
+                # Información del proveedor
+                'nit': r.nit,
+                'proveedor': r.proveedor, 
 
-#         servicio = request.GET.get("servicio")
-#         if servicio:
-#             filtros["servicio__nombre__icontains"] = servicio
+                # Garantía
+                'en_garantia': r.en_garantia, 
+                'fecha_fin_garantia': r.fecha_fin_garantia,
 
-#         marca = request.GET.get("marca")
-#         if marca:
-#             filtros["marca__icontains"] = marca
+                # Información del documento de compra
+                'forma_adquisicion': r.forma_adquisicion,
+                'tipo_documento': r.tipo_documento,
+                'numero_documento': r.numero_documento,
+            }
+            for r in registros
+        ]
 
-#         modelo = request.GET.get("modelo")
-#         if modelo:
-#             filtros["modelo__icontains"] = modelo
+        # safe=False ya no es necesario aquí porque la respuesta es un diccionario con la clave "result"
+        return JsonResponse({"result": data}, status=200)
+    
+# ================================================
+# VISTA: MetrologiaAdmin (Mantenimiento y Calibración)
+# ================================================
 
-#         serie = request.GET.get("serie")
-#         if serie:
-#             filtros["serie__icontains"] = serie
+class MetrologiaAdminView(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get(self, request, *args, **kwargs):
+        """
+        Maneja peticiones GET para listar y filtrar datos de Metrología Administrativa.
+        Los filtros se aplican a través de la relación FK al modelo Equipo.
+        """
+        filtros = {}
 
-#         estado = request.GET.get("estado")
-#         if estado:
-#             filtros["estado__icontains"] = estado
+        # Filtro por SERIE del Equipo relacionado
+        serie = request.GET.get("serie")
+        if serie:
+            filtros["equipo__serie_equipo__icontains"] = serie 
+        
+        # Filtro por Nombre de Sede (Búsqueda parcial, case-insensitive)
+        sede = request.GET.get("sede")
+        if sede:
+            filtros["equipo__sede__nombre_sede__icontains"] = sede
 
-#         # Ejecutar filtro dinámico
-#         registros = RegistroHistorico.objects.filter(**filtros)
+        # Filtro por Nombre de Servicio
+        servicio = request.GET.get("servicio")
+        if servicio:
+            filtros["equipo__servicio__nombre_servicio__icontains"] = servicio
+        
+        # Filtro por Marca del Equipo
+        frecuenciaM = request.GET.get("frecuencia_mantenimiento")
+        if frecuenciaM:
+            # Acceso directo al campo 'marca' del objeto Equipo
+            filtros["frecuencia_mantenimiento__icontains"] = frecuenciaM 
 
-#         # Si no se encontró nada
-#         if not registros.exists():
-#             return JsonResponse({"result": []}, status=200)
+        # Filtro por Modelo del Equipo
+        frecuenciaC = request.GET.get("frecuencia_calibracion")
+        if frecuenciaC:
+            filtros["frecuencia_calibracion__icontains"] = frecuenciaC
 
-#         # Convertir queryset en lista JSON
-#         data = [
-#             {
-#                 # Datos de Relaciones (provenientes del modelo 'RegistroHistorico')
-#                 # NOTA: La relación 'serie' en RegistroHistorico apunta al modelo Equipo.
-#                 'sede': r.sede.nombre if r.sede else None,  
-#                 'servicio': r.servicio.nombre if r.servicio else None,
-#                 'serie_equipo': r.serie.serie if r.serie else None, # Se renombra a 'serie_equipo' para evitar conflicto con 'serie' (FK)
-#                 'tiempo_vida_util': r.tiempo_vida_util,
-#                 'fecha_adquisicion': r.fecha_adquisicion.strftime('%Y-%m-%d') if r.fecha_adquisicion else None, # Formatear la fecha
-#                 'propietario': r.propietario,
-#                 'fecha_fabricacion': r.fecha_fabricacion,
-
-#                 # Información del proveedor
-#                 'nit': r.nit,
-#                 'proveedor': r.proveedor,
-
-#                 # Garantía
-#                 'en_garantia': r.en_garantia, # Será True/False
-#                 'fecha_fin_garantia': r.fecha_fin_garantia,
-
-#                 # Información del documento de compra
-#                 'forma_adquisicion': r.forma_adquisicion,
-#                 'tipo_documento': r.tipo_documento,
-#                 'numero_documento': r.numero_documento,
-#             }
-#             for r in registros
-#         ]
-
-#         return JsonResponse({"result": data}, status=200, safe=False)
-# class MetrologiaA(View): 
-#     @method_decorator(csrf_exempt)
-#     def dispatch(self, request, *args, **kwargs):
-#         return super().dispatch(request, *args, **kwargs)
-#     def get(self, request):
-#         filtros = {}
-#         sede = request.GET.get("sede")
-#         if sede:
-#             filtros["sede__nombre__icontains"] = sede
-
-#         servicio = request.GET.get("servicio")
-#         if servicio:
-#             filtros["servicio__nombre__icontains"] = servicio
-
-#         marca = request.GET.get("marca")
-#         if marca:
-#             filtros["marca__icontains"] = marca
-
-#         modelo = request.GET.get("modelo")
-#         if modelo:
-#             filtros["modelo__icontains"] = modelo
-
-#         serie = request.GET.get("serie")
-#         if serie:
-#             filtros["serie__icontains"] = serie
-
-#         estado = request.GET.get("estado")
-#         if estado:
-#             filtros["estado__icontains"] = estado
-
-#         # Ejecutar filtro dinámico
-#         metrologiasa= MetrologiaAdmin.objects.filter(**filtros)
-
-#         # Si no se encontró nada
-#         if not metrologiasa.exists():
-#             return JsonResponse({"result": []}, status=200)
-
-#         # Convertir queryset en lista JSON
-#         data = [
-#             {
-#                 # --- 1. DATOS DE RELACIONES (Modelo MetrologiaAdmin) ---
-#                 # NOTA: La relación 'serie' en MetrologiaAdmin apunta al modelo Equipo.
-#                 'sede': ma.sede.nombre if ma.sede else None,  
-#                 'servicio': ma.servicio.nombre if ma.servicio else None,
-#                 # Se extrae la serie del Equipo asociado
-#                 'serie_equipo': ma.serie.serie if ma.serie else None, 
-                
-#                 # --- 2. INFORMACIÓN ADMINISTRATIVA DE MANTENIMIENTO Y CALIBRACIÓN (Campos propios de MetrologiaAdmin) ---
-#                 'mantenimiento': ma.mantenimiento,
-#                 'frecuencia_mantenimiento': ma.frecuencia_mantenimiento,
-#                 'calibracion': ma.calibracion,
-#                 'frecuencia_calibracion': ma.frecuencia_calibracion,
-#             }
-#             for ma in metrologiasa
-#         ]
-
-#         return JsonResponse({"result": data}, status=200, safe=False)
-# class MetrologiaT(View): 
-#     @method_decorator(csrf_exempt)
-#     def dispatch(self, request, *args, **kwargs):
-#         return super().dispatch(request, *args, **kwargs)
-#     def get(self, request):
-#         filtros = {}
-#         sede = request.GET.get("sede")
-#         if sede:
-#             filtros["sede__nombre__icontains"] = sede
-
-#         servicio = request.GET.get("servicio")
-#         if servicio:
-#             filtros["servicio__nombre__icontains"] = servicio
-
-#         marca = request.GET.get("marca")
-#         if marca:
-#             filtros["marca__icontains"] = marca
-
-#         modelo = request.GET.get("modelo")
-#         if modelo:
-#             filtros["modelo__icontains"] = modelo
-
-#         serie = request.GET.get("serie")
-#         if serie:
-#             filtros["serie__icontains"] = serie
-
-#         estado = request.GET.get("estado")
-#         if estado:
-#             filtros["estado__icontains"] = estado
-
-#         # Ejecutar filtro dinámico
-#         metrologiast= MetrologiaTecnica.objects.filter(**filtros)
-
-#         # Si no se encontró nada
-#         if not metrologiast.exists():
-#             return JsonResponse({"result": []}, status=200)
-
-#         # Convertir queryset en lista JSON
-#         data = [
-#             {
-#                 # --- 1. DATOS DE RELACIONES (Modelo MetrologiaTecnica) ---
-#                 # NOTA: La relación 'serie' en MetrologiaTecnica apunta al modelo Equipo.
-#                 'sede': mt.sede.nombre if mt.sede else None,  
-#                 'servicio': mt.servicio.nombre if mt.servicio else None,
-#                 # Se extrae la serie del Equipo asociado
-#                 'serie_equipo': mt.serie.serie if mt.serie else None, 
-                
-#                 # --- 2. PARÁMETROS TÉCNICOS PROPIOS DEL EQUIPO (Campos propios de MetrologiaTecnica) ---
-#                 'magnitud': mt.magnitud,
-#                 'rango_equipo': mt.rango_equipo,
-#                 'resolucion': mt.resolucion,
-#                 'rango_trabajo': mt.rango_trabajo,
-#                 'error_maximo': mt.error_maximo,
-#             }
-#             for mt in metrologiast
-#         ]
-
-#         return JsonResponse({"result": data}, status=200, safe=False)
-# class documentos(View): 
-#     @method_decorator(csrf_exempt)
-#     def dispatch(self, request, *args, **kwargs):
-#         return super().dispatch(request, *args, **kwargs)
-#     def get(self, request):
-#         filtros = {}
-#         sede = request.GET.get("sede")
-#         if sede:
-#             filtros["sede__nombre__icontains"] = sede
-
-#         servicio = request.GET.get("servicio")
-#         if servicio:
-#             filtros["servicio__nombre__icontains"] = servicio
-
-#         marca = request.GET.get("marca")
-#         if marca:
-#             filtros["marca__icontains"] = marca
-
-#         modelo = request.GET.get("modelo")
-#         if modelo:
-#             filtros["modelo__icontains"] = modelo
-
-#         serie = request.GET.get("serie")
-#         if serie:
-#             filtros["serie__icontains"] = serie
-
-#         estado = request.GET.get("estado")
-#         if estado:
-#             filtros["estado__icontains"] = estado
-
-#         # Ejecutar filtro dinámico
-#         documentos= DocumentoEquipo.objects.filter(**filtros)
-
-#         # Si no se encontró nada
-#         if not documentos.exists():
-#             return JsonResponse({"result": []}, status=200)
-
-#         # Convertir queryset en lista JSON
-#         data = [
-#             {
-               
-#                 # ...
-#                 'sede': doc.sede.nombre if doc.sede else None,
-#                 'servicio': doc.servicio.nombre if doc.servicio else None,
-#                 'serie_equipo': doc.serie.serie if doc.serie else None, 
-#                 'hoja_vida': doc.hoja_vida, # Booleano
-#                 'registro_importacion': doc.registro_importacion, # Booleano
-#                 'manual_operacion': doc.manual_operacion, # Booleano
-#                 'manual_mantenimiento': doc.manual_mantenimiento, # String (Manual de Servicio)
-#                 'guia_rapida': doc.guia_rapida, # Booleano
-#                 'instructivo_manejo': doc.instructivo_manejo, # Booleano
-#                 'protocolo_mantenimiento': doc.protocolo_mantenimiento, # Booleano
-#                 'frecuencia_metrologica': doc.frecuencia_metrologica, # String
-#                 # ...
-#             }
+        # Filtro por Requisito de Calibración (Booleano)
+        calibracion_req = request.GET.get("calibracion")
+        if calibracion_req in ('True', 'true', '1'):
+            filtros["calibracion"] = True
+        elif calibracion_req in ('False', 'false', '0'):
+            filtros["calibracion"] = False
             
-#             for doc in documentos
-#         ]
+        # Ejecutar filtro dinámico
+        metrologias = MetrologiaAdmin.objects.select_related('equipo').filter(**filtros)
 
-#         return JsonResponse({"result": data}, status=200, safe=False)
-# class condicion(View): 
-#     @method_decorator(csrf_exempt)
-#     def dispatch(self, request, *args, **kwargs):
-#         return super().dispatch(request, *args, **kwargs)
-#     def get(self, request):
-#         filtros = {}
-#         sede = request.GET.get("sede")
-#         if sede:
-#             filtros["sede__nombre__icontains"] = sede
+        # Si no se encontró nada
+        if not metrologias.exists():
+            return JsonResponse({"result": []}, status=200)
 
-#         servicio = request.GET.get("servicio")
-#         if servicio:
-#             filtros["servicio__nombre__icontains"] = servicio
+        # Convertir queryset en lista JSON
+        data = [
+            {
+                'id': ma.id,
+                # --- 1. DATOS DEL EQUIPO RELACIONADO ---
+                'serie_equipo': ma.equipo.serie_equipo if ma.equipo else None,
+                'nombre_sede': ma.equipo.sede.nombre_sede if ma.equipo else None,
+                'nombre_servicio':ma.equipo.servicio.nombre_servicio if ma.equipo else None,
+                'estado_equipo':ma.equipo.estado_equipo if ma.equipo else None,
+                
+                # --- 2. INFORMACIÓN ADMINISTRATIVA ---
+                'mantenimiento_requerido': ma.mantenimiento,
+                'tipo_mantenimiento':ma.tipo_mantenimiento,
+                'frecuencia_mantenimiento': ma.frecuencia_mantenimiento,
+                'calibracion_requerida': ma.calibracion,
+                'tipo_calibracion':ma.tipo_calibracion,
+                'frecuencia_calibracion': ma.frecuencia_calibracion,
+            }
+            for ma in metrologias
+        ]
 
-#         marca = request.GET.get("marca")
-#         if marca:
-#             filtros["marca__icontains"] = marca
+        return JsonResponse({"result": data}, status=200)
 
-#         modelo = request.GET.get("modelo")
-#         if modelo:
-#             filtros["modelo__icontains"] = modelo
+# ================================================
+# VISTA: MetrologiaTecnica (Parámetros Técnicos)
+# ================================================
 
-#         serie = request.GET.get("serie")
-#         if serie:
-#             filtros["serie__icontains"] = serie
+class MetrologiaTecnicaView(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get(self, request, *args, **kwargs):
+        """
+        Maneja peticiones GET para listar y filtrar datos de Metrología Técnica.
+        Los filtros se aplican a través de la relación FK al modelo Equipo.
+        """
+        filtros = {}
 
-#         estado = request.GET.get("estado")
-#         if estado:
-#             filtros["estado__icontains"] = estado
+        # Filtro por SERIE del Equipo relacionado
+        serie = request.GET.get("serie")
+        if serie:
+            filtros["equipo__serie_equipo__icontains"] = serie 
+        
+        # Filtro por Nombre de Sede (Búsqueda parcial, case-insensitive)
+        sede = request.GET.get("sede")
+        if sede:
+            filtros["equipo__sede__nombre_sede__icontains"] = sede
 
-#         # Ejecutar filtro dinámico
-#         condiciones= CondicionesFuncionamiento.objects.filter(**filtros)
+        # Filtro por Nombre de Servicio
+        servicio = request.GET.get("servicio")
+        if servicio:
+            filtros["equipo__servicio__nombre_servicio__icontains"] = servicio
+        
+        # Filtro por Estado del Equipo
+        rangoE = request.GET.get("rango_equipo")
+        if rangoE:
+            filtros["rango_equipo__icontains"] = rangoE
 
-#         # Si no se encontró nada
-#         if not condiciones.exists():
-#             return JsonResponse({"result": []}, status=200)
+        # 2. FILTROS PROPIOS DE METROLOGIA TÉCNICA
+        
+        # Filtro por Magnitud de Medida
+        magnitud = request.GET.get("magnitud")
+        if magnitud:
+            filtros["magnitud__icontains"] = magnitud
+        
+        # Filtro por Rango de Equipo
+        rangoT = request.GET.get("rango_trabajo")
+        if rangoT:
+            # Usamos __icontains para buscar valores parciales en el rango (si es un CharField)
+            filtros["rango_trabajo__icontains"] = rangoT 
+            
 
-#         # Convertir queryset en lista JSON
-#         data = [
-#             {
-#                 # ...
-#                 'sede': con.sede.nombre if con.sede else None,
-#                 'servicio': con.servicio.nombre if con.servicio else None,
-#                 'serie_equipo': con.serie.serie if con.serie else None, 
-#                 'voltaje': con.voltaje,
-#                 'corriente': con.corriente,
-#                 'humedad': con.humedad,
-#                 'temperatura': con.temperatura,
-#                 'dimensiones': con.dimensiones,
-#                 'peso': con.peso,
-#                 'otros': con.otros,
-#                 # ...
-#             }
-                        
-#             for con in condiciones
-#         ]
+        # Ejecutar filtro dinámico
+        # Usamos select_related para optimizar la consulta
+        metrologias = MetrologiaTecnica.objects.select_related('equipo').filter(**filtros)
 
-#         return JsonResponse({"result": data}, status=200, safe=False)
+        # Si no se encontró nada
+        if not metrologias.exists():
+            return JsonResponse({"result": []}, status=200)
+
+        # Convertir queryset en lista JSON
+        data = [
+            {
+                'id': mt.id,
+                 # --- 1. DATOS DEL EQUIPO RELACIONADO ---
+                'serie_equipo': mt.equipo.serie_equipo if mt.equipo else None,
+                'nombre_sede': mt.equipo.sede.nombre_sede if mt.equipo else None,
+                'nombre_servicio':mt.equipo.servicio.nombre_servicio if mt.equipo else None,
+                'estado_equipo':mt.equipo.estado_equipo if mt.equipo else None,
+                
+                # --- 2. INFORMACIÓN TÉCNICA DE METROLOGÍA ---
+                'magnitud': mt.magnitud,
+                'rango_equipo': mt.rango_equipo,
+                'resolucion': mt.resolucion,
+                'rango_trabajo': mt.rango_trabajo,
+                'error_maximo': mt.error_maximo,
+            }
+            for mt in metrologias
+        ]
+
+        return JsonResponse({"result": data}, status=200)
+
+# ================================================
+# VISTA: DocumentoEquipo (Documentos y Manuales)
+# ================================================
+
+class DocumentoEquipoView(View): # Renombrado a DocumentoEquipoView
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get(self, request, *args, **kwargs):
+        """
+        Maneja peticiones GET para listar y filtrar documentos asociados a equipos.
+        Los filtros de ubicación y propiedades del equipo se aplican a través de 'equipo__'.
+        """
+        filtros = {}
+
+        # Filtro por SERIE del Equipo relacionado
+        serie = request.GET.get("serie")
+        if serie:
+            filtros["equipo__serie_equipo__icontains"] = serie 
+        
+        # Filtro por Nombre de Sede (Búsqueda parcial, case-insensitive)
+        sede = request.GET.get("sede")
+        if sede:
+            filtros["equipo__sede__nombre_sede__icontains"] = sede
+
+        # Filtro por Nombre de Servicio
+        servicio = request.GET.get("servicio")
+        if servicio:
+            filtros["equipo__servicio__nombre_servicio__icontains"] = servicio
+          
+        # 2. FILTROS PROPIOS DE DOCUMENTO EQUIPO
+        
+        # Filtro por si tiene Hoja de Vida (Booleano)
+        hoja_vida = request.GET.get("hoja_vida")
+        if hoja_vida in ('True', 'true', '1'):
+            filtros["hoja_vida"] = True
+        elif hoja_vida in ('False', 'false', '0'):
+            filtros["hoja_vida"] = False
+
+        registro_importacion = request.GET.get("registro_importacion")
+        if registro_importacion in ('True', 'true', '1'):
+            filtros["registro_importacion"] = True
+        elif hoja_vida in ('False', 'false', '0'):
+            filtros["registro_importacion"] = False
+        
+        instructivo_manejo = request.GET.get("registro_importacion")
+        if instructivo_manejo in ('True', 'true', '1'):
+            filtros["instructivo_manejo"] = True
+        elif instructivo_manejo in ('False', 'false', '0'):
+            filtros["instructivo_manejo"] = False
+
+        # Ejecutar filtro dinámico
+        # Optimización: Cargar Equipo, Sede y Servicio en una sola consulta
+        documentos = DocumentoEquipo.objects.select_related('equipo').filter(**filtros)
+
+        # Si no se encontró nada
+        if not documentos.exists():
+            return JsonResponse({"result": []}, status=200)
+
+        # Convertir queryset en lista JSON
+        data = [
+            {
+                'id': doc.id,
+                # --- 1. DATOS DEL EQUIPO RELACIONADO ---
+                'serie_equipo': doc.equipo.serie_equipo if doc.equipo else None,
+                'nombre_sede': doc.equipo.sede.nombre_sede if doc.equipo else None,
+                'nombre_servicio':doc.equipo.servicio.nombre_servicio if doc.equipo else None,
+                'estado_equipo':doc.equipo.estado_equipo if doc.equipo else None,
+                
+                # --- 2. DOCUMENTACIÓN DISPONIBLE (Propios de DocumentoEquipo) ---
+                'hoja_vida': doc.hoja_vida, 
+                'registro_importacion': doc.registro_importacion, 
+                'manual_operacion': doc.manual_operacion, 
+                'manual_mantenimiento': doc.manual_mantenimiento, # String (Manual de Servicio)
+                'guia_rapida': doc.guia_rapida, 
+                'instructivo_manejo': doc.instructivo_manejo, 
+                'protocolo_mantenimiento': doc.protocolo_mantenimiento,
+                'frecuencia_metrologica': doc.frecuencia_metrologica, 
+            }
+            for doc in documentos
+        ]
+
+        return JsonResponse({"result": data}, status=200)
+
+# ================================================
+# VISTA: CondicionesFuncionamiento (Requisitos Ambientales/Eléctricos)
+# ================================================
+
+class CondicionesFuncionamientoView(View): # Renombrado a CondicionesFuncionamientoView
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get(self, request, *args, **kwargs):
+        """
+        Maneja peticiones GET para listar y filtrar los requisitos de funcionamiento de los equipos.
+        """
+        filtros = {}
+
+        # Filtro por SERIE del Equipo relacionado
+        serie = request.GET.get("serie")
+        if serie:
+            filtros["equipo__serie_equipo__icontains"] = serie 
+        
+        # Filtro por Nombre de Sede (Búsqueda parcial, case-insensitive)
+        sede = request.GET.get("sede")
+        if sede:
+            filtros["equipo__sede__nombre_sede__icontains"] = sede
+
+        # Filtro por Nombre de Servicio
+        servicio = request.GET.get("servicio")
+        if servicio:
+            filtros["equipo__servicio__nombre_servicio__icontains"] = servicio
+        
+        # 2. FILTROS PROPIOS DE CONDICIONES DE FUNCIONAMIENTO
+        
+        # Filtro por Voltaje
+        voltaje = request.GET.get("voltaje")
+        if voltaje:
+            # Filtro exacto o parcial, dependiendo de cómo se guarde el voltaje (ej. "120V")
+            filtros["voltaje__icontains"] = voltaje 
+
+        # Filtro por Peso (asumiendo que es un campo de texto/número)
+        peso = request.GET.get("peso")
+        if peso:
+            # Usamos icontains para ser flexibles, pero para números podrías usar __gte, __lte
+            filtros["peso__icontains"] = peso 
+
+        # Filtro por Rango de Temperatura
+        temperatura = request.GET.get("temperatura")
+        if temperatura:
+            filtros["temperatura__icontains"] = temperatura
+
+        # Ejecutar filtro dinámico
+        # Optimización: Cargar Equipo, Sede y Servicio en una sola consulta
+        condiciones = CondicionesFuncionamiento.objects.select_related('equipo').filter(**filtros)
+
+        # Si no se encontró nada
+        if not condiciones.exists():
+            return JsonResponse({"result": []}, status=200)
+
+        # Convertir queryset en lista JSON
+        data = [
+            {
+                'id': con.id,
+                # --- 1. DATOS DEL EQUIPO RELACIONADO ---
+                'serie_equipo': con.equipo.serie_equipo if con.equipo else None,
+                'nombre_sede': con.equipo.sede.nombre_sede if con.equipo else None,
+                'nombre_servicio':con.equipo.servicio.nombre_servicio if con.equipo else None,
+                'estado_equipo':con.equipo.estado_equipo if con.equipo else None,
+                
+                # --- 2. REQUISITOS DE FUNCIONAMIENTO ---
+                'voltaje': con.voltaje,
+                'corriente': con.corriente,
+                'humedad': con.humedad,
+                'temperatura': con.temperatura,
+                'dimensiones': con.dimensiones,
+                'peso': con.peso,
+                'otros_requerimientos': con.otros,
+            }
+            for con in condiciones
+        ]
+
+        return JsonResponse({"result": data}, status=200)
