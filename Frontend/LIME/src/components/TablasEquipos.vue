@@ -1,63 +1,71 @@
 <script>
 export default {
- name: "TablasEquipos",
+    name: "TablasEquipos",
+
+    // Recibe la sección activa y las filas de datos desde el padre
     props: {
         seccion: {
             type: String,
             required: true
         },
-        // 'filas' sigue siendo la prop, la usaremos para inicializar el estado
         filas: { 
             type: Array,
             required: true,
             default: () => []
         },
     },
+
     data() {
         return {
-            // 💡 ESTADO LOCAL: Aquí guardaremos la copia de las filas CON el estado 'mostrarOpciones'
+            // Copia interna de filas, pero con estado adicional (mostrarOpciones)
             equiposConEstado: [],
         };
     },
+
     watch: {
-        // Observa si la prop 'filas' cambia (ej. si el padre trae nuevos datos) y reinicializa.
+        // Observa cambios en filas y vuelve a inicializar el estado interno
         filas: {
             handler(newFilas) {
                 this.equiposConEstado = this.inicializarFilas(newFilas);
             },
-            immediate: true, // Ejecuta al inicio y en cada cambio
+            immediate: true,  // Ejecuta al montar el componente
         }
     },
+
     methods: {
-        // 🏭 Función auxiliar para añadir el estado 'mostrarOpciones'
+        /**
+         * Agrega la propiedad mostrarOpciones a cada fila
+         * para gestionar individualmente el menú desplegable.
+         */
         inicializarFilas(filas) {
-             // IMPORTANTE: Creamos una copia nueva para no modificar la prop
-             return filas.map(fila => ({
+            return filas.map(fila => ({
                 ...fila, 
-                // Añadimos la variable de control de UI
-                mostrarOpciones: false 
+                mostrarOpciones: false
             }));
         },
 
+        // Cambia la sección actual (aunque normalmente esto lo maneja el padre)
         cambiarSeccion(seccionNueva){
-            // Nota: No puedes modificar directamente la prop `this.seccion`.
-            // Si necesitas cambiar la sección, debes emitir un evento al padre:
-            // this.$emit('update:seccion', seccionNueva);
-        }, 
-        
-        // 🖱️ Mantenemos el método, pero ahora usa el array local `equiposConEstado`
+            this.seccion = seccionNueva;
+        },
+
+        /**
+         * Controla el menú desplegable de cada fila:
+         * - Cierra los demás
+         * - Alterna el seleccionado
+         */
         toggleDropdown(index) {
-            // Usamos el array local 'equiposConEstado'
             this.equiposConEstado.forEach((fila, i) => {
                 if (i !== index) {
-                    fila.mostrarOpciones = false; 
+                    fila.mostrarOpciones = false;
                 }
             });
-            // Modificamos el estado en la copia local
-            this.equiposConEstado[index].mostrarOpciones = !this.equiposConEstado[index].mostrarOpciones;
+
+            this.equiposConEstado[index].mostrarOpciones =
+                !this.equiposConEstado[index].mostrarOpciones;
         },
-        
-        // Métodos de acción (no necesitan cambio si usan el objeto 'con' que iteras)
+
+        // Acciones básicas del menú de opciones (por ahora solo impresiones)
         verEquipo(equipo) {
             console.log('Ver equipo:', equipo.serie_equipo);
         },
@@ -68,33 +76,21 @@ export default {
             console.log('Editar equipo:', equipo.serie_equipo);
         }
     },
-    computed: {
-        fontSizeDinamico() {
-            switch (this.seccion) {
-            case "General":
-                return "11px";
-            case "Registro":
-                return "11px";
-            case "MetrologiaA":
-                return "12px";
-            case "MetrologiaT":
-                return "12px";
-            case "Documentacion":
-                return "12px";
-            default:
-                return "12px";
-            }
-        }
-    }
 };
 </script>
-<template> 
-    <table class="tabla" v-if="seccion=='General'" :style="{ fontSize: fontSizeDinamico }">
+
+<template>
+    <!-- ========================================================= -->
+    <!-- ====================== SECCIÓN GENERAL =================== -->
+    <!-- ========================================================= -->
+    <table class="tabla" v-if="seccion=='General'">
         <thead>
             <tr class="tabla--header">
                 <th class="tabla--headersCheck">
                     <input id="checkHeader" type="checkbox"/>
                 </th>
+
+                <!-- Encabezados de columnas de Equipos Generales -->
                 <th class="tabla--headers">Sede</th>
                 <th class="tabla--headers">Servicio</th>
                 <th class="tabla--headers">Número de Serie</th>
@@ -113,16 +109,20 @@ export default {
                 <th class="tabla--headers">Acciones</th>
             </tr> 
         </thead>
+
         <tbody>
             <tr class="tabla--fila" v-for="(eq, index) in equiposConEstado" :key="eq.serie">
-                <td><input class="checkRow" type="checkbox"  :checked="checkHeader"/></td>
+                <!-- Checkbox por fila -->
+                <td><input class="checkRow" type="checkbox"/></td>
+
+                <!-- Datos del equipo -->
                 <td>{{ eq.nombre_sede }}</td>
                 <td>{{ eq.nombre_servicio }}</td>
-                <td>{{ eq.nombre_responsable}}</td>
                 <td>{{ eq.serie_equipo }}</td>
                 <td>{{ eq.marca_equipo }}</td>
                 <td>{{ eq.modelo_equipo }}</td>
                 <td>{{ eq.nombre_equipo }}</td>
+                <td>{{ eq.nombre_responsable }}</td>
                 <td>{{ eq.codigo_inventario }}</td>
                 <td>{{ eq.codigo_ips }}</td>
                 <td>{{ eq.codigo_ecri }}</td>
@@ -131,26 +131,34 @@ export default {
                 <td>{{ eq.clasificacion_ips }}</td>
                 <td>{{ eq.clasificacion_riesgo }}</td>
                 <td>{{ eq.registro_invima }}</td>
+                
+                <!-- Botón + menú de acciones -->
                 <td class="dropdown-cell">
                     <div class="dropdown">
-                        <button class="tabla--boton" @click="toggleDropdown(index)">Opciones ▼</button>
-                
-                <div v-show="eq.mostrarOpciones" class="dropdown-menu">
-                    <a href="#" class="dropdown-item" @click.prevent="verEquipo(con)">Ver</a>
-                    <a href="#" class="dropdown-item" @click.prevent="trasladarEquipo(con)">Traslado</a>
-                    <a href="#" class="dropdown-item" @click.prevent="editarEquipo(con)">Editar</a>
-                </div>
-            </div>
-        </td>
+
+                        <button class="tabla--boton" @click="toggleDropdown(index)">
+                            Opciones
+                        </button>
+
+                        <div v-show="eq.mostrarOpciones" class="dropdown-menu">
+                            <a href="#" class="dropdown-item" @click.prevent="verEquipo(eq)">Ver</a>
+                            <a href="#" class="dropdown-item" @click.prevent="trasladarEquipo(eq)">Traslado</a>
+                            <a href="#" class="dropdown-item" @click.prevent="editarEquipo(eq)">Editar</a>
+                        </div>
+
+                    </div>
+                </td>
             </tr>
         </tbody>
-    </table> 
-    <table class="tabla" v-if="seccion=='Registro'" :style="{ fontSize: fontSizeDinamico }">
+    </table>
+
+    <!-- ========================================================= -->
+    <!-- ================= SECCIÓN REGISTRO DE EQUIPOS ============ -->
+    <!-- ========================================================= -->
+    <table class="tabla" v-if="seccion=='Registro'">
         <thead>
             <tr class="tabla--header">
-                <th class="tabla--headersCheck">
-                    <input id="checkHeader" type="checkbox" />
-                </th>
+                <th class="tabla--headersCheck"><input id="checkHeader" type="checkbox" /></th>
                 <th class="tabla--headers">Sede</th>
                 <th class="tabla--headers">Servicio</th>
                 <th class="tabla--headers">Número de Serie</th>
@@ -159,19 +167,21 @@ export default {
                 <th class="tabla--headers">Propietario Equipo</th>
                 <th class="tabla--headers">Fecha de Fabricacion</th>
                 <th class="tabla--headers">NIT</th>
-                <th class="tabla--headers">Proveedro Equipo</th>
-                <th class="tabla--headers">Estado de Garantia</th>
-                <th class="tabla--headers">Terminación Garantia</th>
-                <th class="tabla--headers">Forma Adquisicion</th>
+                <th class="tabla--headers">Proveedor Equipo</th>
+                <th class="tabla--headers">Estado de Garantía</th>
+                <th class="tabla--headers">Terminación Garantía</th>
+                <th class="tabla--headers">Forma Adquisición</th>
                 <th class="tabla--headers">Tipo Documento</th>
-                <th class="tabla--headers">Numero Documento</th>
+                <th class="tabla--headers">Número Documento</th>
                 <th class="tabla--headers">Acciones</th>
             </tr> 
         </thead>
 
         <tbody>
-            <tr class="tabla--fila" v-for="re in filas" :key="re.serie">
+            <tr class="tabla--fila" v-for="(re, index) in filas" :key="re.serie">
                 <td><input class="checkRow" type="checkbox" /></td>
+
+                <!-- Datos del registro -->
                 <td>{{ re.sede }}</td>
                 <td>{{ re.servicio }}</td>
                 <td>{{ re.serie }}</td>
@@ -186,123 +196,180 @@ export default {
                 <td>{{ re.forma_adquisicion }}</td>
                 <td>{{ re.tipo_documento }}</td>
                 <td>{{ re.numero_documento }}</td>
-                <td><button class="tabla--boton">Actualizar</button></td>
+
+                <!-- Dropdown acciones -->
+                <td class="dropdown-cell">
+                    <div class="dropdown">
+                        <button class="tabla--boton" @click="toggleDropdown(index)">Opciones</button>
+
+                        <div v-show="re.mostrarOpciones" class="dropdown-menu">
+                            <a href="#" class="dropdown-item" @click.prevent="verEquipo(re)">Ver</a>
+                            <a href="#" class="dropdown-item" @click.prevent="trasladarEquipo(re)">Traslado</a>
+                            <a href="#" class="dropdown-item" @click.prevent="editarEquipo(re)">Editar</a>
+                        </div>
+                    </div>
+                </td>
             </tr>
         </tbody>
-    </table> 
-    <table class="tabla" v-if="seccion=='MetrologiaA'" :style="{ fontSize: fontSizeDinamico }">
+    </table>
+
+    <!-- ========================================================= -->
+    <!-- ============ SECCIÓN METROLOGÍA (ADMINISTRATIVA) ========= -->
+    <!-- ========================================================= -->
+    <table class="tabla" v-if="seccion=='MetrologiaA'">
         <thead>
             <tr class="tabla--header">
-                <th class="tabla--headersCheck">
-                    <input id="checkHeader" type="checkbox" />
-                </th>
+                <th class="tabla--headersCheck"><input type="checkbox"/></th>
                 <th class="tabla--headers">Sede</th>
                 <th class="tabla--headers">Servicio</th>
                 <th class="tabla--headers">Número de Serie</th>
                 <th class="tabla--headers">Tiene Mantenimiento</th>
-                <th class="tabla--headers">Tipo de Mantenimiento</th>
-                <th class="tabla--headers">Frecuencia Mantenimiento</th>
+                <th class="tabla--headers">Tipo Mantenimiento</th>
+                <th class="tabla--headers">Frecuencia Mto</th>
                 <th class="tabla--headers">Tiene Calibración</th>
-                <th class="tabla--headers">Tipo de Calibración</th>
+                <th class="tabla--headers">Tipo Calibración</th>
                 <th class="tabla--headers">Frecuencia Calibración</th>
                 <th class="tabla--headers">Acciones</th>
-            </tr> 
+            </tr>
         </thead>
 
         <tbody>
-            <tr class="tabla--fila" v-for="ma in filas" :key="ma.serie">
+            <tr class="tabla--fila" v-for="(ma, index) in filas" :key="ma.serie">
                 <td><input class="checkRow" type="checkbox" /></td>
-                <td>{{ ma.sede }}</td> 
+
+                <td>{{ ma.sede }}</td>
                 <td>{{ ma.servicio }}</td>
-                <td>{{ ma.serie_equipo }}</td> 
-                <td>{{ ma.mantenimiento ? 'Sí' : 'No' }}</td> 
+                <td>{{ ma.serie_equipo }}</td>
+                <td>{{ ma.mantenimiento ? 'Sí' : 'No' }}</td>
                 <td>{{ ma.tipo }}</td>
-                <td>{{ ma.frecuencia_mantenimiento }} meses</td> 
+                <td>{{ ma.frecuencia_mantenimiento }} meses</td>
                 <td>{{ ma.calibracion ? 'Sí' : 'No' }}</td>
                 <td>{{ ma.tipo2 }}</td>
                 <td>{{ ma.frecuencia_calibracion }}</td>
-                <td><button class="tabla--boton">Actualizar</button></td>
+
+                <!-- Dropdown -->
+                <td class="dropdown-cell">
+                    <div class="dropdown">
+                        <button class="tabla--boton" @click="toggleDropdown(index)">Opciones</button>
+
+                        <div v-show="ma.mostrarOpciones" class="dropdown-menu">
+                            <a href="#" class="dropdown-item" @click.prevent="verEquipo(ma)">Ver</a>
+                            <a href="#" class="dropdown-item" @click.prevent="trasladarEquipo(ma)">Traslado</a>
+                            <a href="#" class="dropdown-item" @click.prevent="editarEquipo(ma)">Editar</a>
+                        </div>
+                    </div>
+                </td>
             </tr>
         </tbody>
-    </table> 
-    <table class="tabla" v-if="seccion=='MetrologiaT'" :style="{ fontSize: fontSizeDinamico }">
+    </table>
+
+    <!-- ========================================================= -->
+    <!-- ========== SECCIÓN METROLOGÍA (TÉCNICA) ================== -->
+    <!-- ========================================================= -->
+    <table class="tabla" v-if="seccion=='MetrologiaT'">
         <thead>
             <tr class="tabla--header">
-                <th class="tabla--headersCheck">
-                    <input id="checkHeader" type="checkbox" />
-                </th>
+                <th class="tabla--headersCheck"><input type="checkbox"/></th>
                 <th class="tabla--headers">Sede</th>
                 <th class="tabla--headers">Servicio</th>
                 <th class="tabla--headers">Número de Serie</th>
                 <th class="tabla--headers">Magnitud</th>
-                <th class="tabla--headers">Rango del Equipo</th>
+                <th class="tabla--headers">Rango Equipo</th>
                 <th class="tabla--headers">Resolución</th>
-                <th class="tabla--headers">Rango de Trabajo</th>
-                <th class="tabla--headers">Error Maximo Permitido</th>
+                <th class="tabla--headers">Rango Trabajo</th>
+                <th class="tabla--headers">Error Máximo</th>
                 <th class="tabla--headers">Acciones</th>
             </tr> 
         </thead>
 
         <tbody>
-            <tr class="tabla--fila" v-for="mt in filas" :key="mt.serie">
+            <tr class="tabla--fila" v-for="(mt, index) in filas" :key="mt.serie">
                 <td><input class="checkRow" type="checkbox" /></td>
-                <td>{{ mt.sede }}</td> 
+
+                <td>{{ mt.sede }}</td>
                 <td>{{ mt.servicio }}</td>
-                <td>{{ mt.serie_equipo }}</td> 
-                <td>{{ mt.magnitud }}</td> 
-                <td>{{ mt.rango_equipo }}</td> 
-                <td>{{ mt.resolucion }}</td> 
-                <td>{{ mt.rango_trabajo }}</td> 
+                <td>{{ mt.serie_equipo }}</td>
+                <td>{{ mt.magnitud }}</td>
+                <td>{{ mt.rango_equipo }}</td>
+                <td>{{ mt.resolucion }}</td>
+                <td>{{ mt.rango_trabajo }}</td>
                 <td>{{ mt.error_maximo }}</td>
-                <td><button class="tabla--boton">Actualizar</button></td>
+
+                <td class="dropdown-cell">
+                    <div class="dropdown">
+                        <button class="tabla--boton" @click="toggleDropdown(index)">Opciones</button>
+
+                        <div v-show="mt.mostrarOpciones" class="dropdown-menu">
+                            <a href="#" class="dropdown-item" @click.prevent="verEquipo(mt)">Ver</a>
+                            <a href="#" class="dropdown-item" @click.prevent="trasladarEquipo(mt)">Traslado</a>
+                            <a href="#" class="dropdown-item" @click.prevent="editarEquipo(mt)">Editar</a>
+                        </div>
+                    </div>
+                </td>
             </tr>
         </tbody>
-    </table> 
-    <table class="tabla" v-if="seccion=='Documentacion'" :style="{ fontSize: fontSizeDinamico }">
+    </table>
+
+    <!-- ========================================================= -->
+    <!-- ================== SECCIÓN DOCUMENTACIÓN ================= -->
+    <!-- ========================================================= -->
+    <table class="tabla" v-if="seccion=='Documentacion'">
         <thead>
             <tr class="tabla--header">
-                <th class="tabla--headersCheck">
-                    <input id="checkHeader" type="checkbox" />
-                </th>
+                <th class="tabla--headersCheck"><input type="checkbox"/></th>
                 <th class="tabla--headers">Sede</th>
                 <th class="tabla--headers">Servicio</th>
                 <th class="tabla--headers">Número de Serie</th>
-                <th class="tabla--headers">Hoja de vida</th>
-                <th class="tabla--headers">Registro de Importación</th>
-                <th class="tabla--headers">Manual de Operación</th>
-                <th class="tabla--headers">Manual de Servicio</th>
-                <th class="tabla--headers">Guia Rapida de Uso</th>
-                <th class="tabla--headers">Instructivo de Manejo Rapido</th>
-                <th class="tabla--headers">Protoclo Mto Prev.</th>
-                <th class="tabla--headers">Frec. Metrologica Fabricante</th>
+                <th class="tabla--headers">Hoja de Vida</th>
+                <th class="tabla--headers">Reg. Importación</th>
+                <th class="tabla--headers">Manual Operación</th>
+                <th class="tabla--headers">Manual Servicio</th>
+                <th class="tabla--headers">Guía Rápida</th>
+                <th class="tabla--headers">Instructivo Uso</th>
+                <th class="tabla--headers">Protocolo Mantenimiento</th>
+                <th class="tabla--headers">Frec. Metrológica</th>
                 <th class="tabla--headers">Acciones</th>
             </tr> 
         </thead>
 
         <tbody>
-            <tr class="tabla--fila" v-for="doc in filas" :key="doc.serie">
+            <tr class="tabla--fila" v-for="(doc, index) in filas" :key="doc.serie">
                 <td><input class="checkRow" type="checkbox" /></td>
-                <td>{{ doc.sede }}</td> 
+
+                <td>{{ doc.sede }}</td>
                 <td>{{ doc.servicio }}</td>
-                <td>{{ doc.serie_equipo }}</td> 
-                <td>{{ doc.hoja_vida ? 'Sí' : 'No' }}</td> 
-                <td>{{ doc.registro_importacion ? 'Sí' : 'No' }}</td> 
-                <td>{{ doc.manual_operacion ? 'Sí' : 'No' }}</td> 
-                <td>{{ doc.manual_mantenimiento }}</td> 
-                <td>{{ doc.guia_rapida ? 'Sí' : 'No' }}</td> 
-                <td>{{ doc.instructivo_manejo ? 'Sí' : 'No' }}</td> 
-                <td>{{ doc.protocolo_mantenimiento ? 'Sí' : 'No' }}</td> 
+                <td>{{ doc.serie_equipo }}</td>
+                <td>{{ doc.hoja_vida ? 'Sí' : 'No' }}</td>
+                <td>{{ doc.registro_importacion ? 'Sí' : 'No' }}</td>
+                <td>{{ doc.manual_operacion ? 'Sí' : 'No' }}</td>
+                <td>{{ doc.manual_mantenimiento }}</td>
+                <td>{{ doc.guia_rapida ? 'Sí' : 'No' }}</td>
+                <td>{{ doc.instructivo_manejo ? 'Sí' : 'No' }}</td>
+                <td>{{ doc.protocolo_mantenimiento ? 'Sí' : 'No' }}</td>
                 <td>{{ doc.frecuencia_metrologica }}</td>
-                <td><button class="tabla--boton">Actualizar</button></td>
+
+                <td class="dropdown-cell">
+                    <div class="dropdown">
+                        <button class="tabla--boton" @click="toggleDropdown(index)">Opciones</button>
+
+                        <div v-show="doc.mostrarOpciones" class="dropdown-menu">
+                            <a href="#" class="dropdown-item" @click.prevent="verEquipo(doc)">Ver</a>
+                            <a href="#" class="dropdown-item" @click.prevent="trasladarEquipo(doc)">Traslado</a>
+                            <a href="#" class="dropdown-item" @click.prevent="editarEquipo(doc)">Editar</a>
+                        </div>
+                    </div>
+                </td>
             </tr>
         </tbody>
-    </table> 
-    <table class="tabla" v-if="seccion=='Condicion'" :style="{ fontSize: fontSizeDinamico }">
+    </table>
+
+    <!-- ========================================================= -->
+    <!-- ================== SECCIÓN CONDICIÓN ===================== -->
+    <!-- ========================================================= -->
+    <table class="tabla" v-if="seccion=='Condicion'">
         <thead>
             <tr class="tabla--header">
-                <th class="tabla--headersCheck">
-                    <input id="checkHeader" type="checkbox" />
-                </th>
+                <th class="tabla--headersCheck"><input type="checkbox"/></th>
                 <th class="tabla--headers">Sede</th>
                 <th class="tabla--headers">Servicio</th>
                 <th class="tabla--headers">Número de Serie</th>
@@ -312,55 +379,66 @@ export default {
                 <th class="tabla--headers">Temperatura</th>
                 <th class="tabla--headers">Dimensiones</th>
                 <th class="tabla--headers">Peso</th>
-                <th class="tabla--headers">Otro</th>
+                <th class="tabla--headers">Otros</th>
                 <th class="tabla--headers">Acciones</th>
             </tr> 
         </thead>
 
         <tbody>
-            <tr class="tabla--fila" v-for="con in filas" :key="con.serie">
+            <tr class="tabla--fila" v-for="(con, index) in filas" :key="con.serie">
                 <td><input class="checkRow" type="checkbox" /></td>
-                <td>{{ con.sede }}</td> 
+
+                <td>{{ con.sede }}</td>
                 <td>{{ con.servicio }}</td>
-                <td>{{ con.serie_equipo }}</td> 
-                <td>{{ con.voltaje }}</td> 
-                <td>{{ con.corriente }}</td> 
-                <td>{{ con.humedad }}</td> 
-                <td>{{ con.temperatura }}</td> 
-                <td>{{ con.dimensiones }}</td> 
-                <td>{{ con.peso }}</td> 
+                <td>{{ con.serie_equipo }}</td>
+                <td>{{ con.voltaje }}</td>
+                <td>{{ con.corriente }}</td>
+                <td>{{ con.humedad }}</td>
+                <td>{{ con.temperatura }}</td>
+                <td>{{ con.dimensiones }}</td>
+                <td>{{ con.peso }}</td>
                 <td>{{ con.otros }}</td>
+
+                <!-- Dropdown acciones -->
                 <td class="dropdown-cell">
                     <div class="dropdown">
-                        <button class="tabla--boton dropdown-toggle" @click="toggleDropdown(index)">Opciones ▼</button>
-                
-                <div v-show="con.mostrarOpciones" class="dropdown-menu">
-                    <a href="#" class="dropdown-item" @click.prevent="verEquipo(con)">Ver</a>
-                    <a href="#" class="dropdown-item" @click.prevent="trasladarEquipo(con)">Traslado</a>
-                    <a href="#" class="dropdown-item" @click.prevent="editarEquipo(con)">Editar</a>
-                </div>
-            </div>
-        </td>
+                        <button class="tabla--boton" @click="toggleDropdown(index)">
+                            Opciones
+                        </button>
+
+                        <div v-show="con.mostrarOpciones" class="dropdown-menu">
+                            <a href="#" class="dropdown-item" @click.prevent="verEquipo(con)">Ver</a>
+                            <a href="#" class="dropdown-item" @click.prevent="trasladarEquipo(con)">Traslado</a>
+                            <a href="#" class="dropdown-item" @click.prevent="editarEquipo(con)">Editar</a>
+                        </div>
+
+                    </div>
+                </td>
             </tr>
         </tbody>
     </table>
 </template>
+
 <style>
-    /* --- Tabla general --- */
+    /* --------------------- ESTILOS GENERALES --------------------- */
+
+    /* Tabla base */
     .tabla {
         width: 100%;
         border-collapse: collapse;
         font-family: sans-serif;
-        font-size: 12px;
+        font-size: 10px;
     }
-    
-     /* --- Encabezado --- */
+
+    /* Encabezado principal */
     .tabla--header {
         border-radius: 10px 10px 0 0;
-        background-color: #008073; /* azul oscuro elegante */
+        background-color: #008073;
         color: white;
         text-align: left;
     }
+
+    /* Celdas de encabezado */
     .tabla--headers,
     .tabla--headersCheck {
         padding: 10px 8px;
@@ -368,78 +446,77 @@ export default {
         font-weight: bold;
     }
 
-    /* --- Filas del cuerpo --- */
+    /* Filas */
     .tabla--fila td {
         background-color: white;
-        color: #555; 
+        color: #555;
         padding: 8px 6px;
         border-bottom: 1px solid #e5e5e5;
     }
 
-    /* --- Hover en filas --- */
+    /* Hover */
     .tabla--fila:hover td {
         background-color: #f5f7fa;
     }
 
-    /* --- Checkbox alineado --- */
+    /* Checkbox */
     .tabla input[type="checkbox"] {
         width: 16px;
         height: 16px;
         cursor: pointer;
     }
-.tabla--boton {
 
-    height: 40px; 
-    width: 100px;
-    margin-bottom: 0; /* No necesitamos margen si es solo un botón */
-    background-color: #0a346c;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-}
+    /* Botón de acciones */
+    .tabla--boton {
+        font-size: 10px;
+        height: 22px;
+        width: 70px;
+        background-color: #0a346c;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
 
-/* Contenedor principal del dropdown */
-.dropdown-cell {
-    position: relative;
-    /* Asegura que el dropdown no se salga si la celda es muy pequeña */
-    overflow: visible; 
-}
+    /* Dropdown */
+    .dropdown-cell {
+        position: relative;
+        overflow: visible;
+    }
 
-.dropdown {
-    position: relative;
-    display: inline-block; /* Permite que el botón se ajuste al contenido */
-}
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
 
-/* Estilos para el menú desplegable */
-.dropdown-menu {
-    position: absolute;
-    /* Posicionar a la izquierda (o derecha si prefieres) del botón */
-    left: 0; 
-    top: 100%; /* Justo debajo del botón */
-    z-index: 100; /* Asegura que esté por encima de otros elementos */
-    background-color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    border-radius: 4px;
-    min-width: 120px;
-    padding: 5px 0;
-    margin-top: 5px; /* Pequeño espacio entre botón y menú */
-    border: 1px solid #ddd;
-}
+    /* Menú desplegable */
+    .dropdown-menu {
+        position: absolute;
+        left: 0;
+        top: 100%;
+        z-index: 100;
+        background-color: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-radius: 4px;
+        min-width: 120px;
+        padding: 5px 0;
+        margin-top: 5px;
+        border: 1px solid #ddd;
+    }
 
-/* Estilos para los enlaces/opciones */
-.dropdown-item {
-    display: block;
-    padding: 8px 15px;
-    text-decoration: none;
-    color: #333;
-    white-space: nowrap;
-    transition: background-color 0.2s;
-}
+    /* Items del menú */
+    .dropdown-item {
+        display: block;
+        padding: 8px 15px;
+        text-decoration: none;
+        color: #333;
+        white-space: nowrap;
+        transition: background-color 0.2s;
+    }
 
-.dropdown-item:hover {
-    background-color: #f0f0f0;
-    color: #0a346c;
-}
+    .dropdown-item:hover {
+        background-color: #f0f0f0;
+        color: #0a346c;
+    }
 </style>

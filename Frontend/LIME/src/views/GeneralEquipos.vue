@@ -18,26 +18,63 @@ export default {
         return {
             seccion:"General",
             filas: [],
-            nombre:"equipos"
+            filtrosActuales: {
+                sede: '',
+                servicio: '',
+                numeroSerie: '',
+                dinamico1: '',
+                dinamico2: '',
+                dinamico3: '',
+            }
         };
     },
 
     methods: {
-        async listarEquipos() {
+        // 3. Modifica para aceptar un objeto de filtros
+        async listarEquipos(filtros) {
+            // Si se proporcionan filtros, se usan esos. Si no, se usan los almacenados.
+            const filtrosAUsar = filtros || this.filtrosActuales;
+
+            // Construir la URL con los parámetros de la API (ajustar según tu backend)
+            // Esto es solo un ejemplo de cómo se podría construir una query string
+            const params = new URLSearchParams({
+                sede: filtrosAUsar.sede,
+                servicio: filtrosAUsar.servicio,
+                serie: filtrosAUsar.numeroSerie,
+                f1: filtrosAUsar.dinamico1, // Nombres de parámetros a ajustar
+                f2: filtrosAUsar.dinamico2,
+                f3: filtrosAUsar.dinamico3,
+            }).toString();
+            
             try {
-                const res = await axios.get(`http://127.0.0.1:8000/api/${this.seccion}/`);
+                // Se agrega la query string a la URL
+                const url = `http://127.0.0.1:8000/api/${this.seccion}/?${params}`;
+                const res = await axios.get(url);
                 this.filas = res.data.result;
             } catch (err) {
                 console.error(err);
                 alert("Error al listar equipos");
             }
+        },  
+        // 2. Nuevo método para manejar el evento del componente hijo
+        filtrarEquipos(nuevosFiltros) {
+            // Almacena los nuevos filtros y llama a listarEquipos
+            this.filtrosActuales = nuevosFiltros;
+            console.log(nuevosFiltros)
+            this.listarEquipos(nuevosFiltros);
         },
+
         cambiarSeccion(seccionNueva){
             this.seccion = seccionNueva;
+            // Opcional: podrías querer resetear los filtros al cambiar de sección
+            this.filtrosActuales = {
+                sede: '', servicio: '', numeroSerie: '',
+                dinamico1: '', dinamico2: '', dinamico3: '',
+            }
         }
     },
     mounted() {
-        this.listarEquipos(this.nombre);
+        this.listarEquipos();
     },
 };
 </script>
@@ -68,7 +105,7 @@ export default {
             <!-- Filtros y botones laterales -->
             <div class="tablaPrincipal--filtros">
                 <!-- Componente de filtros dinámico por sección -->
-                <FiltrosMenu :seccion="seccion" />
+                <FiltrosMenu :seccion="seccion" @aplicar-filtros="filtrarEquipos"/>
                 <!-- Botones de acciones (agregar y eliminar) -->
                 <div class="tablaPricipal--menuBotones">
                         <button class="menuBotones--botones" type="button">Agregar</button>

@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from django.views import View
-from .models import Sede, Servicio, Equipo, RegistroHistorico, MetrologiaAdmin, MetrologiaTecnica, DocumentoEquipo, CondicionesFuncionamiento, Mantenimiento, TrasladoEquipo
+from .models import Sede, Servicio, Equipo, RegistroHistorico, MetrologiaAdmin, MetrologiaTecnica, DocumentoEquipo, CondicionesFuncionamiento, Mantenimiento, TrasladoEquipo,Responsable,Sede,Servicio
 import json
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -42,17 +42,17 @@ class EquiposView(View): # Renombrado a EquiposView para claridad
         # 2. FILTROS DE PROPIEDADES DIRECTAS (Equipo)
         
         # Filtro por Marca
-        marca = request.GET.get("marca")
+        marca = request.GET.get("f1")
         if marca:
             filtros["marca_equipo__icontains"] = marca
 
         # Filtro por Modelo
-        modelo = request.GET.get("modelo")
+        modelo = request.GET.get("f2")
         if modelo:
             filtros["modelo_equipo__icontains"] = modelo
 
         # Filtro por Estado (activo, inactivo, de baja)
-        codigo_inventario = request.GET.get("codigo_inventario")
+        codigo_inventario = request.GET.get("f3")
         if codigo_inventario:
             filtros["codigo_inventario__icontains"] = codigo_inventario
 
@@ -511,3 +511,46 @@ class CondicionesFuncionamientoView(View): # Renombrado a CondicionesFuncionamie
         ]
 
         return JsonResponse({"result": data}, status=200)
+class ResponsablesView(View): 
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+    def get(self, request, codigo_interno=None):
+        if codigo_interno:
+            try:
+                responsable = Responsable.objects.get(codigo_interno=codigo_interno)
+                data = {
+                    'nombre': responsable.nombre_responsable,
+                    'sede': responsable.sede.nombre_sede,
+                }
+                return JsonResponse(data, status=200)
+            except Responsable.DoesNotExist:
+                return JsonResponse({'error': 'Laborresponsable no encontrado'}, status=404)
+            except Responsable.MultipleObjectsReturned:
+                return JsonResponse({'error': 'Múltiples responsables encontrados con el mismo código'}, status=400)
+        else:
+            responsables=list(Responsable.objects.values('nombre_responsable','sede__nombre_sede'))
+            data={'message':'Success','result':responsables}
+            return JsonResponse(data, status=200)
+
+class SedeView(View): 
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+    def get(self, request, codigo_interno=None):
+        if codigo_interno:
+            try:
+                sede = Sede.objects.get(codigo_interno=codigo_interno)
+                data = {
+                    'nombre': sede.nombre_sede,
+                    'ubicacion': sede.ubicacion_sede,
+                }
+                return JsonResponse(data, status=200)
+            except Sede.DoesNotExist:
+                return JsonResponse({'error': 'Sede no encontrado'}, status=404)
+            except Sede.MultipleObjectsReturned:
+                return JsonResponse({'error': 'Múltiples responsables encontrados con el mismo código'}, status=400)
+        else:
+            sedes=list(Sede.objects.values('nombre_sede','ubicacion_sede'))
+            data={'message':'Success','result':sedes}
+            return JsonResponse(data, status=200)        
