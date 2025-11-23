@@ -73,7 +73,7 @@ class EquiposView(View): # Renombrado a EquiposView para claridad
                 'nombre_sede': e.sede.nombre_sede if e.sede else None, 
                 # CORRECCIÓN: Usa e.servicio.nombre si e.servicio existe
                 'nombre_servicio': e.servicio.nombre_servicio if e.servicio else None,
-                'nombre_responsable': e.responsable_servicio, # Campo CharField  
+                'nombre_responsable': e.responsable_servicio.nombre_responsable if e.responsable_servicio else None, # Campo CharField  
                 # 3.2. Datos del Equipo (Equipo Base)
                 'nombre_equipo': e.nombre_equipo, 
                 'marca_equipo': e.marca_equipo, 

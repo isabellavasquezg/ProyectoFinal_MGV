@@ -1,33 +1,84 @@
 <script>
 export default {
-    name: "TablasEquipos",
+ name: "TablasEquipos",
     props: {
         seccion: {
             type: String,
             required: true
         },
-        filas: {
+        // 'filas' sigue siendo la prop, la usaremos para inicializar el estado
+        filas: { 
             type: Array,
             required: true,
             default: () => []
         },
     },
+    data() {
+        return {
+            // 💡 ESTADO LOCAL: Aquí guardaremos la copia de las filas CON el estado 'mostrarOpciones'
+            equiposConEstado: [],
+        };
+    },
+    watch: {
+        // Observa si la prop 'filas' cambia (ej. si el padre trae nuevos datos) y reinicializa.
+        filas: {
+            handler(newFilas) {
+                this.equiposConEstado = this.inicializarFilas(newFilas);
+            },
+            immediate: true, // Ejecuta al inicio y en cada cambio
+        }
+    },
     methods: {
+        // 🏭 Función auxiliar para añadir el estado 'mostrarOpciones'
+        inicializarFilas(filas) {
+             // IMPORTANTE: Creamos una copia nueva para no modificar la prop
+             return filas.map(fila => ({
+                ...fila, 
+                // Añadimos la variable de control de UI
+                mostrarOpciones: false 
+            }));
+        },
+
         cambiarSeccion(seccionNueva){
-            this.seccion = seccionNueva;
-        }  
+            // Nota: No puedes modificar directamente la prop `this.seccion`.
+            // Si necesitas cambiar la sección, debes emitir un evento al padre:
+            // this.$emit('update:seccion', seccionNueva);
+        }, 
+        
+        // 🖱️ Mantenemos el método, pero ahora usa el array local `equiposConEstado`
+        toggleDropdown(index) {
+            // Usamos el array local 'equiposConEstado'
+            this.equiposConEstado.forEach((fila, i) => {
+                if (i !== index) {
+                    fila.mostrarOpciones = false; 
+                }
+            });
+            // Modificamos el estado en la copia local
+            this.equiposConEstado[index].mostrarOpciones = !this.equiposConEstado[index].mostrarOpciones;
+        },
+        
+        // Métodos de acción (no necesitan cambio si usan el objeto 'con' que iteras)
+        verEquipo(equipo) {
+            console.log('Ver equipo:', equipo.serie_equipo);
+        },
+        trasladarEquipo(equipo) {
+            console.log('Trasladar equipo:', equipo.serie_equipo);
+        },
+        editarEquipo(equipo) {
+            console.log('Editar equipo:', equipo.serie_equipo);
+        }
     },
     computed: {
         fontSizeDinamico() {
             switch (this.seccion) {
             case "General":
-                return "12px";
+                return "11px";
             case "Registro":
-                return "12px";
+                return "11px";
             case "MetrologiaA":
-                return "13px";
+                return "12px";
             case "MetrologiaT":
-                return "13px";
+                return "12px";
             case "Documentacion":
                 return "12px";
             default:
@@ -46,43 +97,51 @@ export default {
                 </th>
                 <th class="tabla--headers">Sede</th>
                 <th class="tabla--headers">Servicio</th>
-                <th class="tabla--headers">Responsable Servicio</th>
+                <th class="tabla--headers">Número de Serie</th>
+                <th class="tabla--headers">Marca</th>
+                <th class="tabla--headers">Modelo</th>
                 <th class="tabla--headers">Nombre Equipo</th>
+                <th class="tabla--headers">Responsable Servicio</th>
                 <th class="tabla--headers">Código Inventario</th>
                 <th class="tabla--headers">Código IPS</th>
                 <th class="tabla--headers">Código ECRI</th>
                 <th class="tabla--headers">Ubicación</th>
-                <th class="tabla--headers">Marca</th>
-                <th class="tabla--headers">Modelo</th>
-                <th class="tabla--headers">Serie</th>
                 <th class="tabla--headers">Clasificación Misional</th>
                 <th class="tabla--headers">Clasificación IPS</th>
                 <th class="tabla--headers">Clasificación Riesgo</th>
                 <th class="tabla--headers">Registro Invima</th>
-                <th class="tabla--headers">Estado</th>
                 <th class="tabla--headers">Acciones</th>
             </tr> 
         </thead>
         <tbody>
-            <tr class="tabla--fila" v-for="eq in filas" :key="eq.serie">
+            <tr class="tabla--fila" v-for="(eq, index) in equiposConEstado" :key="eq.serie">
                 <td><input class="checkRow" type="checkbox"  :checked="checkHeader"/></td>
-                <td>{{ eq.sede }}</td>
-                <td>{{ eq.servicio }}</td>
-                <td>{{ eq.responsable }}</td>
+                <td>{{ eq.nombre_sede }}</td>
+                <td>{{ eq.nombre_servicio }}</td>
+                <td>{{ eq.nombre_responsable}}</td>
+                <td>{{ eq.serie_equipo }}</td>
+                <td>{{ eq.marca_equipo }}</td>
+                <td>{{ eq.modelo_equipo }}</td>
                 <td>{{ eq.nombre_equipo }}</td>
                 <td>{{ eq.codigo_inventario }}</td>
                 <td>{{ eq.codigo_ips }}</td>
                 <td>{{ eq.codigo_ecri }}</td>
                 <td>{{ eq.ubicacion_fisica }}</td>
-                <td>{{ eq.marca }}</td>
-                <td>{{ eq.modelo }}</td>
-                <td>{{ eq.serie }}</td>
                 <td>{{ eq.clasificacion_misional }}</td>
                 <td>{{ eq.clasificacion_ips }}</td>
                 <td>{{ eq.clasificacion_riesgo }}</td>
                 <td>{{ eq.registro_invima }}</td>
-                <td>{{ eq.estado }}</td>
-                <td><button class="tabla--boton">Actualizar</button></td>
+                <td class="dropdown-cell">
+                    <div class="dropdown">
+                        <button class="tabla--boton" @click="toggleDropdown(index)">Opciones ▼</button>
+                
+                <div v-show="eq.mostrarOpciones" class="dropdown-menu">
+                    <a href="#" class="dropdown-item" @click.prevent="verEquipo(con)">Ver</a>
+                    <a href="#" class="dropdown-item" @click.prevent="trasladarEquipo(con)">Traslado</a>
+                    <a href="#" class="dropdown-item" @click.prevent="editarEquipo(con)">Editar</a>
+                </div>
+            </div>
+        </td>
             </tr>
         </tbody>
     </table> 
@@ -94,14 +153,14 @@ export default {
                 </th>
                 <th class="tabla--headers">Sede</th>
                 <th class="tabla--headers">Servicio</th>
-                <th class="tabla--headers">Numero de Serie</th>
+                <th class="tabla--headers">Número de Serie</th>
                 <th class="tabla--headers">Vida Util</th>
                 <th class="tabla--headers">Fecha Adquisicion</th>
                 <th class="tabla--headers">Propietario Equipo</th>
                 <th class="tabla--headers">Fecha de Fabricacion</th>
                 <th class="tabla--headers">NIT</th>
                 <th class="tabla--headers">Proveedro Equipo</th>
-                <th class="tabla--headers">Estado Garantia</th>
+                <th class="tabla--headers">Estado de Garantia</th>
                 <th class="tabla--headers">Terminación Garantia</th>
                 <th class="tabla--headers">Forma Adquisicion</th>
                 <th class="tabla--headers">Tipo Documento</th>
@@ -139,10 +198,12 @@ export default {
                 </th>
                 <th class="tabla--headers">Sede</th>
                 <th class="tabla--headers">Servicio</th>
-                <th class="tabla--headers">Numero de Serie</th>
-                <th class="tabla--headers">Realiza Mantenimientos</th>
+                <th class="tabla--headers">Número de Serie</th>
+                <th class="tabla--headers">Tiene Mantenimiento</th>
+                <th class="tabla--headers">Tipo de Mantenimiento</th>
                 <th class="tabla--headers">Frecuencia Mantenimiento</th>
-                <th class="tabla--headers">Realiza Calibración</th>
+                <th class="tabla--headers">Tiene Calibración</th>
+                <th class="tabla--headers">Tipo de Calibración</th>
                 <th class="tabla--headers">Frecuencia Calibración</th>
                 <th class="tabla--headers">Acciones</th>
             </tr> 
@@ -155,8 +216,10 @@ export default {
                 <td>{{ ma.servicio }}</td>
                 <td>{{ ma.serie_equipo }}</td> 
                 <td>{{ ma.mantenimiento ? 'Sí' : 'No' }}</td> 
+                <td>{{ ma.tipo }}</td>
                 <td>{{ ma.frecuencia_mantenimiento }} meses</td> 
                 <td>{{ ma.calibracion ? 'Sí' : 'No' }}</td>
+                <td>{{ ma.tipo2 }}</td>
                 <td>{{ ma.frecuencia_calibracion }}</td>
                 <td><button class="tabla--boton">Actualizar</button></td>
             </tr>
@@ -170,7 +233,7 @@ export default {
                 </th>
                 <th class="tabla--headers">Sede</th>
                 <th class="tabla--headers">Servicio</th>
-                <th class="tabla--headers">Numero de Serie</th>
+                <th class="tabla--headers">Número de Serie</th>
                 <th class="tabla--headers">Magnitud</th>
                 <th class="tabla--headers">Rango del Equipo</th>
                 <th class="tabla--headers">Resolución</th>
@@ -203,7 +266,7 @@ export default {
                 </th>
                 <th class="tabla--headers">Sede</th>
                 <th class="tabla--headers">Servicio</th>
-                <th class="tabla--headers">Numero de Serie</th>
+                <th class="tabla--headers">Número de Serie</th>
                 <th class="tabla--headers">Hoja de vida</th>
                 <th class="tabla--headers">Registro de Importación</th>
                 <th class="tabla--headers">Manual de Operación</th>
@@ -242,7 +305,7 @@ export default {
                 </th>
                 <th class="tabla--headers">Sede</th>
                 <th class="tabla--headers">Servicio</th>
-                <th class="tabla--headers">Numero de Serie</th>
+                <th class="tabla--headers">Número de Serie</th>
                 <th class="tabla--headers">Voltaje</th>
                 <th class="tabla--headers">Corriente</th>
                 <th class="tabla--headers">Humedad Relativa</th>
@@ -267,7 +330,17 @@ export default {
                 <td>{{ con.dimensiones }}</td> 
                 <td>{{ con.peso }}</td> 
                 <td>{{ con.otros }}</td>
-                <td><button class="tabla--boton">Actualizar</button></td>
+                <td class="dropdown-cell">
+                    <div class="dropdown">
+                        <button class="tabla--boton dropdown-toggle" @click="toggleDropdown(index)">Opciones ▼</button>
+                
+                <div v-show="con.mostrarOpciones" class="dropdown-menu">
+                    <a href="#" class="dropdown-item" @click.prevent="verEquipo(con)">Ver</a>
+                    <a href="#" class="dropdown-item" @click.prevent="trasladarEquipo(con)">Traslado</a>
+                    <a href="#" class="dropdown-item" @click.prevent="editarEquipo(con)">Editar</a>
+                </div>
+            </div>
+        </td>
             </tr>
         </tbody>
     </table>
@@ -280,18 +353,18 @@ export default {
         font-family: sans-serif;
         font-size: 12px;
     }
-
-    /* --- Encabezado --- */
+    
+     /* --- Encabezado --- */
     .tabla--header {
-        background-color: #0a346c; /* azul oscuro elegante */
+        border-radius: 10px 10px 0 0;
+        background-color: #008073; /* azul oscuro elegante */
         color: white;
         text-align: left;
     }
-
     .tabla--headers,
     .tabla--headersCheck {
         padding: 10px 8px;
-        border-bottom: 2px solid #0a2540;
+        border-bottom: 2px solid #01a393;
         font-weight: bold;
     }
 
@@ -314,19 +387,59 @@ export default {
         height: 16px;
         cursor: pointer;
     }
-    .tabla--boton {
-        background-color: #0a346c;
-        color: white;
-        border: none;
-        padding: 6px 12px;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-    .tabla--boton:hover {
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    .tabla--boton:active {
-        transform: scale(0.98);
-    }
+.tabla--boton {
+
+    height: 40px; 
+    width: 100px;
+    margin-bottom: 0; /* No necesitamos margen si es solo un botón */
+    background-color: #0a346c;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Contenedor principal del dropdown */
+.dropdown-cell {
+    position: relative;
+    /* Asegura que el dropdown no se salga si la celda es muy pequeña */
+    overflow: visible; 
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block; /* Permite que el botón se ajuste al contenido */
+}
+
+/* Estilos para el menú desplegable */
+.dropdown-menu {
+    position: absolute;
+    /* Posicionar a la izquierda (o derecha si prefieres) del botón */
+    left: 0; 
+    top: 100%; /* Justo debajo del botón */
+    z-index: 100; /* Asegura que esté por encima de otros elementos */
+    background-color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    min-width: 120px;
+    padding: 5px 0;
+    margin-top: 5px; /* Pequeño espacio entre botón y menú */
+    border: 1px solid #ddd;
+}
+
+/* Estilos para los enlaces/opciones */
+.dropdown-item {
+    display: block;
+    padding: 8px 15px;
+    text-decoration: none;
+    color: #333;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: #f0f0f0;
+    color: #0a346c;
+}
 </style>

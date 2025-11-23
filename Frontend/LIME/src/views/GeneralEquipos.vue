@@ -44,20 +44,16 @@ export default {
 
 <template>
 <div class="background"> 
-    
     <!-- Barra lateral izquierda -->
     <div class="slidebar"></div>
-
     <!-- Contenedor principal -->
     <div class="menuPrincipal">
-
         <!-- Barra superior de navegación -->
         <div class="menuPrincipal--navbar">
             <button class="navbar--opciones" @click="$router.push('/')">Equipos</button>
             <button class="navbar--opciones" @click="$router.push('/Responsables')">Responsables</button>
             <button class="navbar--opciones" @click="$router.push('/Servicios')">Servicios</button>
         </div>
-
         <!-- Botones para cambiar entre secciones -->
         <div class="menuPrincipal--secciones">
                 <button class="secciones--botones" :class="{ 'active': seccion === 'General' }"  @click="cambiarSeccion('General'); listarEquipos()">General</button>
@@ -79,7 +75,6 @@ export default {
                         <button class="menuBotones--botones" type="button">Desactivar</button>
                 </div>
             </div>
-
             <!-- Contenedor donde se muestra la tabla -->
             <div class="tablaPrincipal--contenedor">
                 <TablasEquipos :seccion="seccion" :filas="filas" />    
@@ -231,6 +226,7 @@ export default {
     }
     /*-----FIN SECCIONES DE CARPETA MENU --------*/
 
+    /*-----INICIO CONTENEDOR FILTROS DE BISQUEDA------*/
     /* Contenedor de filtros */
     .tablaPrincipal--filtros{
         padding-left: 3%;
@@ -272,10 +268,14 @@ export default {
     .menuBotones--botones:active{
         transform: scale(0.98);
     }
+    /*-----FIN CONTENEDOR FILTROS DE BISQUEDA------*/
 
     /* Contenedor de la tabla */
     .tablaPrincipal--contenedor{
-        height: 85%;
+        box-sizing: border-box;
+        padding: 2%;
+        padding-bottom: 5%;
+        height: 70%;
         width: 100%;
         overflow-x: auto; 
         max-height: 100%;

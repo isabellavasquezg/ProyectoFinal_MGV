@@ -4,7 +4,7 @@ from django.db import models
 # 1. SEDE (Ubicación física principal)
 # =============================
 class Sede(models.Model):
-    nombre_sede = models.CharField(max_length=150, unique=True)
+    nombre_sede = models.CharField(max_length=140, unique=True)
     ubicacion_sede = models.CharField(max_length=250, null=True, blank=True) # Ubicación física de la sede
 
     class Meta:
