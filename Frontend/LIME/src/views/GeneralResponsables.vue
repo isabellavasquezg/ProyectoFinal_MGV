@@ -12,35 +12,26 @@
             <button class="navbar--opciones" @click="$router.push('/Responsables')">Responsables</button>
             <button class="navbar--opciones" @click="$router.push('/Servicios')">Servicios</button>
         </div>
-        <!-- Botones para cambiar entre secciones -->
-        <div class="menuPrincipal--secciones">
-                <button class="secciones--botones" :class="{ 'active': seccion === 'General' }"  @click="cambiarSeccion('General'); listarEquipos()">General</button>
-                <button class="secciones--botones" :class="{ 'active': seccion === 'Registro' }" @click="cambiarSeccion('Registro'); listarEquipos()">Registro Historico</button>
-                <button class="secciones--botones" :class="{ 'active': seccion === 'MetrologiaA' }" @click="cambiarSeccion('MetrologiaA'); listarEquipos()">Metrologia Administrativa</button>
-                <button class="secciones--botones" :class="{ 'active': seccion === 'MetrologiaT' }" @click="cambiarSeccion('MetrologiaT'); listarEquipos()">Metrologia Tecnica</button>
-                <button class="secciones--botones" :class="{ 'active': seccion === 'Documentacion' }" @click="cambiarSeccion('Documentacion'); listarEquipos()">Documentación</button>
-                <button class="secciones--botones" :class="{ 'active': seccion === 'Condicion' }" @click="cambiarSeccion('Condicion'); listarEquipos()">Coondicion Funcionamiento</button>
-        </div>
-        <!-- Contenedor principal de tabla + filtros -->
-        <div class="menuPrincipal--tablaPrincipal">
-            <!-- Filtros y botones laterales -->
-            <div class="tablaPrincipal--filtros">
-                <!-- Componente de filtros dinámico por sección -->
-                <FiltrosMenu :seccion="seccion" />
-                <!-- Botones de acciones (agregar y eliminar) -->
-                <div class="tablaPricipal--menuBotones">
-                        <button class="menuBotones--botones" type="button">Agregar</button>
-                        <button class="menuBotones--botones" type="button">Desactivar</button>
-                </div>
+        <div class="menuPrincipal--tablaPrincipal--responsables">
+            <div class="responsables--listacontenedor">
+                
             </div>
-            <!-- Contenedor donde se muestra la tabla -->
-            <div class="tablaPrincipal--contenedor">
-                <TablasEquipos :seccion="seccion" :filas="filas" />    
-            </div>
-
         </div>
     </div>
 </div>
 </template>
 <style>
+    .menuPrincipal--tablaPrincipal--responsables{
+        margin: 2% 2%;
+        box-sizing: border-box;
+        width: 96%;
+        height: 84%;
+        background-color: #f7f7f7a1;
+        display:flex;
+        flex-direction: row;
+        align-items: center;
+        overflow-x: scroll;
+        border-radius: 12px 12px 12px 12px;
+        box-shadow: 2px 3px 3px rgba(0, 0, 0, 0.15), -2px -3px 3px rgba(0, 0, 0, 0.15);
+    }
 </style>

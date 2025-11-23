@@ -155,7 +155,7 @@ export default {
         margin: 2% 2%;
         margin-top: 0;
         box-sizing: border-box;
-        width: 96%;
+        width: 93%;
         height: 84%;
         background-color: #f7f7f7a1;
         display:flex;
@@ -275,7 +275,7 @@ export default {
         box-sizing: border-box;
         padding: 2%;
         padding-bottom: 5%;
-        height: 70%;
+        height: 73%;
         width: 100%;
         overflow-x: auto; 
         max-height: 100%;
