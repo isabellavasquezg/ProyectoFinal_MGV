@@ -111,7 +111,7 @@ export default {
         </thead>
 
         <tbody>
-            <tr class="tabla--fila" v-for="(eq, index) in equiposConEstado" :key="eq.serie">
+            <tr class="tabla--fila" v-for="(eq, index) in equiposConEstado" :key="eq.serie_equipo">
                 <!-- Checkbox por fila -->
                 <td><input class="checkRow" type="checkbox"/></td>
 
@@ -131,7 +131,7 @@ export default {
                 <td>{{ eq.clasificacion_ips }}</td>
                 <td>{{ eq.clasificacion_riesgo }}</td>
                 <td>{{ eq.registro_invima }}</td>
-                
+
                 <!-- Botón + menú de acciones -->
                 <td class="dropdown-cell">
                     <div class="dropdown">
@@ -178,13 +178,13 @@ export default {
         </thead>
 
         <tbody>
-            <tr class="tabla--fila" v-for="(re, index) in filas" :key="re.serie">
+            <tr class="tabla--fila" v-for="(re, index) in filas" :key="re.serie_equipo">
                 <td><input class="checkRow" type="checkbox" /></td>
 
                 <!-- Datos del registro -->
-                <td>{{ re.sede }}</td>
-                <td>{{ re.servicio }}</td>
-                <td>{{ re.serie }}</td>
+                <td>{{ re.nombre_sede }}</td>
+                <td>{{ re.nombre_servicio }}</td>
+                <td>{{ re.serie_equipo }}</td>
                 <td>{{ re.tiempo_vida_util }}</td>
                 <td>{{ re.fecha_adquisicion }}</td>
                 <td>{{ re.propietario }}</td>
@@ -234,17 +234,17 @@ export default {
         </thead>
 
         <tbody>
-            <tr class="tabla--fila" v-for="(ma, index) in filas" :key="ma.serie">
+            <tr class="tabla--fila" v-for="(ma, index) in filas" :key="ma.serie_equipo">
                 <td><input class="checkRow" type="checkbox" /></td>
 
-                <td>{{ ma.sede }}</td>
-                <td>{{ ma.servicio }}</td>
+                <td>{{ ma.nombre_sede }}</td>
+                <td>{{ ma.nombre_servicio }}</td>
                 <td>{{ ma.serie_equipo }}</td>
-                <td>{{ ma.mantenimiento ? 'Sí' : 'No' }}</td>
-                <td>{{ ma.tipo }}</td>
-                <td>{{ ma.frecuencia_mantenimiento }} meses</td>
-                <td>{{ ma.calibracion ? 'Sí' : 'No' }}</td>
-                <td>{{ ma.tipo2 }}</td>
+                <td>{{ ma.mantenimiento_requerido ? 'Sí' : 'No' }}</td>
+                <td>{{ ma.tipo_mantenimiento }}</td>
+                <td>{{ ma.frecuencia_mantenimiento }}</td>
+                <td>{{ ma.calibracion_requerida ? 'Sí' : 'No' }}</td>
+                <td>{{ ma.tipo_calibracion }}</td>
                 <td>{{ ma.frecuencia_calibracion }}</td>
 
                 <!-- Dropdown -->

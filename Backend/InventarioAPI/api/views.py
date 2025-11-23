@@ -128,17 +128,17 @@ class RegistroHistoricoView(View):
         # 2. NUEVOS FILTROS ESPECÍFICOS DE HISTÓRICO (Adquisición/Proveedor)
 
         # Filtro por PROVEEDOR
-        proveedor = request.GET.get("proveedor")
+        proveedor = request.GET.get("f1")
         if proveedor:
             filtros["proveedor__icontains"] = proveedor
 
         # Filtro por FORMA DE ADQUISICIÓN (compra, donación, leasing, etc.)
-        forma_adquisicion = request.GET.get("forma_adquisicion")
+        forma_adquisicion = request.GET.get("f2")
         if forma_adquisicion:
             filtros["forma_adquisicion__icontains"] = forma_adquisicion
 
         # Filtro por GARANTÍA (Booleano)
-        en_garantia = request.GET.get("en_garantia")
+        en_garantia = request.GET.get("f3")
         if en_garantia in ('True', 'true', '1'):
             filtros["en_garantia"] = True
         elif en_garantia in ('False', 'false', '0'):
