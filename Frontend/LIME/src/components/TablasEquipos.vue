@@ -21,7 +21,6 @@ export default {
             equiposConEstado: [],
         };
     },
-
     watch: {
         // Observa cambios en filas y vuelve a inicializar el estado interno
         filas: {

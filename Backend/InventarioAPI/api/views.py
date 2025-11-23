@@ -23,6 +23,7 @@ class EquiposView(View): # Renombrado a EquiposView para claridad
         """
         filtros = {}
 
+        filtros["estado_equipo"] = 1
         # 1. FILTROS DE RELACIONES (Acceso a través de FK con __nombre)
         # Filtro por Nombre de Sede (Búsqueda parcial, case-insensitive)
         sede = request.GET.get("sede")
@@ -109,7 +110,7 @@ class RegistroHistoricoView(View):
     
     def get(self, request, *args, **kwargs):
         filtros = {}
-
+        filtros["equipo__estado_equipo"] = 1
         # Filtro por SERIE del Equipo relacionado
         serie = request.GET.get("serie")
         if serie:
@@ -202,7 +203,7 @@ class MetrologiaAdminView(View):
         Los filtros se aplican a través de la relación FK al modelo Equipo.
         """
         filtros = {}
-
+        filtros["equipo__estado_equipo"] = 1
         # Filtro por SERIE del Equipo relacionado
         serie = request.GET.get("serie")
         if serie:
@@ -281,7 +282,7 @@ class MetrologiaTecnicaView(View):
         Los filtros se aplican a través de la relación FK al modelo Equipo.
         """
         filtros = {}
-
+        filtros["equipo__estado_equipo"] = 1
         # Filtro por SERIE del Equipo relacionado
         serie = request.GET.get("serie")
         if serie:
@@ -361,7 +362,7 @@ class DocumentoEquipoView(View): # Renombrado a DocumentoEquipoView
         Los filtros de ubicación y propiedades del equipo se aplican a través de 'equipo__'.
         """
         filtros = {}
-
+        filtros["equipo__estado_equipo"] = 1
         # Filtro por SERIE del Equipo relacionado
         serie = request.GET.get("serie")
         if serie:
@@ -445,7 +446,7 @@ class CondicionesFuncionamientoView(View): # Renombrado a CondicionesFuncionamie
         Maneja peticiones GET para listar y filtrar los requisitos de funcionamiento de los equipos.
         """
         filtros = {}
-
+        filtros["equipo__estado_equipo"] = 1
         # Filtro por SERIE del Equipo relacionado
         serie = request.GET.get("serie")
         if serie:

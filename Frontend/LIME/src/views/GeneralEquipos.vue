@@ -18,6 +18,7 @@ export default {
         return {
             seccion:"General",
             filas: [],
+            estadoAgregar:false,
 
             // Filtros que siempre estarán disponibles
             filtrosActuales: {
@@ -66,7 +67,10 @@ export default {
                 alert("Error al listar equipos");
             }
         },
+        toggleAgregar(){
+            this.estadoAgregar=!this.estadoAgregar
 
+        },
         // Manejar filtros emitidos desde el componente hijo
         filtrarEquipos(nuevosFiltros) {
 
@@ -131,15 +135,17 @@ export default {
                 <FiltrosMenu :seccion="seccion" @aplicar-filtros="filtrarEquipos"/>
                 <!-- Botones de acciones (agregar y eliminar) -->
                 <div class="tablaPricipal--menuBotones">
-                        <button class="menuBotones--botones" type="button">Agregar</button>
-                        <button class="menuBotones--botones" type="button">Desactivar</button>
+                        <button class="menuBotones--botones" :class="{ 'activate': estadoAgregar === true }" type="button" @click="toggleAgregar()">Agregar</button>
+                        <button class="menuBotones--botones"  type="button">Desactivar</button>
                 </div>
             </div>
             <!-- Contenedor donde se muestra la tabla -->
-            <div class="tablaPrincipal--contenedor">
+            <div class="tablaPrincipal--contenedor" v-if="estadoAgregar===false">
                 <TablasEquipos :seccion="seccion" :filas="filas" />    
             </div>
-
+            <div class="tablaPrincipal--contenedor" v-if="estadoAgregar===true">  
+                
+            </div>
         </div>
     </div>
 </div>
@@ -322,11 +328,16 @@ export default {
 
     .menuBotones--botones:hover{
         box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        transform: scale(1.03);
+        transform: scale(1.01);
     }
 
     .menuBotones--botones:active{
         transform: scale(0.98);
+    }
+    .menuBotones--botones.activate{
+        background-color: #ffffff;
+        color:#008073;
+        box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.1), -4px -4px 6px rgba(0, 0, 0, 0.1);
     }
     /*-----FIN CONTENEDOR FILTROS DE BISQUEDA------*/
 
