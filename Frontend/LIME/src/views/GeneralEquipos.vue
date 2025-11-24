@@ -1,6 +1,7 @@
 <script>
 import axios from "axios";
 // Importamos los componentes que usa esta vista
+import FormulariosEquipos from "../components/FormulariosEquipos.vue";
 import TablasEquipos from '../components/TablasEquipos.vue';
 import FiltrosMenu from '../components/FiltrosMenu.vue';
 
@@ -8,6 +9,7 @@ export default {
 
     // Registramos los componentes
     components: {
+        FormulariosEquipos,
         FiltrosMenu,
         TablasEquipos
     },
@@ -94,6 +96,10 @@ export default {
                 dinamico2: '',
                 dinamico3: '',
             };
+            if (this.estadoAgregar===true){
+                 this.estadoAgregar=false
+            }
+           
 
             // Nueva consulta con los filtros persistentes
             this.listarEquipos(this.filtrosActuales);
@@ -135,7 +141,7 @@ export default {
                 <FiltrosMenu :seccion="seccion" @aplicar-filtros="filtrarEquipos"/>
                 <!-- Botones de acciones (agregar y eliminar) -->
                 <div class="tablaPricipal--menuBotones">
-                        <button class="menuBotones--botones" :class="{ 'activate': estadoAgregar === true }" type="button" @click="toggleAgregar()">Agregar</button>
+                        <button class="menuBotones--botones agregar" :class="{ 'activate': estadoAgregar === true }" type="button" @click="toggleAgregar()"></button>
                         <button class="menuBotones--botones"  type="button">Desactivar</button>
                 </div>
             </div>
@@ -144,7 +150,7 @@ export default {
                 <TablasEquipos :seccion="seccion" :filas="filas" />    
             </div>
             <div class="tablaPrincipal--contenedor" v-if="estadoAgregar===true">  
-                
+                <FormulariosEquipos :seccion="seccion"/>
             </div>
         </div>
     </div>
@@ -339,6 +345,12 @@ export default {
         color:#008073;
         box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.1), -4px -4px 6px rgba(0, 0, 0, 0.1);
     }
+    .menuBotones--botones, .agregar::after {
+        content: "Añadir";
+    }
+    .menuBotones--botones.activate::after{
+        content: "Cancelar";
+    }
     /*-----FIN CONTENEDOR FILTROS DE BISQUEDA------*/
 
     /* Contenedor de la tabla */
@@ -350,5 +362,7 @@ export default {
         width: 100%;
         overflow-x: auto; 
         max-height: 100%;
+        display:flex;
+        flex-direction: column;
     }
 </style>

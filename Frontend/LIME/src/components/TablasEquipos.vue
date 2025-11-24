@@ -418,6 +418,7 @@ export default {
 
     /* Tabla base */
     .tabla {
+        height: 100%;
         width: 100%;
         border-collapse: collapse;
         font-family: sans-serif;
