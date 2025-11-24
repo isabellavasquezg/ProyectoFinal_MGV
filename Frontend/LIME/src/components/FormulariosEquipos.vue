@@ -8,165 +8,354 @@
         seccion: {
             type: String,
             required: true
+        },
+        bloqueCampos: {
+            type: Boolean,
+            required: true
+        },
+        seriesInesistentes: {
+            type: Array,
+            required: true
+        },
+        todasSeries: {
+            type: Array,
+            required: true
+        }
+    },
+    data() {
+        return {
+            serieSeleccionada: "",
+            mostrarLista: false,
+            textoBusqueda: ""
+        };
+    },
+
+    computed: {
+        seriesFiltradas() {
+            const texto = this.textoBusqueda.toLowerCase();
+
+            // 👉 Si la sección es MetrologíaT usar TODAS las series
+            if (this.seccion === "MetrologiaT") {
+                return this.todasSeries.filter(s =>
+                    s.toLowerCase().includes(texto)
+                );
+            }
+
+            // 👉 Para todas las demás vistas usar seriesInesistentes
+            return this.seriesInesistentes.filter(s =>
+                s.toLowerCase().includes(texto)
+            );
         }
     },
 
-    data() {
-        return {
-        };
-    },
+
     watch: {
+        textoBusqueda(valor) {
+            this.mostrarLista = valor.length > 0;
+        }
     },
 
     methods: {
-    },
+        seleccionarSerie(serie) {
+            this.serieSeleccionada = serie;
+            this.textoBusqueda = serie;
+            this.mostrarLista = false;
+        },
+
+        validarEntrada() {
+            if (this.seccion === "MetrologiaT") {
+                // Validación solo para MetrologíaT
+                if (!this.todasSeries.includes(this.textoBusqueda)) {
+                    this.textoBusqueda = "";
+                    this.serieSeleccionada = "";
+                }
+                return;
+            }
+
+            // Validación para las demás secciones
+            if (!this.seriesInesistentes.includes(this.textoBusqueda)) {
+                this.textoBusqueda = "";
+                this.serieSeleccionada = "";
+            }
+        }
+    }
 };
 </script>
 <template>
-    <div class="contenedorfromulario" v-if="seccion==='General'">
-        <h2 class="tablaPrincipal--tituloAgregar">INGRESO DE EQUIPOS INFORMACIÓN GENERAL</h2>
-        <form class="tablaprincipal--formularioAgregar">
-            <div class="formularioAgregar--columnas">
-                <input class="formularioAgregar--inputs" placeholder="Sede"></input>
-                <input class="formularioAgregar--inputs" placeholder="Servicio"></input>
-                <input class="formularioAgregar--inputs" placeholder="Número de Serie"></input>
-                <input class="formularioAgregar--inputs" placeholder="Marca"></input>
-                <input class="formularioAgregar--inputs" placeholder="Modelo"></input>
-                <input class="formularioAgregar--inputs" placeholder="Nombre Equipo"></input>
-                <input class="formularioAgregar--inputs" placeholder="Responsable Servicio"></input>
-                <input class="formularioAgregar--inputs" placeholder="Código Inventario"></input>
-                
+    <div>
+        <div class="contenedorfromulario" v-if="seccion==='General'">
+            <h2 class="tablaPrincipal--tituloAgregar">INGRESO DE EQUIPOS INFORMACIÓN GENERAL</h2>
+            <form class="tablaprincipal--formularioAgregar">
+                <div class="formularioAgregar--columnas">
+                    <input class="formularioAgregar--inputs" placeholder="Sede"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Servicio"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Número de Serie"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Marca"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Modelo"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Nombre Equipo"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Responsable Servicio"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Código Inventario"></input>
+                </div>
+                <div class="formularioAgregar--columnas">
+                    <input class="formularioAgregar--inputs" placeholder="Código IPS"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Código ECRI"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Ubicación"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Clasificación Misional"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Clasificación IPS"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Clasificación Riesgo"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Registro Invima"></input>
+                </div>
+            </form>
+            <div class="formularioAgregar--contenedorbotones">
+                <button class="formularioAgregar--botones">Guardar</button>
+                <button class="formularioAgregar--botones">Limpiar</button>
             </div>
-            <div class="formularioAgregar--columnas">
-                <input class="formularioAgregar--inputs" placeholder="Código IPS"></input>
-                <input class="formularioAgregar--inputs" placeholder="Código ECRI"></input>
-                <input class="formularioAgregar--inputs" placeholder="Ubicación"></input>
-                <input class="formularioAgregar--inputs" placeholder="Clasificación Misional"></input>
-                <input class="formularioAgregar--inputs" placeholder="Clasificación IPS"></input>
-                <input class="formularioAgregar--inputs" placeholder="Clasificación Riesgo"></input>
-                <input class="formularioAgregar--inputs" placeholder="Registro Invima"></input>
-            </div>
-        </form>
-        <div class="formularioAgregar--contenedorbotones">
-            <button class="formularioAgregar--botones">Guardar</button>
-            <button class="formularioAgregar--botones">Limpiar</button>
         </div>
-    </div>
-    <div class="contenedorfromulario" v-if="seccion==='Registro'">
-        <h2 class="tablaPrincipal--tituloAgregar">INGRESO DE EQUIPOS INFORMACIÓN DE REGISTRO</h2>
-        <form class="tablaprincipal--formularioAgregar">
-            <div class="formularioAgregar--columnas">
-                <input class="formularioAgregar--inputs" placeholder="Sede"></input>
-                <input class="formularioAgregar--inputs" placeholder="Servicio"></input>
-                <input class="formularioAgregar--inputs" placeholder="Número de Serie"></input>
-                <input class="formularioAgregar--inputs" placeholder="Vida Util"></input>
-                <input class="formularioAgregar--inputs" placeholder="Fecha Adquisicion"></input>
-                <input class="formularioAgregar--inputs" placeholder="Propietario Equipo"></input>
-                <input class="formularioAgregar--inputs" placeholder="Fecha de Fabricacion"></input>
-                <input class="formularioAgregar--inputs" placeholder="NIT"></input>
+        
+        <div class="contenedorfromulario" v-if="seccion==='Registro'">
+            <h2 class="tablaPrincipal--tituloAgregar">INGRESO DE EQUIPOS INFORMACIÓN DE REGISTRO</h2>
+            <form class="tablaprincipal--formularioAgregar">
+                <div class="formularioAgregar--columnas">
+                    <div class="formularioAgregar--input-wrapper">
+                        <div class="autocomplete-container">
+                            <!-- INPUT -->
+                            <input
+                                class="formularioAgregar--inputs"
+                                placeholder="Número de Serie"
+                                :disabled="bloqueCampos"
+                                v-model="textoBusqueda"
+                                @blur="validarEntrada"
+                                @focus="mostrarLista = true"
+                            >
+
+                            <!-- LISTA AUTOCOMPLETE -->
+                            <ul v-if="mostrarLista && seriesFiltradas.length > 0" class="autocomplete-list">
+                                <li 
+                                    v-for="(serie, index) in seriesFiltradas"
+                                    :key="index"
+                                    class="autocomplete-item"
+                                    @mousedown.prevent="seleccionarSerie(serie)"
+                                >
+                                    {{ serie }}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <input class="formularioAgregar--inputs" placeholder="Vida Util" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Fecha Adquisicion" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Propietario Equipo" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Fecha de Fabricacion" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="NIT" :disabled="bloqueCampos"></input>
+                </div>
+                <div class="formularioAgregar--columnas">
+                    <input class="formularioAgregar--inputs" placeholder="Proveedor Equipo" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Estado de Garantía" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Terminación Garantía" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Forma Adquisición" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Tipo Documento" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Número Documento" :disabled="bloqueCampos"></input>
+                </div>
+            </form>
+            <div class="formularioAgregar--contenedorbotones" v-if="bloqueCampos===false">
+                <button class="formularioAgregar--botones">Guardar</button>
+                <button class="formularioAgregar--botones">Limpiar</button>
             </div>
-            <div class="formularioAgregar--columnas">
-                <input class="formularioAgregar--inputs" placeholder="Proveedor Equipo"></input>
-                <input class="formularioAgregar--inputs" placeholder="Estado de Garantía"></input>
-                <input class="formularioAgregar--inputs" placeholder="Terminación Garantía"></input>
-                <input class="formularioAgregar--inputs" placeholder="Forma Adquisición"></input>
-                <input class="formularioAgregar--inputs" placeholder="Tipo Documento"></input>
-                <input class="formularioAgregar--inputs" placeholder="Número Documento"></input>
+            <div class="formularioAgregar--contenedorbotones" v-if="bloqueCampos===true">
+                <h3>No hay equipos, por favor ingresa uno nuevo en General</h3>
             </div>
-        </form>
-        <div class="formularioAgregar--contenedorbotones">
-            <button class="formularioAgregar--botones">Guardar</button>
-            <button class="formularioAgregar--botones">Limpiar</button>
         </div>
-    </div>
-    <div class="contenedorfromulario" v-if="seccion==='MetrologiaA'">
-        <h2 class="tablaPrincipal--tituloAgregar">INGRESO DE EQUIPOS METROLOGÍA (ADMINISTRATIVA)</h2>
-        <form class="tablaprincipal--formularioAgregar">
-            <div class="formularioAgregar--columnas">
-                <input class="formularioAgregar--inputs" placeholder="Sede"></input>
-                <input class="formularioAgregar--inputs" placeholder="Servicio"></input>
-                <input class="formularioAgregar--inputs" placeholder="Número de Serie"></input>
-                <input class="formularioAgregar--inputs" placeholder="Tiene Mantenimiento"></input>
-                <input class="formularioAgregar--inputs" placeholder="Tipo Mantenimiento"></input>
+
+        <div class="contenedorfromulario" v-if="seccion==='MetrologiaA'">
+            <h2 class="tablaPrincipal--tituloAgregar">INGRESO DE EQUIPOS METROLOGÍA (ADMINISTRATIVA)</h2>
+            <form class="tablaprincipal--formularioAgregar">
+                <div class="formularioAgregar--columnas">
+                    <div class="formularioAgregar--input-wrapper">
+                        <div class="autocomplete-container">
+                            <!-- INPUT -->
+                            <input
+                                class="formularioAgregar--inputs"
+                                placeholder="Número de Serie"
+                                :disabled="bloqueCampos"
+                                v-model="textoBusqueda"
+                                @blur="validarEntrada"
+                                @focus="mostrarLista = true"
+                            >
+
+                            <!-- LISTA AUTOCOMPLETE -->
+                            <ul v-if="mostrarLista && seriesFiltradas.length > 0" class="autocomplete-list">
+                                <li 
+                                    v-for="(serie, index) in seriesFiltradas"
+                                    :key="index"
+                                    class="autocomplete-item"
+                                    @mousedown.prevent="seleccionarSerie(serie)"
+                                >
+                                    {{ serie }}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <input class="formularioAgregar--inputs" placeholder="Tiene Mantenimiento" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Tipo Mantenimiento" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Frecuencia Mto" :disabled="bloqueCampos"></input>
+                </div>
+                <div class="formularioAgregar--columnas">
+                    <input class="formularioAgregar--inputs" placeholder="Tiene Calibración" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Tipo Calibración" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Frecuencia Calibración" :disabled="bloqueCampos"></input>
+                </div>
+            </form>
+            <div class="formularioAgregar--contenedorbotones" v-if="bloqueCampos===false">
+                <button class="formularioAgregar--botones">Guardar</button>
+                <button class="formularioAgregar--botones">Limpiar</button>
             </div>
-            <div class="formularioAgregar--columnas">
-                <input class="formularioAgregar--inputs" placeholder="Frecuencia Mto"></input>
-                <input class="formularioAgregar--inputs" placeholder="Tiene Calibración"></input>
-                <input class="formularioAgregar--inputs" placeholder="Tipo Calibración"></input>
-                <input class="formularioAgregar--inputs" placeholder="Frecuencia Calibración"></input>
+            <div class="formularioAgregar--contenedorbotones" v-if="bloqueCampos===true">
+                <h3>No hay equipos, por favor ingresa uno nuevo en General</h3>
             </div>
-        </form>
-        <div class="formularioAgregar--contenedorbotones">
-            <button class="formularioAgregar--botones">Guardar</button>
-            <button class="formularioAgregar--botones">Limpiar</button>
         </div>
-    </div>
-    <div class="contenedorfromulario" v-if="seccion==='MetrologiaT'">
-        <h2 class="tablaPrincipal--tituloAgregar">INGRESO DE EQUIPOS METROLOGÍA (TÉCNICA)</h2>
-        <form class="tablaprincipal--formularioAgregar">
-            <div class="formularioAgregar--columnas">
-                <input class="formularioAgregar--inputs" placeholder="Sede"></input>
-                <input class="formularioAgregar--inputs" placeholder="Servicio"></input>
-                <input class="formularioAgregar--inputs" placeholder="Número de Serie"></input>
-                <input class="formularioAgregar--inputs" placeholder="Magnitud"></input>
-                <input class="formularioAgregar--inputs" placeholder="Rango Equipo"></input>
+
+        <div class="contenedorfromulario" v-if="seccion==='MetrologiaT'">
+            <h2 class="tablaPrincipal--tituloAgregar">INGRESO DE EQUIPOS METROLOGÍA (TÉCNICA)</h2>
+            <form class="tablaprincipal--formularioAgregar">
+                <div class="formularioAgregar--columnas">
+                    <div class="formularioAgregar--input-wrapper">
+                        <div class="autocomplete-container">
+                            <!-- INPUT -->
+                            <input
+                                class="formularioAgregar--inputs"
+                                placeholder="Número de Serie"
+                                :disabled="bloqueCampos"
+                                v-model="textoBusqueda"
+                                @blur="validarEntrada"
+                                @focus="mostrarLista = true"
+                            >
+
+                            <!-- LISTA AUTOCOMPLETE -->
+                            <ul v-if="mostrarLista && seriesFiltradas.length > 0" class="autocomplete-list">
+                                <li 
+                                    v-for="(serie, index) in seriesFiltradas"
+                                    :key="index"
+                                    class="autocomplete-item"
+                                    @mousedown.prevent="seleccionarSerie(serie)"
+                                >
+                                    {{ serie }}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <input class="formularioAgregar--inputs" placeholder="Magnitud"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Rango Equipo"></input>
+                </div>
+                <div class="formularioAgregar--columnas">
+                    <input class="formularioAgregar--inputs" placeholder="Resolución"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Rango Trabajo"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Error Máximo"></input>
+                </div>
+            </form>
+            <div class="formularioAgregar--contenedorbotones">
+                <button class="formularioAgregar--botones">Guardar</button>
+                <button class="formularioAgregar--botones">Limpiar</button>
             </div>
-            <div class="formularioAgregar--columnas">
-                <input class="formularioAgregar--inputs" placeholder="Resolución"></input>
-                <input class="formularioAgregar--inputs" placeholder="Rango Trabajo"></input>
-                <input class="formularioAgregar--inputs" placeholder="Error Máximo"></input>
-            </div>
-        </form>
-        <div class="formularioAgregar--contenedorbotones">
-            <button class="formularioAgregar--botones">Guardar</button>
-            <button class="formularioAgregar--botones">Limpiar</button>
         </div>
-    </div>
-    <div class="contenedorfromulario" v-if="seccion==='Documentacion'">
-        <h2 class="tablaPrincipal--tituloAgregar">INGRESO DE EQUIPOS DOCUMENTACIÓN</h2>
-        <form class="tablaprincipal--formularioAgregar">
-            <div class="formularioAgregar--columnas">
-                <input class="formularioAgregar--inputs" placeholder="Sede"></input>
-                <input class="formularioAgregar--inputs" placeholder="Servicio"></input>
-                <input class="formularioAgregar--inputs" placeholder="Número de Serie"></input>
-                <input class="formularioAgregar--inputs" placeholder="Hoja de Vida"></input>
-                <input class="formularioAgregar--inputs" placeholder="Reg. Importación"></input>
-                <input class="formularioAgregar--inputs" placeholder="Manual Operación"></input>
+
+        <div class="contenedorfromulario" v-if="seccion==='Documentacion'">
+            <h2 class="tablaPrincipal--tituloAgregar">INGRESO DE EQUIPOS DOCUMENTACIÓN</h2>
+            <form class="tablaprincipal--formularioAgregar">
+                <div class="formularioAgregar--columnas">
+                    <div class="formularioAgregar--input-wrapper">
+                        <div class="autocomplete-container">
+                            <!-- INPUT -->
+                            <input
+                                class="formularioAgregar--inputs"
+                                placeholder="Número de Serie"
+                                :disabled="bloqueCampos"
+                                v-model="textoBusqueda"
+                                @blur="validarEntrada"
+                                @focus="mostrarLista = true"
+                            >
+
+                            <!-- LISTA AUTOCOMPLETE -->
+                            <ul v-if="mostrarLista && seriesFiltradas.length > 0" class="autocomplete-list">
+                                <li 
+                                    v-for="(serie, index) in seriesFiltradas"
+                                    :key="index"
+                                    class="autocomplete-item"
+                                    @mousedown.prevent="seleccionarSerie(serie)"
+                                >
+                                    {{ serie }}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <input class="formularioAgregar--inputs" placeholder="Manual Mantenimiento" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Hoja de Vida" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Reg. Importación" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Manual Operación" :disabled="bloqueCampos"></input>
+                </div>
+                <div class="formularioAgregar--columnas">
+                    <input class="formularioAgregar--inputs" placeholder="Guía Rápida" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Instructivo Uso" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Protocolo Mantenimiento" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Frec. Metrológica" :disabled="bloqueCampos"></input>
+                </div>
+            </form>
+            <div class="formularioAgregar--contenedorbotones" v-if="bloqueCampos===false">
+                <button class="formularioAgregar--botones">Guardar</button>
+                <button class="formularioAgregar--botones">Limpiar</button>
             </div>
-            <div class="formularioAgregar--columnas">
-                <input class="formularioAgregar--inputs" placeholder="Manual Mantenimiento"></input>
-                <input class="formularioAgregar--inputs" placeholder="Guía Rápida"></input>
-                <input class="formularioAgregar--inputs" placeholder="Instructivo Uso"></input>
-                <input class="formularioAgregar--inputs" placeholder="Protocolo Mantenimiento"></input>
-                <input class="formularioAgregar--inputs" placeholder="Frec. Metrológica"></input>
+            <div class="formularioAgregar--contenedorbotones" v-if="bloqueCampos===true">
+                <h3>No hay equipos, por favor ingresa uno nuevo en General</h3>
             </div>
-        </form>
-        <div class="formularioAgregar--contenedorbotones">
-            <button class="formularioAgregar--botones">Guardar</button>
-            <button class="formularioAgregar--botones">Limpiar</button>
         </div>
-    </div>
-    <div class="contenedorfromulario" v-if="seccion==='Condicion'">
-        <h2 class="tablaPrincipal--tituloAgregar">INGRESO DE EQUIPOS CONDICIÓN</h2>
-        <form class="tablaprincipal--formularioAgregar">
-            <div class="formularioAgregar--columnas">
-                <input class="formularioAgregar--inputs" placeholder="Sede"></input>
-                <input class="formularioAgregar--inputs" placeholder="Servicio"></input>
-                <input class="formularioAgregar--inputs" placeholder="Número de Serie"></input>
-                <input class="formularioAgregar--inputs" placeholder="Voltaje"></input>
-                <input class="formularioAgregar--inputs" placeholder="Corriente"></input>
+
+        <div class="contenedorfromulario" v-if="seccion==='Condicion'">
+            <h2 class="tablaPrincipal--tituloAgregar">INGRESO DE EQUIPOS CONDICIÓN</h2>
+            <form class="tablaprincipal--formularioAgregar">
+                <div class="formularioAgregar--columnas">
+                    <div class="formularioAgregar--input-wrapper">
+                        <div class="autocomplete-container">
+                            <!-- INPUT -->
+                            <input
+                                class="formularioAgregar--inputs"
+                                placeholder="Número de Serie"
+                                :disabled="bloqueCampos"
+                                v-model="textoBusqueda"
+                                @blur="validarEntrada"
+                                @focus="mostrarLista = true"
+                            >
+
+                            <!-- LISTA AUTOCOMPLETE -->
+                            <ul v-if="mostrarLista && seriesFiltradas.length > 0" class="autocomplete-list">
+                                <li 
+                                    v-for="(serie, index) in seriesFiltradas"
+                                    :key="index"
+                                    class="autocomplete-item"
+                                    @mousedown.prevent="seleccionarSerie(serie)"
+                                >
+                                    {{ serie }}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <input class="formularioAgregar--inputs" placeholder="Voltaje" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Corriente" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Humedad Relativa" :disabled="bloqueCampos"></input>
+                </div>
+                <div class="formularioAgregar--columnas">
+                    <input class="formularioAgregar--inputs" placeholder="Temperatura" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Dimensiones" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Peso" :disabled="bloqueCampos"></input>
+                    <input class="formularioAgregar--inputs" placeholder="Otros" :disabled="bloqueCampos"></input>
+                </div>
+            </form>
+            <div class="formularioAgregar--contenedorbotones" v-if="bloqueCampos===false">
+                <button class="formularioAgregar--botones">Guardar</button>
+                <button class="formularioAgregar--botones">Limpiar</button>
             </div>
-            <div class="formularioAgregar--columnas">
-                <input class="formularioAgregar--inputs" placeholder="Humedad Relativa"></input>
-                <input class="formularioAgregar--inputs" placeholder="Temperatura"></input>
-                <input class="formularioAgregar--inputs" placeholder="Dimensiones"></input>
-                <input class="formularioAgregar--inputs" placeholder="Peso"></input>
-                <input class="formularioAgregar--inputs" placeholder="Otros"></input>
+            <div class="formularioAgregar--contenedorbotones" v-if="bloqueCampos===true">
+                <h3>No hay equipos, por favor ingresa uno nuevo en General</h3>
             </div>
-        </form>
-        <div class="formularioAgregar--contenedorbotones">
-            <button class="formularioAgregar--botones">Guardar</button>
-            <button class="formularioAgregar--botones">Limpiar</button>
         </div>
     </div>
 </template>
@@ -188,10 +377,10 @@
     }
     .tablaPrincipal--tituloAgregar{
         box-sizing: border-box;
-        height: 15%;
+        height: auto;
+        padding: 12px 0;
         margin-top:0;
         background-color: #008073;
-        padding: 1% 0;
         /* CORRECCIÓN: Centrado de Texto */
         text-align: center;
         color: #ffffff;
@@ -241,4 +430,42 @@
     .formularioAgregar--botones:active{
         transform:scale(0.98);
     }
+    .formularioAgregar--input-wrapper {
+        width: 40%;                 /* IGUAL a los otros inputs */
+        height: 10%;                /* IGUAL a los otros inputs */
+        margin-bottom: 2%;          /* IGUAL a los otros inputs */
+        position: relative;         /* Necesario para que el UL se posicione bien */
+    }
+
+    .autocomplete-container input {
+        width: 100%;
+        height: 100%;               /* Misma altura que los demás */
+    }
+
+    /* LISTA */
+    .autocomplete-list {
+        position: absolute;
+        top: 100%;                  /* Debajo del input */
+        left: 0;
+        width: 100%;                /* MISMO ancho exacto del input */
+        background: white;
+        border: 1px solid #ddd;
+        margin-top: 2px;
+        border-radius: 4px;
+        max-height: 160px;
+        overflow-y: auto;
+        z-index: 999;
+    }
+
+
+    .autocomplete-item {
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+
+    .autocomplete-item:hover {
+        background-color: #f2f2f2;
+    }
+
+
 </style>

@@ -18,9 +18,16 @@ export default {
 
     data() {
         return {
+            todasSeries:[],
+            cargando: false,
+            bloqueoCampos:false,
+            seccionPrueba:'General',
             seccion:"General",
             filas: [],
             estadoAgregar:false,
+            general: [],
+            menuSeleccionado:[],
+            seriesInesistentes:[],
 
             // Filtros que siempre estarán disponibles
             filtrosActuales: {
@@ -35,39 +42,98 @@ export default {
     },
 
     methods: {
-
+        async obtenerDatos(seccion) {
+            try {
+                const res = await axios.get(`http://127.0.0.1:8000/api/${seccion}/`);
+                // Retorna los datos, NO los guarda en this.filas
+                return res.data.result; 
+            } catch (err) {
+                console.error(err);
+                alert("Error al listar equipos");
+                return []; // Retorna una lista vacía en caso de error
+            }
+        },
         // Método que lista equipos con filtros o sin filtros
         async listarEquipos(filtros) {
-
-            const filtrosAUsar = filtros || this.filtrosActuales;
-
-            // Verifica si todos los filtros están vacíos
-            const todosVacios = Object.values(filtrosAUsar).every(v => v === "");
-
-            // Crear URL base sin parámetros
-            let url = `http://127.0.0.1:8000/api/${this.seccion}/`;
-
-            // Si hay filtros → agregarlos
-            if (!todosVacios) {
-                const params = new URLSearchParams({
-                    sede: filtrosAUsar.sede,
-                    servicio: filtrosAUsar.servicio,
-                    serie: filtrosAUsar.numeroSerie,
-                    f1: filtrosAUsar.dinamico1,
-                    f2: filtrosAUsar.dinamico2,
-                    f3: filtrosAUsar.dinamico3,
-                }).toString();
-
-                url += `?${params}`;
-            }
+            this.cargando = true;   // Muestra spinner / pantalla de carga
 
             try {
+                const filtrosAUsar = filtros || this.filtrosActuales;
+
+                // Verifica si todos los filtros están vacíos
+                const todosVacios = Object.values(filtrosAUsar).every(v => v === "");
+
+                // Crear URL base
+                let url = `http://127.0.0.1:8000/api/${this.seccion}/`;
+
+                // Agregar filtros solo si hay alguno aplicado
+                if (!todosVacios) {
+                    const params = new URLSearchParams({
+                        sede: filtrosAUsar.sede,
+                        servicio: filtrosAUsar.servicio,
+                        serie: filtrosAUsar.numeroSerie,
+                        f1: filtrosAUsar.dinamico1,
+                        f2: filtrosAUsar.dinamico2,
+                        f3: filtrosAUsar.dinamico3,
+                    }).toString();
+
+                    url += `?${params}`;
+                }
+
+                // 👇 Aquí Vue realmente "espera" a que el backend responda
                 const res = await axios.get(url);
+
+                // 👇 Esperamos a que Vue reactive el DOM (espera natural)
+                await this.$nextTick();
+
                 this.filas = res.data.result;
+
+                // 👇 Otro nextTick para esperar re-render
+                await this.$nextTick();
+
             } catch (err) {
                 console.error(err);
                 alert("Error al listar equipos");
             }
+
+            this.cargando = false;  // Oculta el spinner cuando TODO terminó
+        },
+        async compararSeries(){ // Debe ser async
+            this.cargando = true;
+            // 1. Obtener la lista de General (Sección Fija)
+            this.general = await this.obtenerDatos("General");
+            
+            // 2. Obtener la lista de la Sección Actual
+            // Usamos this.seccion (ej. 'Registro', 'MetrologiaA', etc.)
+            this.menuSeleccionado = await this.obtenerDatos(this.seccion);
+            // Lógica de comparación y bloqueo
+            const seriesMenuseleccionado = this.menuSeleccionado.map(equipo => equipo.serie_equipo);
+            this.todasSeries= seriesMenuseleccionado;
+            console.log(this.todasSeries.length)
+            // Limpia la lista de series inesistentes antes de rellenarla
+            this.seriesInesistentes = []; 
+
+            for (const equipogeneral of this.general) {
+                const nombreBuscado = equipogeneral.serie_equipo;
+                const nombreEncontrado = seriesMenuseleccionado.includes(nombreBuscado);
+                
+                if (!nombreEncontrado) {
+                    // Usamos .push() para arrays, no .appendChild()
+                    this.seriesInesistentes.push(equipogeneral.serie_equipo); 
+                }
+            }
+            
+            if (this.seriesInesistentes.length === 0){
+                console.log("Series inesistentes (0):", this.seriesInesistentes.length)
+                this.bloqueoCampos = true;
+            } else {
+                console.log("Series inesistentes (>0):", this.seriesInesistentes.length)
+                this.bloqueoCampos = false;
+            }
+            this.cargando = false;
+            // Ya no necesitas vaciar aquí, ya que se sobrescriben en cada llamada.
+            // this.general = [];
+            // this.menuSeleccionado = []; 
         },
         toggleAgregar(){
             this.estadoAgregar=!this.estadoAgregar
@@ -113,7 +179,11 @@ export default {
 </script>
 
 <template>
-<div class="background"> 
+<div v-if="cargando" class="pantalla-carga">
+    <div class="spinner"></div>
+    <p>Cargando, por favor espera...</p>
+</div>
+<div class="background" v-else> 
     <!-- Barra lateral izquierda -->
     <div class="slidebar"></div>
     <!-- Contenedor principal -->
@@ -141,7 +211,7 @@ export default {
                 <FiltrosMenu :seccion="seccion" @aplicar-filtros="filtrarEquipos"/>
                 <!-- Botones de acciones (agregar y eliminar) -->
                 <div class="tablaPricipal--menuBotones">
-                        <button class="menuBotones--botones agregar" :class="{ 'activate': estadoAgregar === true }" type="button" @click="toggleAgregar()"></button>
+                        <button class="menuBotones--botones agregar" :class="{ 'activate': estadoAgregar === true }" type="button" @click="toggleAgregar(), compararSeries()"></button>
                         <button class="menuBotones--botones"  type="button">Desactivar</button>
                 </div>
             </div>
@@ -150,7 +220,7 @@ export default {
                 <TablasEquipos :seccion="seccion" :filas="filas" />    
             </div>
             <div class="tablaPrincipal--contenedor" v-if="estadoAgregar===true">  
-                <FormulariosEquipos :seccion="seccion"/>
+                <FormulariosEquipos :seccion="seccion" :bloque-campos="bloqueoCampos" :seriesInesistentes="seriesInesistentes" :todasSeries="todasSeries"/>
             </div>
         </div>
     </div>
@@ -365,4 +435,33 @@ export default {
         display:flex;
         flex-direction: column;
     }
+    .pantalla-carga {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* Spinner */
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 6px solid #ddd;
+    border-top-color: #008073;
+    border-radius: 50%;
+    animation: girar 1s linear infinite;
+}
+
+@keyframes girar {
+    to {
+        transform: rotate(360deg);
+    }
+}
 </style>
