@@ -19,6 +19,7 @@ export default {
         return {
             // Copia interna de filas, pero con estado adicional (mostrarOpciones)
             equiposConEstado: [],
+            seleccionarTodos: false,
         };
     },
     watch: {
@@ -39,7 +40,8 @@ export default {
         inicializarFilas(filas) {
             return filas.map(fila => ({
                 ...fila, 
-                mostrarOpciones: false
+                mostrarOpciones: false,
+                seleccionado: false 
             }));
         },
 
@@ -58,7 +60,20 @@ export default {
             this.equiposConEstado[index].mostrarOpciones =
                 !this.equiposConEstado[index].mostrarOpciones;
         },
+        toggleSeleccionarTodos() {
+            this.equiposConEstado.forEach(fila => {
+                fila.seleccionado = this.seleccionarTodos;
+            });
+        },
 
+        toggleFila() {
+            // Si alguna fila NO está seleccionada → desmarca el header
+            if (this.equiposConEstado.some(f => !f.seleccionado)) {
+                this.seleccionarTodos = false;
+            } else {
+                this.seleccionarTodos = true;
+            }
+        },
         // Acciones básicas del menú de opciones (por ahora solo impresiones)
         verEquipo(equipo) {
             console.log('Ver equipo:', equipo.serie_equipo);
@@ -81,7 +96,7 @@ export default {
         <thead>
             <tr class="tabla--header">
                 <th class="tabla--headersCheck">
-                    <input id="checkHeader" type="checkbox"/>
+                    <input id="checkHeader" type="checkbox" v-model="seleccionarTodos" @change="toggleSeleccionarTodos"/>
                 </th>
 
                 <!-- Encabezados de columnas de Equipos Generales -->
@@ -107,7 +122,7 @@ export default {
         <tbody>
             <tr class="tabla--fila" v-for="(eq, index) in equiposConEstado" :key="eq.serie_equipo">
                 <!-- Checkbox por fila -->
-                <td><input class="checkRow" type="checkbox"/></td>
+                <td><input class="checkRow"type="checkbox" v-model="eq.seleccionado" @change="toggleFila"/></td>
 
                 <!-- Datos del equipo -->
                 <td>{{ eq.nombre_sede }}</td>
@@ -152,7 +167,7 @@ export default {
     <table class="tabla" v-if="seccion=='Registro'">
         <thead>
             <tr class="tabla--header">
-                <th class="tabla--headersCheck"><input id="checkHeader" type="checkbox" /></th>
+                <th class="tabla--headersCheck"><input id="checkHeader" type="checkbox" v-model="seleccionarTodos" @change="toggleSeleccionarTodos"/></th>
                 <th class="tabla--headers">Sede</th>
                 <th class="tabla--headers">Servicio</th>
                 <th class="tabla--headers">Número de Serie</th>
@@ -173,7 +188,7 @@ export default {
 
         <tbody>
             <tr class="tabla--fila" v-for="(re, index) in equiposConEstado" :key="re.serie_equipo">
-                <td><input class="checkRow" type="checkbox" /></td>
+                <td><input class="checkRow"type="checkbox" v-model="re.seleccionado" @change="toggleFila"/></td>
 
                 <!-- Datos del registro -->
                 <td>{{ re.nombre_sede }}</td>
@@ -213,7 +228,7 @@ export default {
     <table class="tabla" v-if="seccion=='MetrologiaA'">
         <thead>
             <tr class="tabla--header">
-                <th class="tabla--headersCheck"><input type="checkbox"/></th>
+                <th class="tabla--headersCheck"><input id="checkHeader" type="checkbox" v-model="seleccionarTodos" @change="toggleSeleccionarTodos"/></th>
                 <th class="tabla--headers">Sede</th>
                 <th class="tabla--headers">Servicio</th>
                 <th class="tabla--headers">Número de Serie</th>
@@ -229,7 +244,7 @@ export default {
 
         <tbody>
             <tr class="tabla--fila" v-for="(ma, index) in equiposConEstado" :key="ma.serie_equipo">
-                <td><input class="checkRow" type="checkbox" /></td>
+                <td><input class="checkRow"type="checkbox" v-model="ma.seleccionado" @change="toggleFila"/></td>
 
                 <td>{{ ma.nombre_sede }}</td>
                 <td>{{ ma.nombre_servicio }}</td>
@@ -263,7 +278,7 @@ export default {
     <table class="tabla" v-if="seccion=='MetrologiaT'">
         <thead>
             <tr class="tabla--header">
-                <th class="tabla--headersCheck"><input type="checkbox"/></th>
+                <th class="tabla--headersCheck"><input id="checkHeader" type="checkbox" v-model="seleccionarTodos" @change="toggleSeleccionarTodos"/></th>
                 <th class="tabla--headers">Sede</th>
                 <th class="tabla--headers">Servicio</th>
                 <th class="tabla--headers">Número de Serie</th>
@@ -278,7 +293,7 @@ export default {
 
         <tbody>
             <tr class="tabla--fila" v-for="(mt, index) in equiposConEstado" :key="mt.serie_equipo">
-                <td><input class="checkRow" type="checkbox" /></td>
+                <td><input class="checkRow"type="checkbox" v-model="mt.seleccionado" @change="toggleFila"/></td>
 
                 <td>{{ mt.nombre_sede }}</td>
                 <td>{{ mt.nombre_servicio }}</td>
@@ -310,7 +325,7 @@ export default {
     <table class="tabla" v-if="seccion=='Documentacion'">
         <thead>
             <tr class="tabla--header">
-                <th class="tabla--headersCheck"><input type="checkbox"/></th>
+                <th class="tabla--headersCheck"><input id="checkHeader" type="checkbox" v-model="seleccionarTodos" @change="toggleSeleccionarTodos"/></th>
                 <th class="tabla--headers">Sede</th>
                 <th class="tabla--headers">Servicio</th>
                 <th class="tabla--headers">Número de Serie</th>
@@ -328,7 +343,7 @@ export default {
 
         <tbody>
             <tr class="tabla--fila" v-for="(doc, index) in equiposConEstado" :key="doc.serie_equipo">
-                <td><input class="checkRow" type="checkbox" /></td>
+                <td><input class="checkRow"type="checkbox" v-model="doc.seleccionado" @change="toggleFila"/></td>
 
                 <td>{{ doc.nombre_sede }}</td>
                 <td>{{ doc.nombre_servicio }}</td>
@@ -363,7 +378,7 @@ export default {
     <table class="tabla" v-if="seccion=='Condicion'">
         <thead>
             <tr class="tabla--header">
-                <th class="tabla--headersCheck"><input type="checkbox"/></th>
+                <th class="tabla--headersCheck"><input id="checkHeader" type="checkbox" v-model="seleccionarTodos" @change="toggleSeleccionarTodos"/></th>
                 <th class="tabla--headers">Sede</th>
                 <th class="tabla--headers">Servicio</th>
                 <th class="tabla--headers">Número de Serie</th>
@@ -380,7 +395,7 @@ export default {
 
         <tbody>
             <tr class="tabla--fila" v-for="(con, index) in equiposConEstado" :key="con.serie_equipo">
-                <td><input class="checkRow" type="checkbox" /></td>
+                <td><input class="checkRow"type="checkbox" v-model="con.seleccionado" @change="toggleFila"/></td>
 
                 <td>{{ con.nombre_sede }}</td>
                 <td>{{ con.nombre_servicio }}</td>
@@ -487,8 +502,9 @@ export default {
 
     /* Menú desplegable */
     .dropdown-menu {
+
         position: absolute;
-        left: 0;
+        right: 1%;
         top: 100%;
         z-index: 100;
         background-color: white;
