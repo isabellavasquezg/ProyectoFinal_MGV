@@ -18,16 +18,18 @@ export default {
 
     data() {
         return {
+            sedeSeleccionada:'',
             todasSeries:[],
             cargando: false,
             bloqueoCampos:false,
-            seccionPrueba:'General',
             seccion:"General",
             filas: [],
             estadoAgregar:false,
             general: [],
             menuSeleccionado:[],
             seriesInesistentes:[],
+            listaResposables:[],
+            listaServicios:[],
 
             // Filtros que siempre estarán disponibles
             filtrosActuales: {
@@ -98,43 +100,214 @@ export default {
 
             this.cargando = false;  // Oculta el spinner cuando TODO terminó
         },
-        async compararSeries(){ // Debe ser async
-            this.cargando = true;
-            // 1. Obtener la lista de General (Sección Fija)
-            this.general = await this.obtenerDatos("General");
-            
-            // 2. Obtener la lista de la Sección Actual
-            // Usamos this.seccion (ej. 'Registro', 'MetrologiaA', etc.)
-            this.menuSeleccionado = await this.obtenerDatos(this.seccion);
-            // Lógica de comparación y bloqueo
-            const seriesMenuseleccionado = this.menuSeleccionado.map(equipo => equipo.serie_equipo);
-            this.todasSeries= seriesMenuseleccionado;
-            console.log(this.todasSeries.length)
-            // Limpia la lista de series inesistentes antes de rellenarla
-            this.seriesInesistentes = []; 
-
-            for (const equipogeneral of this.general) {
-                const nombreBuscado = equipogeneral.serie_equipo;
-                const nombreEncontrado = seriesMenuseleccionado.includes(nombreBuscado);
+        async compararSeries(){
+            if(this.seccion!=="General"){ // Debe ser async
+                this.cargando = true;
+                // 1. Obtener la lista de General (Sección Fija)
+                this.general = await this.obtenerDatos("General");
                 
-                if (!nombreEncontrado) {
-                    // Usamos .push() para arrays, no .appendChild()
-                    this.seriesInesistentes.push(equipogeneral.serie_equipo); 
+                // 2. Obtener la lista de la Sección Actual
+                // Usamos this.seccion (ej. 'Registro', 'MetrologiaA', etc.)
+                this.menuSeleccionado = await this.obtenerDatos(this.seccion);
+                // Lógica de comparación y bloqueo
+                const seriesMenuseleccionado = this.menuSeleccionado.map(equipo => equipo.serie_equipo);
+                this.todasSeries= seriesMenuseleccionado;
+                // Limpia la lista de series inesistentes antes de rellenarla
+                this.seriesInesistentes = []; 
+
+                for (const equipogeneral of this.general) {
+                    const nombreBuscado = equipogeneral.serie_equipo;
+                    const nombreEncontrado = seriesMenuseleccionado.includes(nombreBuscado);
+                    
+                    if (!nombreEncontrado) {
+                        // Usamos .push() para arrays, no .appendChild()
+                        this.seriesInesistentes.push(equipogeneral.serie_equipo); 
+                    }
+                }
+                console.log(this.seriesInesistentes)
+                if (this.seriesInesistentes.length === 0){
+                    console.log("Series inesistentes (0):", this.seriesInesistentes.length)
+                    this.bloqueoCampos = true;
+                } else {
+                    console.log("Series inesistentes (>0):", this.seriesInesistentes.length)
+                    this.bloqueoCampos = false;
+                }
+                this.cargando = false;
+            }else{
+                    // ---- 1. OBTENER TODAS LAS SEDES ----
+                const sedes = await this.obtenerDatos("Sedes");
+                this.todasSeries = sedes.map(s => s.nombre_sede);
+
+                // ---- 2. OBTENER SERVICIOS FILTRADOS POR SEDE ----
+                const servicios = await this.obtenerDatos("Servicios");
+
+                const serviciosFiltrados = servicios.filter(s =>
+                    s.nombre_sede === this.sedeSeleccionada
+                );
+                this.listaServicios = serviciosFiltrados.map(s => s.nombre_servicio);
+                // ---- 3. OBTENER RESPONSABLES FILTRADOS POR SEDE ----
+                const responsables = await this.obtenerDatos("Responsables");
+                const responsablesFiltrados = responsables.filter(s =>
+                    s.nombre_sede === this.sedeSeleccionada
+                );
+                this.listaResposables = responsablesFiltrados.map(s => s.nombre_responsable);
+                console.log(this.listaResposables)
+                console.log(this.listaServicios)
+            }
+        },
+        async manejarGuardado(datos) {
+            let datosConvertidos = null;
+            if (this.seccion === "General") {
+
+                // 🔥 Carga las listas SIN bloquear la UI
+                const [sedes, responsables, servicios] = await Promise.all([
+                    this.obtenerDatos("Sedes"),
+                    this.obtenerDatos("Responsables"),
+                    this.obtenerDatos("Servicios")
+                ]);
+
+                this.todasSeries = sedes;
+                this.listaResposables = responsables;
+                this.listaServicios = servicios;
+                console.log(datos.sede);
+                console.log(this.todasSeries[0])
+                // Buscar ID de SEDE
+                const sedeObj = sedes.find(
+                    s => s.nombre_sede === datos.sede
+                    
+                );
+
+                // Buscar ID de SERVICIO
+                const servicioObj = servicios.find(
+                    s => s.nombre_servicio === datos.servicio
+                );
+
+                // Buscar ID de RESPONSABLE
+                const responsableObj = responsables.find(
+                    r => r.nombre_responsable === datos.responsable
+                );
+                // 🔥 Objeto final limpio
+                const datosConvertidos = {
+                    sede: sedeObj?.id || null,
+                    servicio: servicioObj?.id || null,
+                    responsable_servicio: responsableObj?.id || null,
+                    nombre_equipo: datos.nombreEquipo,
+                    marca_equipo: datos.marca,
+                    modelo_equipo: datos.modelo,
+                    codigo_inventario: datos.codigoInventario,
+                    serie_equipo: datos.numeroSerie,
+
+                    codigo_ips: datos.codigoIPS,
+                    codigo_ecri: datos.codigoECRI,
+                    ubicacion_fisica: datos.ubicacion,
+
+                    clasificacion_misional: datos.clasificacionMisional,
+                    clasificacion_ips: datos.clasificacionIPS,
+                    clasificacion_riesgo: datos.clasificacionRiesgo,
+
+                    registro_invima: datos.registroInvima,
+
+                    estado_equipo: 1 // <-- tú lo fijo
+                };
+            }
+            else{
+                const [equipos] = await Promise.all([
+                    this.obtenerDatos("General"),
+                ]);
+
+                this.todasSeries = equipos;
+                const equipoObj = equipos.find(
+                    s => s.serie_equipo === datos.serie
+                );
+                const datosConvertidos = {
+                    equipo: equipoObj?.id || null,
+                };
+                if (this.seccion === "Registro") {
+                    const datosConvertidos = {
+                        equipo: equipoObj?.id || null,
+
+                        vida_util: refs.vidautil?.value || "",
+                        fecha_adquisicion: refs.fechaadquisicion?.value || "",
+                        propietario_equipo: refs.propietarioequipo?.value || "",
+                        fecha_fabricacion: refs.fechafarbicacion?.value || "",
+                        nit: refs.nit?.value || "",
+                        proveedor_equipo: refs.privedorequipo?.value || "",
+                        estado_garantia: refs.estadogarantia?.value || "",
+                        terminacion_garantia: refs.terminaciongarantia?.value || "",
+                        forma_adquisicion: refs.formaadquisicion?.value || "",
+                        tipo_documento: refs.tipodocumento?.value || "",
+                        numero_documento: refs.numerodocumento?.value || "",
+                    };
+
+                    return datosConvertidos;
+                }
+                if (this.seccion === "MetrologiaA") {
+                    const datosConvertidos = {
+                        equipo: equipoObj?.id || null,
+
+                        tiene_mantenimiento: refs.tienemantenimiento?.value || "",
+                        frecuencia_mto: refs.frecuenciamto?.value || "",
+                        tiene_calibracion: refs.tienecalibracion?.value || "",
+                        frecuencia_calibracion: refs.frecuenciacalibracion?.value || "",
+                    };
+
+                }
+                if (this.seccion === "MetrologiaT") {
+                    const datosConvertidos = {
+                        equipo: equipoObj?.id || null,
+
+                        magnitud: refs.magnitud?.value || "",
+                        rango_equipo: refs.rangoequipo?.value || "",
+                        resolucion: refs.resolucion?.value || "",
+                        rango_trabajo: refs.rangotrabajo?.value || "",
+                        error_maximo: refs.errormaximo?.value || "",
+                    };
+
+                    return datosConvertidos;
+                }
+                if (this.seccion === "Documentacion") {
+                    const datosConvertidos = {
+                        equipo: equipoObj?.id || null,
+
+                        manual_mantenimiento: refs.manualmantenimiento?.value || "",
+                        hoja_vida: refs.hojavida?.value || "",
+                        reg_importacion: refs["reg.importacion"]?.value || "",
+                        manual_operacion: refs.manualoperacion?.value || "",
+                        guia_rapida: refs.guiarapida?.value || "",
+                        instructivo: refs.intructivo?.value || "",
+                        protocolo_mantenimiento: refs.protocolo?.value || "",
+                        frecuencia_metrologica: refs.frecuanciam?.value || "",
+                    };
+
+
+                }
+                if (this.seccion === "Condicion") {
+                    const datosConvertidos = {
+                        equipo: equipoObj?.id || null,
+
+                        voltaje: refs.voltaje?.value || "",
+                        corriente: refs.corriente?.value || "",
+                        humedad: refs.humedad?.value || "",
+                        temperatura: refs.temperatura?.value || "",
+                        dimensiones: refs.dimensiones?.value || "",
+                        peso: refs.peso?.value || "",
+                        otros: refs.otros?.value || "",
+                    };
+
                 }
             }
-            
-            if (this.seriesInesistentes.length === 0){
-                console.log("Series inesistentes (0):", this.seriesInesistentes.length)
-                this.bloqueoCampos = true;
-            } else {
-                console.log("Series inesistentes (>0):", this.seriesInesistentes.length)
-                this.bloqueoCampos = false;
+            try {
+                const respuesta = await axios.post("http://127.0.0.1:8000/api/General/", datosConvertidos);
+
+                console.log("📌 Registro guardado:", respuesta.data);
+
+                alert("Equipo registrado correctamente");
+            } catch (error) {
+                console.error("❌ Error al guardar:", error.response?.data || error);
+                alert("Hubo un error al guardar");
             }
-            this.cargando = false;
-            // Ya no necesitas vaciar aquí, ya que se sobrescriben en cada llamada.
-            // this.general = [];
-            // this.menuSeleccionado = []; 
         },
+
         toggleAgregar(){
             this.estadoAgregar=!this.estadoAgregar
 
@@ -220,7 +393,16 @@ export default {
                 <TablasEquipos :seccion="seccion" :filas="filas" />    
             </div>
             <div class="tablaPrincipal--contenedor" v-if="estadoAgregar===true">  
-                <FormulariosEquipos :seccion="seccion" :bloque-campos="bloqueoCampos" :seriesInesistentes="seriesInesistentes" :todasSeries="todasSeries"/>
+                <FormulariosEquipos
+                    :todasSeries="todasSeries"
+                    :listaServicios="listaServicios"
+                    :listaResposables="listaResposables"
+                    :seriesInesistentes="seriesInesistentes"
+                    :bloqueCampos="bloqueoCampos"
+                    :seccion="seccion"
+                    @actualizar-sede="sedeSeleccionada = $event; compararSeries()"
+                    @guardar-formulario="manejarGuardado"
+                />
             </div>
         </div>
     </div>
@@ -434,6 +616,7 @@ export default {
         max-height: 100%;
         display:flex;
         flex-direction: column;
+        overflow-y: auto;
     }
     .pantalla-carga {
     position: fixed;

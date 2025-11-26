@@ -233,10 +233,8 @@ export default {
                 <th class="tabla--headers">Servicio</th>
                 <th class="tabla--headers">Número de Serie</th>
                 <th class="tabla--headers">Tiene Mantenimiento</th>
-                <th class="tabla--headers">Tipo Mantenimiento</th>
                 <th class="tabla--headers">Frecuencia Mto</th>
                 <th class="tabla--headers">Tiene Calibración</th>
-                <th class="tabla--headers">Tipo Calibración</th>
                 <th class="tabla--headers">Frecuencia Calibración</th>
                 <th class="tabla--headers">Acciones</th>
             </tr>
@@ -250,10 +248,8 @@ export default {
                 <td>{{ ma.nombre_servicio }}</td>
                 <td>{{ ma.serie_equipo }}</td>
                 <td>{{ ma.mantenimiento_requerido ? 'Sí' : 'No' }}</td>
-                <td>{{ ma.tipo_mantenimiento }}</td>
                 <td>{{ ma.frecuencia_mantenimiento }}</td>
                 <td>{{ ma.calibracion_requerida ? 'Sí' : 'No' }}</td>
-                <td>{{ ma.tipo_calibracion }}</td>
                 <td>{{ ma.frecuencia_calibracion }}</td>
 
                 <!-- Dropdown -->
@@ -433,7 +429,6 @@ export default {
 
     /* Tabla base */
     .tabla {
-        height: 100%;
         width: 100%;
         border-collapse: collapse;
         font-family: sans-serif;

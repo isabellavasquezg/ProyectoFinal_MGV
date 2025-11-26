@@ -6,7 +6,9 @@ from .views import (
     MetrologiaTecnicaView, 
     DocumentoEquipoView, 
     CondicionesFuncionamientoView,
-    ResponsablesView
+    ResponsablesView,
+    SedeView,
+    ServiciosView
 )
 
 urlpatterns = [
@@ -18,4 +20,6 @@ urlpatterns = [
     path('Documentacion/', DocumentoEquipoView.as_view(), name='documentos_general'),
     path('Condicion/', CondicionesFuncionamientoView.as_view(), name='condiciones_funcionamiento_general'),
     path('Responsables/', ResponsablesView.as_view(), name='Responsables_general'),
+    path('Sedes/', SedeView.as_view(), name='Sedes_general'),
+    path('Servicios/', ServiciosView.as_view(), name='Servicios_general'),
 ]

@@ -74,6 +74,7 @@ class EquiposView(View): # Renombrado a EquiposView para claridad
                 'nombre_sede': e.sede.nombre_sede if e.sede else None, 
                 # CORRECCIÓN: Usa e.servicio.nombre si e.servicio existe
                 'nombre_servicio': e.servicio.nombre_servicio if e.servicio else None,
+                'id_sede': e.sede.id if e.sede else None,
                 'nombre_responsable': e.responsable_servicio.nombre_responsable if e.responsable_servicio else None, # Campo CharField  
                 # 3.2. Datos del Equipo (Equipo Base)
                 'nombre_equipo': e.nombre_equipo, 
@@ -98,7 +99,153 @@ class EquiposView(View): # Renombrado a EquiposView para claridad
         # Devolver la respuesta en formato JSON
         # safe=False si se devuelve un objeto que no es un diccionario (aquí no es necesario, pero es buena práctica si la lista 'data' fuera la respuesta principal)
         return JsonResponse({"result": data}, status=200)
-    
+    def put(self, request, id_equipo=None):
+        """
+        """
+        if id_equipo is None:
+            return JsonResponse({'error': 'Se requiere el ID del equipo para actualizar'}, status=400)
+
+        try:
+            # 1. Obtener el equipo a actualizar por su ID
+            equipo = Equipo.objects.get(id=id_equipo)
+            data = json.loads(request.body)
+            
+            # Campos a validar y actualizar
+            codigo_inventario_nuevo = data.get('codigo_inventario')
+            serie_equipo_nuevo = data.get('serie_equipo')
+
+            # 2. **Verificación de Unicidad**
+            # Buscamos otros equipos (excluyendo el actual) que ya tengan el nuevo código o serie.
+            
+            # Q1: ¿Existe otro equipo con el mismo codigo_inventario?
+            if codigo_inventario_nuevo:
+                if Equipo.objects.exclude(id=id_equipo).filter(codigo_inventario=codigo_inventario_nuevo).exists():
+                    return JsonResponse({'error': 'Equipo ya existente: El código de inventario ya está en uso por otro equipo.'}, status=409)
+
+            # Q2: ¿Existe otro equipo con la misma serie_equipo?
+            if serie_equipo_nuevo:
+                if Equipo.objects.exclude(id=id_equipo).filter(serie_equipo=serie_equipo_nuevo).exists():
+                    return JsonResponse({'error': 'Equipo ya existente: El número de serie ya está en uso por otro equipo.'}, status=409)
+            
+            # 3. Actualizar los campos del equipo
+            
+            # Ejemplo de actualización de campos. Debes listar todos los campos que pueden ser actualizados.
+            if 'sede' in data: 
+                equipo.sede = data['sede']
+            if 'servicio' in data: 
+                equipo.servicio = data['servicio']
+            if 'responsable_servicio' in data: 
+                equipo.responsable_servicio = data['responsable_servicio']
+                
+            # 2. Actualizar los campos validados (codigo_inventario y serie_equipo)
+            if codigo_inventario_nuevo: 
+                equipo.codigo_inventario = codigo_inventario_nuevo
+            if serie_equipo_nuevo: 
+                equipo.serie_equipo = serie_equipo_nuevo
+
+            # 3. Actualizar Datos del Equipo (Equipo Base)
+            if 'nombre_equipo' in data: 
+                equipo.nombre_equipo = data['nombre_equipo']
+            if 'marca_equipo' in data: 
+                equipo.marca_equipo = data['marca_equipo']
+            if 'modelo_equipo' in data: 
+                equipo.modelo_equipo = data['modelo_equipo']
+            if 'estado_equipo' in data: 
+                equipo.estado_equipo = data['estado_equipo']
+            if 'codigo_ips' in data: 
+                equipo.codigo_ips = data['codigo_ips']
+            if 'codigo_ecri' in data: 
+                equipo.codigo_ecri = data['codigo_ecri']
+            if 'ubicacion_fisica' in data: 
+                equipo.ubicacion_fisica = data['ubicacion_fisica']
+            if 'clasificacion_misional' in data: 
+                equipo.clasificacion_misional = data['clasificacion_misional']
+            if 'clasificacion_ips' in data: 
+                equipo.clasificacion_ips = data['clasificacion_ips']
+            if 'clasificacion_riesgo' in data: 
+                equipo.clasificacion_riesgo = data['clasificacion_riesgo']
+            if 'registro_invima' in data: 
+                equipo.registro_invima = data['registro_invima']
+            if 'descripcion_baja' in data: 
+                equipo.descripcion_baja = data['descripcion_baja']
+            if 'fecha_baja_equipo' in data: # Usar el nombre del campo del modelo (e.fecha_baja_equipo)
+                equipo.fecha_baja_equipo = data['fecha_baja_equipo']
+            
+            equipo.save()
+
+            return JsonResponse({'message': f'Equipo con ID {id_equipo} actualizado exitosamente'}, status=200)
+
+        except Equipo.DoesNotExist:
+            return JsonResponse({'error': f'Equipo con ID {id_equipo} no encontrado'}, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Formato JSON inválido en el cuerpo de la solicitud'}, status=400)
+        except Exception as e:
+            # Capturar otros errores como problemas de base de datos o campos faltantes/inválidos
+            return JsonResponse({'error': str(e)}, status=500)
+
+    # ---------------------------------------------------------------------
+    # --- Nuevo Método POST: Crear Equipo con Verificación de Unicidad ---
+    # ---------------------------------------------------------------------
+    def post(self, request):
+        """
+        Crea un nuevo equipo y verifica la unicidad de 
+        codigo_inventario y serie_equipo.
+        """
+        try:
+            data = json.loads(request.body)
+            
+            codigo_inventario_nuevo = data.get('codigo_inventario')
+            serie_equipo_nuevo = data.get('serie_equipo')
+
+            # 1. Verificación de Unicidad (Para la creación)
+            # No es necesario usar .exclude() aquí, ya que el equipo no existe todavía.
+            
+            # Verificar codigo_inventario
+            if codigo_inventario_nuevo and Equipo.objects.filter(codigo_inventario=codigo_inventario_nuevo).exists():
+                return JsonResponse({'error': 'Equipo ya existente: El código de inventario ya está en uso.'}, status=409)
+
+            # Verificar serie_equipo
+            if serie_equipo_nuevo and Equipo.objects.filter(serie_equipo=serie_equipo_nuevo).exists():
+                return JsonResponse({'error': 'Equipo ya existente: El número de serie ya está en uso.'}, status=409)
+
+            # 2. Creación del equipo
+            Equipo.objects.create(
+                # --- Campos Directos ---
+                nombre_equipo=data.get('nombre_equipo'), 
+                marca_equipo=data.get('marca_equipo'), 
+                modelo_equipo=data.get('modelo_equipo'),
+                # Los campos validados ya están en variables
+                codigo_inventario=codigo_inventario_nuevo,
+                serie_equipo=serie_equipo_nuevo,
+                
+                estado_equipo=data.get('estado_equipo'), 
+                codigo_ips=data.get('codigo_ips'), 
+                codigo_ecri=data.get('codigo_ecri'), 
+                ubicacion_fisica=data.get('ubicacion_fisica'), 
+                clasificacion_misional=data.get('clasificacion_misional'), 
+                clasificacion_ips=data.get('clasificacion_ips'), 
+                clasificacion_riesgo=data.get('clasificacion_riesgo'), 
+                registro_invima=data.get('registro_invima'),
+                descripcion_baja=data.get('descripcion_baja'),
+                fecha_baja_equipo=data.get('fecha_baja_equipo'), # Usar el nombre del campo del modelo
+
+                # --- Foreign Keys (Relaciones) ---
+                # Usamos la notación '_id' para asignar los IDs numéricos recibidos del cliente.
+                # Usamos .get() para que si el campo no viene en el JSON, se asigne None.
+                sede_id=data.get('sede'), 
+                servicio_id=data.get('servicio'),
+                responsable_servicio_id=data.get('responsable_servicio'),
+            )
+
+            return JsonResponse({'message': 'Equipo creado exitosamente'}, status=201)
+            
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Formato JSON inválido'}, status=400)
+        except KeyError as e:
+            # Esto captura si falta un campo obligatorio en el JSON (ej. 'nombre_equipo')
+            return JsonResponse({'error': f'Campo obligatorio faltante: {str(e)}'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
 # ================================================
 # VISTA: RegistroHistorico (Adquisición, Proveedor)
 # ================================================
@@ -187,7 +334,83 @@ class RegistroHistoricoView(View):
 
         # safe=False ya no es necesario aquí porque la respuesta es un diccionario con la clave "result"
         return JsonResponse({"result": data}, status=200)
-    
+    def put(self, request, id_historico=None):
+        """
+        Actualiza un registro histórico existente.
+        Requiere el ID del registro en la URL.
+        """
+        if id_historico is None:
+            return JsonResponse({'error': 'Se requiere el ID del registro histórico para actualizar'}, status=400)
+
+        try:
+            registro = RegistroHistorico.objects.get(id=id_historico)
+            data = json.loads(request.body)
+            
+            # 2. Actualizar Campos Propios
+            if 'tiempo_vida_util' in data: registro.tiempo_vida_util = data['tiempo_vida_util']
+            if 'fecha_adquisicion' in data: registro.fecha_adquisicion = data['fecha_adquisicion'] 
+            if 'propietario' in data: registro.propietario = data['propietario']
+            if 'fecha_fabricacion' in data: registro.fecha_fabricacion = data['fecha_fabricacion']
+            if 'nit' in data: registro.nit = data['nit']
+            if 'proveedor' in data: registro.proveedor = data['proveedor']
+            if 'en_garantia' in data: registro.en_garantia = data['en_garantia'] 
+            if 'fecha_fin_garantia' in data: registro.fecha_fin_garantia = data['fecha_fin_garantia']
+            if 'forma_adquisicion' in data: registro.forma_adquisicion = data['forma_adquisicion']
+            if 'tipo_documento' in data: registro.tipo_documento = data['tipo_documento']
+            if 'numero_documento' in data: registro.numero_documento = data['numero_documento']
+            
+            registro.save()
+
+            return JsonResponse({'message': f'Registro Histórico con ID {id_historico} actualizado exitosamente'}, status=200)
+
+        except RegistroHistorico.DoesNotExist:
+            return JsonResponse({'error': f'Registro Histórico con ID {id_historico} no encontrado'}, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Formato JSON inválido en el cuerpo de la solicitud'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    def post(self, request):
+        """
+        Crea un nuevo registro histórico.
+        """
+        try:
+            data = json.loads(request.body)
+            equipo_id = data.get('equipo_id')
+            
+            if not equipo_id:
+                return JsonResponse({'error': 'Campo obligatorio faltante: equipo_id'}, status=400)
+                
+            # Verificar si el Equipo existe
+            try:
+                equipo = Equipo.objects.get(id=equipo_id)
+            except Equipo.DoesNotExist:
+                return JsonResponse({'error': f'Equipo con ID {equipo_id} no encontrado. No se puede crear el registro.'}, status=404)
+
+            # Opcional: Podrías validar unicidad si un Equipo solo debe tener un RegistroHistorico
+            # if RegistroHistorico.objects.filter(equipo=equipo).exists():
+            #     return JsonResponse({'error': f'El equipo con ID {equipo_id} ya tiene un Registro Histórico asociado.'}, status=409)
+
+            RegistroHistorico.objects.create(
+                equipo_id=equipo_id,
+                tiempo_vida_util=data.get('tiempo_vida_util'),
+                fecha_adquisicion=data.get('fecha_adquisicion'), 
+                propietario=data.get('propietario'),
+                fecha_fabricacion=data.get('fecha_fabricacion'),
+                nit=data.get('nit'),
+                proveedor=data.get('proveedor'), 
+                en_garantia=data.get('en_garantia', False), # Asignar False por defecto
+                fecha_fin_garantia=data.get('fecha_fin_garantia'),
+                forma_adquisicion=data.get('forma_adquisicion'),
+                tipo_documento=data.get('tipo_documento'),
+                numero_documento=data.get('numero_documento'),
+            )
+
+            return JsonResponse({'message': 'Registro Histórico creado exitosamente'}, status=201)
+            
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Formato JSON inválido'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
 # ================================================
 # VISTA: MetrologiaAdmin (Mantenimiento y Calibración)
 # ================================================
@@ -266,6 +489,61 @@ class MetrologiaAdminView(View):
         ]
 
         return JsonResponse({"result": data}, status=200)
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            equipo_id = data.get("equipo_id")
+
+            if not equipo_id:
+                return JsonResponse({'error': 'Campo obligatorio faltante: equipo_id'}, status=400)
+
+            try:
+                equipo = Equipo.objects.get(id=equipo_id)
+            except Equipo.DoesNotExist:
+                return JsonResponse({'error': f'Equipo con ID {equipo_id} no existe'}, status=404)
+
+            MetrologiaAdmin.objects.create(
+                equipo=equipo,
+                mantenimiento=data.get("mantenimiento"),
+                tipo_mantenimiento=data.get("tipo_mantenimiento"),
+                frecuencia_mantenimiento=data.get("frecuencia_mantenimiento"),
+                calibracion=data.get("calibracion", False),
+                tipo_calibracion=data.get("tipo_calibracion"),
+                frecuencia_calibracion=data.get("frecuencia_calibracion"),
+            )
+
+            return JsonResponse({'message': 'Metrología Administrativa creada exitosamente'}, status=201)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'JSON inválido'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    # ---------------------- ACTUALIZAR ----------------------
+    def put(self, request, id_admin=None):
+
+        if id_admin is None:
+            return JsonResponse({'error': 'Se requiere ID para actualizar'}, status=400)
+
+        try:
+            registro = MetrologiaAdmin.objects.get(id=id_admin)
+            data = json.loads(request.body)
+
+            # Campos editables
+            if "mantenimiento" in data: registro.mantenimiento = data["mantenimiento"]
+            if "tipo_mantenimiento" in data: registro.tipo_mantenimiento = data["tipo_mantenimiento"]
+            if "frecuencia_mantenimiento" in data: registro.frecuencia_mantenimiento = data["frecuencia_mantenimiento"]
+            if "calibracion" in data: registro.calibracion = data["calibracion"]
+            if "tipo_calibracion" in data: registro.tipo_calibracion = data["tipo_calibracion"]
+            if "frecuencia_calibracion" in data: registro.frecuencia_calibracion = data["frecuencia_calibracion"]
+
+            registro.save()
+            return JsonResponse({'message': f'Metrología Administrativa {id_admin} actualizada'}, status=200)
+
+        except MetrologiaAdmin.DoesNotExist:
+            return JsonResponse({'error': 'No existe el registro'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
 
 # ================================================
 # VISTA: MetrologiaTecnica (Parámetros Técnicos)
@@ -346,6 +624,58 @@ class MetrologiaTecnicaView(View):
         ]
 
         return JsonResponse({"result": data}, status=200)
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            equipo_id = data.get("equipo_id")
+
+            if not equipo_id:
+                return JsonResponse({'error': 'Campo obligatorio faltante: equipo_id'}, status=400)
+
+            try:
+                equipo = Equipo.objects.get(id=equipo_id)
+            except Equipo.DoesNotExist:
+                return JsonResponse({'error': f'Equipo con ID {equipo_id} no existe'}, status=404)
+
+            MetrologiaTecnica.objects.create(
+                equipo=equipo,
+                magnitud=data.get("magnitud"),
+                rango_equipo=data.get("rango_equipo"),
+                resolucion=data.get("resolucion"),
+                rango_trabajo=data.get("rango_trabajo"),
+                error_maximo=data.get("error_maximo")
+            )
+
+            return JsonResponse({'message': 'Metrología Técnica creada exitosamente'}, status=201)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'JSON inválido'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    # ---------------------- ACTUALIZAR ----------------------
+    def put(self, request, id_tecnica=None):
+
+        if id_tecnica is None:
+            return JsonResponse({'error': 'Se requiere ID para actualizar'}, status=400)
+
+        try:
+            registro = MetrologiaTecnica.objects.get(id=id_tecnica)
+            data = json.loads(request.body)
+
+            if "magnitud" in data: registro.magnitud = data["magnitud"]
+            if "rango_equipo" in data: registro.rango_equipo = data["rango_equipo"]
+            if "resolucion" in data: registro.resolucion = data["resolucion"]
+            if "rango_trabajo" in data: registro.rango_trabajo = data["rango_trabajo"]
+            if "error_maximo" in data: registro.error_maximo = data["error_maximo"]
+
+            registro.save()
+            return JsonResponse({'message': f'Metrología Técnica {id_tecnica} actualizada'}, status=200)
+
+        except MetrologiaTecnica.DoesNotExist:
+            return JsonResponse({'error': 'Registro no encontrado'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
 
 # ================================================
 # VISTA: DocumentoEquipo (Documentos y Manuales)
@@ -431,6 +761,61 @@ class DocumentoEquipoView(View): # Renombrado a DocumentoEquipoView
         ]
 
         return JsonResponse({"result": data}, status=200)
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            equipo_id = data.get("equipo_id")
+
+            if not equipo_id:
+                return JsonResponse({'error': 'Campo obligatorio faltante: equipo_id'}, status=400)
+
+            try:
+                equipo = Equipo.objects.get(id=equipo_id)
+            except Equipo.DoesNotExist:
+                return JsonResponse({'error': f'Equipo con ID {equipo_id} no existe'}, status=404)
+
+            DocumentoEquipo.objects.create(
+                equipo=equipo,
+                hoja_vida=data.get("hoja_vida", False),
+                registro_importacion=data.get("registro_importacion", False),
+                manual_operacion=data.get("manual_operacion"),
+                manual_mantenimiento=data.get("manual_mantenimiento"),
+                guia_rapida=data.get("guia_rapida"),
+                instructivo_manejo=data.get("instructivo_manejo", False),
+                protocolo_mantenimiento=data.get("protocolo_mantenimiento"),
+                frecuencia_metrologica=data.get("frecuencia_metrologica"),
+            )
+
+            return JsonResponse({'message': 'Documento creado'}, status=201)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    # ---------------------- ACTUALIZAR ----------------------
+    def put(self, request, id_doc=None):
+
+        if id_doc is None:
+            return JsonResponse({'error': 'Se requiere ID para actualizar'}, status=400)
+
+        try:
+            doc = DocumentoEquipo.objects.get(id=id_doc)
+            data = json.loads(request.body)
+
+            for campo in [
+                "hoja_vida", "registro_importacion", "manual_operacion",
+                "manual_mantenimiento", "guia_rapida", "instructivo_manejo",
+                "protocolo_mantenimiento", "frecuencia_metrologica"
+            ]:
+                if campo in data:
+                    setattr(doc, campo, data[campo])
+
+            doc.save()
+            return JsonResponse({'message': f'Documento {id_doc} actualizado'}, status=200)
+
+        except DocumentoEquipo.DoesNotExist:
+            return JsonResponse({'error': 'Documento no encontrado'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
 
 # ================================================
 # VISTA: CondicionesFuncionamiento (Requisitos Ambientales/Eléctricos)
@@ -512,46 +897,124 @@ class CondicionesFuncionamientoView(View): # Renombrado a CondicionesFuncionamie
         ]
 
         return JsonResponse({"result": data}, status=200)
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            equipo_id = data.get("equipo_id")
+
+            if not equipo_id:
+                return JsonResponse({'error': 'Campo obligatorio faltante: equipo_id'}, status=400)
+
+            try:
+                equipo = Equipo.objects.get(id=equipo_id)
+            except Equipo.DoesNotExist:
+                return JsonResponse({'error': f'Equipo con ID {equipo_id} no existe'}, status=404)
+
+            CondicionesFuncionamiento.objects.create(
+                equipo=equipo,
+                voltaje=data.get("voltaje"),
+                corriente=data.get("corriente"),
+                humedad=data.get("humedad"),
+                temperatura=data.get("temperatura"),
+                dimensiones=data.get("dimensiones"),
+                peso=data.get("peso"),
+                otros=data.get("otros"),
+            )
+
+            return JsonResponse({'message': 'Condiciones creadas'}, status=201)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    # ---------------------- ACTUALIZAR ----------------------
+    def put(self, request, id_cond=None):
+
+        if id_cond is None:
+            return JsonResponse({'error': 'Se requiere ID para actualizar'}, status=400)
+
+        try:
+            con = CondicionesFuncionamiento.objects.get(id=id_cond)
+            data = json.loads(request.body)
+
+            for campo in [
+                "voltaje", "corriente", "humedad",
+                "temperatura", "dimensiones", "peso", "otros"
+            ]:
+                if campo in data:
+                    setattr(con, campo, data[campo])
+
+            con.save()
+            return JsonResponse({'message': f'Condición {id_cond} actualizada'}, status=200)
+
+        except CondicionesFuncionamiento.DoesNotExist:
+            return JsonResponse({'error': 'Registro no encontrado'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
 class ResponsablesView(View): 
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
-    def get(self, request, codigo_interno=None):
-        if codigo_interno:
-            try:
-                responsable = Responsable.objects.get(codigo_interno=codigo_interno)
-                data = {
-                    'nombre': responsable.nombre_responsable,
-                    'sede': responsable.sede.nombre_sede,
-                }
-                return JsonResponse(data, status=200)
-            except Responsable.DoesNotExist:
-                return JsonResponse({'error': 'Laborresponsable no encontrado'}, status=404)
-            except Responsable.MultipleObjectsReturned:
-                return JsonResponse({'error': 'Múltiples responsables encontrados con el mismo código'}, status=400)
-        else:
-            responsables=list(Responsable.objects.values('nombre_responsable','sede__nombre_sede'))
-            data={'message':'Success','result':responsables}
-            return JsonResponse(data, status=200)
+
+    def get(self, request, *args, **kwargs):
+
+        responsables = Responsable.objects.select_related('sede').all()
+
+        data = [
+            {
+                'id': resp.id,
+                'nombre_responsable': resp.nombre_responsable,   
+                'nombre_sede': resp.sede.nombre_sede,
+            }
+            for resp in responsables
+        ]
+
+        return JsonResponse({"result": data}, status=200)
+
+
+class ServiciosView(View): 
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+
+        servicios = Servicio.objects.select_related('sede').all()
+
+        data = [
+            {
+                'id': serv.id,
+                'nombre_servicio': serv.nombre_servicio,  
+                'nombre_sede': serv.sede.nombre_sede 
+            }
+            for serv in servicios
+           
+        ]
+
+        return JsonResponse({"result": data}, status=200)
+
+
 
 class SedeView(View): 
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
-    def get(self, request, codigo_interno=None):
-        if codigo_interno:
-            try:
-                sede = Sede.objects.get(codigo_interno=codigo_interno)
-                data = {
-                    'nombre': sede.nombre_sede,
-                    'ubicacion': sede.ubicacion_sede,
-                }
-                return JsonResponse(data, status=200)
-            except Sede.DoesNotExist:
-                return JsonResponse({'error': 'Sede no encontrado'}, status=404)
-            except Sede.MultipleObjectsReturned:
-                return JsonResponse({'error': 'Múltiples responsables encontrados con el mismo código'}, status=400)
-        else:
-            sedes=list(Sede.objects.values('nombre_sede','ubicacion_sede'))
-            data={'message':'Success','result':sedes}
-            return JsonResponse(data, status=200)        
+    def get(self, request, *args, **kwargs):
+
+        sedes = Sede.objects.all()
+        # Si no se encontró ningún equipo
+        if not sedes.exists():
+            # Devolver una lista vacía con status 200 (OK)
+            return JsonResponse({"result": []}, status=200)
+
+        # 3. Serialización de la Data
+        data = [
+            {
+                'id': sed.id,
+                'nombre_sede': sed.nombre_sede,   
+            }
+            for sed in sedes
+        ]
+
+        # Devolver la respuesta en formato JSON
+        # safe=False si se devuelve un objeto que no es un diccionario (aquí no es necesario, pero es buena práctica si la lista 'data' fuera la respuesta principal)
+        return JsonResponse({"result": data}, status=200)       
