@@ -549,7 +549,7 @@ class MetrologiaAdminView(View):
                 return JsonResponse({'error': f'Equipo con ID {equipo_id} no existe'}, status=404)
 
             MetrologiaAdmin.objects.create(
-                equipo=equipo,
+                equipo_id=equipo_id,
                 mantenimiento=data.get("mantenimiento"),
                 tipo_mantenimiento=data.get("tipo_mantenimiento"),
                 frecuencia_mantenimiento=data.get("frecuencia_mantenimiento"),
@@ -684,7 +684,7 @@ class MetrologiaTecnicaView(View):
                 return JsonResponse({'error': f'Equipo con ID {equipo_id} no existe'}, status=404)
 
             MetrologiaTecnica.objects.create(
-                equipo=equipo,
+                equipo_id=equipo_id,
                 magnitud=data.get("magnitud"),
                 rango_equipo=data.get("rango_equipo"),
                 resolucion=data.get("resolucion"),
@@ -821,7 +821,7 @@ class DocumentoEquipoView(View): # Renombrado a DocumentoEquipoView
                 return JsonResponse({'error': f'Equipo con ID {equipo_id} no existe'}, status=404)
 
             DocumentoEquipo.objects.create(
-                equipo=equipo,
+                equipo_id=equipo_id,
                 hoja_vida=data.get("hoja_vida", False),
                 registro_importacion=data.get("registro_importacion", False),
                 manual_operacion=data.get("manual_operacion"),
@@ -957,14 +957,14 @@ class CondicionesFuncionamientoView(View): # Renombrado a CondicionesFuncionamie
                 return JsonResponse({'error': f'Equipo con ID {equipo_id} no existe'}, status=404)
 
             CondicionesFuncionamiento.objects.create(
-                equipo=equipo,
+                equipo_id=equipo_id,
                 voltaje=data.get("voltaje"),
                 corriente=data.get("corriente"),
                 humedad=data.get("humedad"),
                 temperatura=data.get("temperatura"),
                 dimensiones=data.get("dimensiones"),
                 peso=data.get("peso"),
-                otros=data.get("otros"),
+                otros=data.get("otros_requerimientos"),
             )
 
             return JsonResponse({'message': 'Condiciones creadas'}, status=201)

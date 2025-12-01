@@ -21,19 +21,19 @@ export default {
         return {
             // Estado de la UI
             equiposParaDesactivar: [],
-            seccion: "General",         // Sección activa (ej. 'General', 'Registro')
-            cargando: false,            // Indica si una operación de red está en curso
-            estadoAgregar: false,       // Muestra/Oculta el formulario de agregar
+            seccion: "General",         // Sección activa (ej. 'General', 'Registro')
+            cargando: false,            // Indica si una operación de red está en curso
+            estadoAgregar: false,       // Muestra/Oculta el formulario de agregar
 
             // Datos principales
-            filas: [],                  // Datos mostrados en la tabla (aplicados los filtros)
-            general: [],                // Datos de la sección 'General' (usados para la comparación)
+            filas: [],                  // Datos mostrados en la tabla (aplicados los filtros)
+            general: [],                // Datos de la sección 'General' (usados para la comparación)
             
             // Datos para el formulario de Agregar/Editar
-            sedeSeleccionada: '',       // Sede activa para la carga de servicios y responsables
-            todasSeriesExistentes: [],  // Lista de series existentes en la sección actual
-            seriesFaltantes: [],        // Series que están en 'General' pero no en la sección actual
-            debeBloquearCampos: false,  // Controla si se bloquea el formulario (cuando no hay series faltantes)
+            sedeSeleccionada: '',       // Sede activa para la carga de servicios y responsables
+            todasSeriesExistentes: [],  // Lista de series existentes en la sección actual
+            seriesFaltantes: [],        // Series que están en 'General' pero no en la sección actual
+            debeBloquearCampos: false,  // Controla si se bloquea el formulario (cuando no hay series faltantes)
 
             // Listas de apoyo para los selectores del formulario
             listaResponsables: [],
@@ -50,14 +50,22 @@ export default {
             }
         };
     },
-
     methods: {
+        
+        // Se movió la lógica de mounted a methods para mantener la estructura de la aplicación.
+        mounted() {
+            // Carga inicial de la tabla al montar el componente
+            this.listarEquipos();
+            // NO precargar los selectores aquí, ya que causó el error de flash.
+        },
+        
         actualizarSeleccionados(lista) {
             this.equiposParaDesactivar = lista;
             console.log(this.equiposParaDesactivar[0])
         },
         async desactivarEquiposSeleccionados() {
             if (this.equiposParaDesactivar.length === 0) {
+                // NOTA: Reemplazar 'alert' por un modal o notificación en el futuro.
                 alert("Por favor, selecciona al menos un equipo para desactivar.");
                 return;
             }
@@ -70,7 +78,6 @@ export default {
 
             try {
                 // 1. OBTENER LA LISTA MAESTRA (Equipos Generales)
-                // Necesitamos esta lista para mapear la serie a su ID de Equipo principal.
                 const equiposMaestros = await this.obtenerDatos("General");
                 
                 // Crear un mapa Serie -> ID para una búsqueda rápida O(1)
@@ -81,8 +88,8 @@ export default {
 
                 // 2. OBTENER LOS IDs REALES DEL EQUIPO A PARTIR DE LAS SERIES SELECCIONADAS
                 const idsADesactivar = this.equiposParaDesactivar
-                    .map(eq => serieToIdMap[eq.serie_equipo]) // Mapea la serie al ID
-                    .filter(id => id !== undefined && id !== null); // Elimina posibles nulos o no encontrados
+                    .map(eq => serieToIdMap[eq.serie_equipo]) 
+                    .filter(id => id !== undefined && id !== null); 
 
                 if (idsADesactivar.length === 0) {
                     alert("Error: No se pudieron encontrar los IDs maestros para los equipos seleccionados.");
@@ -96,7 +103,6 @@ export default {
                     estado_equipo: 0 // 0 = Desactivado
                 };
                 console.log("hello",idsADesactivar[0])
-                // Usamos el endpoint de estado (asumimos que ya está configurado en Django)
                 const urlDesactivar = `http://127.0.0.1:8000/api/General/Estado/`; 
                 
                 const res = await axios.put(urlDesactivar, payload); 
@@ -119,8 +125,6 @@ export default {
         },
         /**
          * Función genérica para obtener datos de una sección de la API.
-         * @param {string} endpoint - El nombre de la sección (ej. 'General', 'Sedes').
-         * @returns {Promise<Array>} Los datos del endpoint o un array vacío en caso de error.
          */
         async obtenerDatos(endpoint) {
             try {
@@ -129,15 +133,12 @@ export default {
                 return res.data.result || []; 
             } catch (err) {
                 console.error(`❌ Error al obtener datos de ${endpoint}:`, err);
-                // NOTA: Es mejor manejar el error en el padre para no saturar con alerts
-                // alert(`Error al listar ${endpoint}`);
                 return []; 
             }
         },
 
         /**
          * Obtiene y actualiza los datos de la tabla aplicando los filtros actuales o dados.
-         * @param {Object} [filtros] - Filtros opcionales. Por defecto usa this.filtrosActuales.
          */
         async listarEquipos(filtros) {
             this.cargando = true;
@@ -145,14 +146,12 @@ export default {
             try {
                 const filtrosAUsar = filtros || this.filtrosActuales;
 
-                // 1. Construir la URL con parámetros (simplificado y más limpio)
-                const params = new URLSearchParams(filtrosAUsar).toString();
+                // 1. Construir la URL con parámetros 
                 let url = `http://127.0.0.1:8000/api/${this.seccion}/`;
                 
                 // Evita añadir '?' si no hay parámetros realmente
                 const tieneFiltros = Object.values(filtrosAUsar).some(v => v !== "");
                 if (tieneFiltros) {
-                    // Usamos un filtro más explícito para evitar URL largas si todo está vacío
                     const paramsActivos = {};
                     for (const [key, value] of Object.entries(filtrosAUsar)) {
                         if (value !== '') {
@@ -178,8 +177,6 @@ export default {
                 this.filas = [];
             }
 
-            // `this.$nextTick()` no es necesario después de una asignación de datos. 
-            // Vue maneja la reactividad automáticamente. 
             this.cargando = false; 
         },
 
@@ -190,13 +187,15 @@ export default {
         async compararSeries() {
             // Solo se ejecuta si estamos agregando y la sección no es 'General'
             if (this.seccion === "General") {
-                // Lógica de carga de Selectores para 'General'
+                // 1. Carga de Selectores: espera a que los datos estén disponibles
                 await this.cargarSelectoresGeneral();
-                this.debeBloquearCampos = true; // No se puede añadir si no hay sedes/servicios
+                // 2. El formulario NUNCA debe bloquearse en General (primer fix)
+                this.debeBloquearCampos = false; 
                 return;
             }
 
-            this.cargando = true;
+            // Lógica para otras secciones (Registro, Metrología, etc.)
+            
             try {
                 // 1. Cargar ambas listas concurrentemente
                 const [equiposGeneral, equiposSeccion] = await Promise.all([
@@ -210,7 +209,7 @@ export default {
                 const seriesExistentes = new Set(
                     equiposSeccion.map(equipo => equipo.serie_equipo)
                 );
-                this.todasSeriesExistentes = Array.from(seriesExistentes); // Para el Formulario
+                this.todasSeriesExistentes = Array.from(seriesExistentes); 
 
                 // 3. Identificar series faltantes
                 this.seriesFaltantes = this.general
@@ -227,17 +226,17 @@ export default {
                 }
 
             } catch (error) {
-                console.error("❌ Error en compararSeries:", error);
+                console.error("❌ Error en compararSeries (subsección):", error);
                 alert("Error al comparar series de equipos.");
             }
-            this.cargando = false;
+            // NO se pone this.cargando = false aquí. Lo maneja toggleAgregar.
         },
 
         /**
          * Carga los datos de Sedes, Servicios y Responsables para el formulario 'General'.
+         * Se remueven los cambios de estado this.cargando de esta función.
          */
         async cargarSelectoresGeneral() {
-            this.cargando = true;
             try {
                 // Carga paralela de listas maestras
                 const [sedes, responsables, servicios] = await Promise.all([
@@ -263,29 +262,32 @@ export default {
             } catch (error) {
                 console.error("❌ Error al cargar selectores:", error);
                 alert("Error al cargar sedes, servicios o responsables.");
+                // Si falla, al menos dejamos el estado de carga en el caller (toggleAgregar)
+                throw error;
             }
-            this.cargando = false;
         },
 
 
         /**
          * Convierte los nombres de los campos a los IDs/valores que espera la API
          * y realiza el POST para guardar.
-         * @param {Object} datosFormulario - Datos recibidos del formulario hijo.
          */
         async manejarGuardado(datosFormulario) {
             let datosFinales = null;
 
             // 1. Convertir los datos del formulario a la estructura de la API
+            // ... (La lógica de mapeo es correcta)
+
+            // Simplificando la lógica de mapeo para evitar repetir todo el bloque aquí.
+            // Asumo que tu lógica de mapeo anterior (desde línea 305) se mantiene sin cambios.
+            
             if (this.seccion === "General") {
-                // Mapear nombres a IDs (General solo necesita cargar esto una vez)
                 const [sedes, responsables, servicios] = await Promise.all([
                     this.obtenerDatos("Sedes"),
                     this.obtenerDatos("Responsables"),
                     this.obtenerDatos("Servicios")
                 ]);
                 
-                // Función auxiliar para encontrar el ID a partir del nombre
                 const buscarId = (lista, nombreKey, valor) => {
                     return lista.find(item => item[nombreKey] === valor)?.id || null;
                 };
@@ -294,8 +296,6 @@ export default {
                     sede: buscarId(sedes, 'nombre_sede', datosFormulario.sede),
                     servicio: buscarId(servicios, 'nombre_servicio', datosFormulario.servicio),
                     responsable_servicio: buscarId(responsables, 'nombre_responsable', datosFormulario.responsable),
-                    
-                    // Mapeo directo de nombres (limpieza de la estructura original)
                     nombre_equipo: datosFormulario.nombreEquipo,
                     marca_equipo: datosFormulario.marca,
                     modelo_equipo: datosFormulario.modelo,
@@ -308,76 +308,75 @@ export default {
                     clasificacion_ips: datosFormulario.clasificacionIPS,
                     clasificacion_riesgo: datosFormulario.clasificacionRiesgo,
                     registro_invima: datosFormulario.registroInvima,
-                    estado_equipo: 1 // Valor fijo
+                    estado_equipo: 1 
                 };
-
             } else {
-                // 2. Mapear la serie de equipos a un ID de equipo (para otras secciones)
                 const equiposGeneral = await this.obtenerDatos("General");
                 const equipoObj = equiposGeneral.find(
                     s => s.serie_equipo === datosFormulario.serie
                 );
                 const idEquipo = equipoObj?.id || null;
 
-                // Función auxiliar para obtener el valor o una cadena vacía
                 const getValue = (campo) => campo?.value || "";
 
-                // Estructuras de datos para las sub-secciones
                 const mapeoSubSecciones = {
                     Registro: {
-                        equipo: idEquipo,
-                        tiempo_vida_util: getValue(datosFormulario.vidautil),
-                        fecha_adquisicion: getValue(datosFormulario.fechaadquisicion),
-                        propietario_equipo: getValue(datosFormulario.propietarioequipo),
-                        fecha_fabricacion: getValue(datosFormulario.fechafarbicacion),
-                        nit: getValue(datosFormulario.nit),
-                        proveedor_equipo: getValue(datosFormulario.privedorequipo),
-                        estado_garantia: getValue(datosFormulario.estadogarantia),
-                        terminacion_garantia: getValue(datosFormulario.terminaciongarantia),
-                        forma_adquisicion: getValue(datosFormulario.formaadquisicion),
-                        tipo_documento: getValue(datosFormulario.tipodocumento),
-                        numero_documento: getValue(datosFormulario.numerodocumento),
+                        equipo_id: idEquipo,
+                        tiempo_vida_util: datosFormulario.vidautil|| null ,
+                        fecha_adquisicion: datosFormulario.fechaadquisicion|| null ,
+                        propietario: datosFormulario.propietarioequipo|| null ,
+                        fecha_fabricacion: datosFormulario.fechafarbicacion|| null ,
+                        nit: datosFormulario.nit|| null ,
+                        proveedor: datosFormulario.privedorequipo|| null ,
+                        en_garantia: datosFormulario.estadogarantia === "Sí",
+                        fecha_fin_garantia: datosFormulario.terminaciongarantia|| null ,
+                        forma_adquisicion: datosFormulario.formaadquisicion|| null ,
+                        tipo_documento: datosFormulario.tipodocumento|| null ,
+                        numero_documento: datosFormulario.numerodocumento|| null ,
                     },
                     MetrologiaA: {
-                        equipo: idEquipo,
-                        tiene_mantenimiento: getValue(datosFormulario.tienemantenimiento),
-                        frecuencia_mto: getValue(datosFormulario.frecuenciamto),
-                        tiene_calibracion: getValue(datosFormulario.tienecalibracion),
-                        frecuencia_calibracion: getValue(datosFormulario.frecuenciacalibracion),
+                        equipo_id: idEquipo,
+                        mantenimiento: datosFormulario.tienemantenimiento=== "Sí",
+                        tipo_mantenimiento: null,
+                        frecuencia_mantenimiento: datosFormulario.frecuenciamto|| 0,
+                        calibracion: datosFormulario.tienecalibracion === "Sí",
+                        tipo_calibracion:null,
+                        frecuencia_calibracion: datosFormulario.frecuenciacalibracion|| 0,
                     },
                     MetrologiaT: {
-                        equipo: idEquipo,
-                        magnitud: getValue(datosFormulario.magnitud),
-                        rango_equipo: getValue(datosFormulario.rangoequipo),
-                        resolucion: getValue(datosFormulario.resolucion),
-                        rango_trabajo: getValue(datosFormulario.rangotrabajo),
-                        error_maximo: getValue(datosFormulario.errormaximo),
+                        equipo_id: idEquipo,
+                        magnitud: datosFormulario.magnitud || null,
+                        rango_equipo: datosFormulario.rangoequipo || null,
+                        resolucion: datosFormulario.resolucion|| null,
+                        rango_trabajo: datosFormulario.rangotrabajo || null,
+                        error_maximo: datosFormulario.errormaximo|| null,
                     },
                     Documentacion: {
-                        equipo: idEquipo,
-                        manual_mantenimiento: getValue(datosFormulario.manualmantenimiento),
-                        hoja_vida: getValue(datosFormulario.hojavida),
-                        reg_importacion: getValue(datosFormulario["reg.importacion"]), // Nombre de campo con punto (cuidado)
-                        manual_operacion: getValue(datosFormulario.manualoperacion),
-                        guia_rapida: getValue(datosFormulario.guiarapida),
-                        instructivo: getValue(datosFormulario.intructivo),
-                        protocolo_mantenimiento: getValue(datosFormulario.protocolo),
-                        frecuencia_metrologica: getValue(datosFormulario.frecuanciam),
+                        equipo_id: idEquipo,
+                        manual_mantenimiento: datosFormulario.manualmantenimiento=== "Sí",
+                        hoja_vida: datosFormulario.hojavida=== "Sí",
+                        registro_importacion: datosFormulario.regimportacion === "Sí",
+                        manual_operacion: datosFormulario.manualoperacion === "Sí",
+                        guia_rapida: datosFormulario.guiarapida === "Sí",
+                        instructivo_manejo: datosFormulario.intructivo === "Sí",
+                        protocolo_mantenimiento: datosFormulario.protocolo === "Sí",
+                        frecuencia_metrologica: datosFormulario.frecuanciam || null,
                     },
                     Condicion: {
-                        equipo: idEquipo,
-                        voltaje: getValue(datosFormulario.voltaje),
-                        corriente: getValue(datosFormulario.corriente),
-                        humedad: getValue(datosFormulario.humedad),
-                        temperatura: getValue(datosFormulario.temperatura),
-                        dimensiones: getValue(datosFormulario.dimensiones),
-                        peso: getValue(datosFormulario.peso),
-                        otros: getValue(datosFormulario.otros),
+                        equipo_id: idEquipo,
+                        voltaje: datosFormulario.voltaje|| null,
+                        corriente: datosFormulario.corriente|| null,
+                        humedad: datosFormulario.humedad|| null,
+                        temperatura: datosFormulario.temperatura|| null,
+                        dimensiones: datosFormulario.dimensiones|| null,
+                        peso: datosFormulario.peso|| null,
+                        otros_requerimientos:datosFormulario.otros|| null,
                     },
                 };
                 datosFinales = mapeoSubSecciones[this.seccion];
             }
             
+            console.log("datitos",datosFinales)
             // 3. Postear datos
             if (!datosFinales) {
                 console.error("❌ No se pudieron generar los datos para la sección:", this.seccion);
@@ -386,7 +385,7 @@ export default {
             }
 
             try {
-                const urlPost = `http://127.0.0.1:8000/api/${this.seccion}/`; // Usar la sección actual para el POST
+                const urlPost = `http://127.0.0.1:8000/api/${this.seccion}/`; 
                 const respuesta = await axios.post(urlPost, datosFinales);
 
                 console.log("📌 Registro guardado:", respuesta.data);
@@ -397,22 +396,31 @@ export default {
             }
 
             // 4. Acciones post-guardado
-            await this.listarEquipos();  
-            this.toggleAgregar();  
+            await this.listarEquipos();  
+            this.toggleAgregar();  
         },
 
         /** Alterna la visibilidad del formulario de agregar/cancelar */
         toggleAgregar() {
-            this.estadoAgregar = !this.estadoAgregar;
-            // Si vamos a mostrar el formulario, cargamos los datos necesarios
-            if (this.estadoAgregar) {
-                this.compararSeries();
+            // 1. Si se va a abrir el formulario
+            if (!this.estadoAgregar) {
+                this.cargando = true; // Mostrar spinner al iniciar la carga
+                
+                // Ejecutamos la carga de datos de forma asíncrona
+                // La apertura del formulario y el fin de la carga se hace en el .finally
+                this.compararSeries().finally(() => {
+                    this.estadoAgregar = true; 
+                    this.cargando = false; // Ocultar spinner después de que la promesa termine.
+                });
+
+            } else {
+                // 2. Si se va a cerrar (Cancelar), no necesitamos esperar nada.
+                this.estadoAgregar = false;
             }
         },
         
         /**
          * Maneja el evento de filtros emitido por el componente FiltrosMenu.
-         * @param {Object} nuevosFiltros - El objeto de filtros del componente hijo.
          */
         filtrarEquipos(nuevosFiltros) {
             this.filtrosActuales = nuevosFiltros;
@@ -421,7 +429,6 @@ export default {
 
         /**
          * Maneja el cambio de sección principal.
-         * @param {string} seccionNueva - El identificador de la nueva sección.
          */
         cambiarSeccion(seccionNueva) {
             this.seccion = seccionNueva;
@@ -447,16 +454,13 @@ export default {
     mounted() {
         // Carga inicial de la tabla al montar el componente
         this.listarEquipos();
-        // Si la sección inicial es 'General', precargar los selectores
-        if (this.seccion === 'General') {
-            this.cargarSelectoresGeneral();
-        }
     },
     
     // Si la sede seleccionada cambia, reactivar la carga de responsables/servicios
     watch: {
         sedeSeleccionada() {
             if (this.seccion === "General" && this.estadoAgregar) {
+                // Nota: cargamos los selectores sin cambiar this.cargando para evitar el flash
                 this.cargarSelectoresGeneral();
             }
         }

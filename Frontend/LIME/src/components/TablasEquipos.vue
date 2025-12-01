@@ -269,7 +269,6 @@ export default {
                         </button>
 
                         <div v-show="fila.mostrarOpciones" class="dropdown-menu">
-                            <a href="#" class="dropdown-item" @click.prevent="verEquipo(fila)">Ver</a>
                             <a href="#" class="dropdown-item" @click.prevent="trasladarEquipo(fila)">Traslado</a>
                             <a href="#" class="dropdown-item" @click.prevent="editarEquipo(fila)">Editar</a>
                         </div>
