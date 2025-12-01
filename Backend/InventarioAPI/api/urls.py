@@ -8,12 +8,14 @@ from .views import (
     CondicionesFuncionamientoView,
     ResponsablesView,
     SedeView,
-    ServiciosView
+    ServiciosView,
+    EstadoEquipoView
 )
 
 urlpatterns = [
     # Vistas de listado y filtro general
     path('General/', EquiposView.as_view(), name='equipos_general'),
+    path('General/Estado/', EstadoEquipoView.as_view(), name='equipos_estado'),
     path('Registro/', RegistroHistoricoView.as_view(), name='registros_historicos_general'),
     path('MetrologiaA/', MetrologiaAdminView.as_view(), name='metrologia_tecnica_general'),
     path('MetrologiaT/', MetrologiaTecnicaView.as_view(), name='metrologia_admin_general'),

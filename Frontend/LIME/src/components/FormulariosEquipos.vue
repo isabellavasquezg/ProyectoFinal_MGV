@@ -54,25 +54,29 @@
         seriesFiltradas() {
             const texto = this.textoBusqueda.toLowerCase();
 
-            // 👉 Si la sección es MetrologíaT usar TODAS las series
-            if (this.seccion === "MetrologiaT" || this.seccion==="General") {
-                return this.todasSeries.filter(s =>
-                    s.toLowerCase().includes(texto)
-                );
-            }
-            // 👉 Para todas las demás vistas usar seriesInesistentes
-            return this.seriesInesistentes.filter(s =>
-                s.toLowerCase().includes(texto)
-            );
-        },
-        serviciosFiltrados() {
-            const t = this.textoBusquedaServicio.toLowerCase();
-            return this.listaServicios.filter(s => s.toLowerCase().includes(t));
+            const lista = 
+                (this.seccion === "MetrologiaT" || this.seccion === "General")
+                ? this.todasSeries
+                : this.seriesInesistentes;
+
+            return lista
+                .map(x => typeof x === "string" ? x : x.serie_equipo || x.nombre_sede || "")
+                .filter(x => x.toLowerCase().includes(texto));
         },
 
+        serviciosFiltrados() {
+            const t = this.textoBusquedaServicio.toLowerCase();
+
+            return this.listaServicios
+                .map(s => typeof s === "string" ? s : s.nombre_servicio || "")
+                .filter(s => s.toLowerCase().includes(t));
+        },
         responsablesFiltrados() {
             const t = this.textoBusquedaResponsable.toLowerCase();
-            return this.listaResposables.filter(r => r.toLowerCase().includes(t));
+
+            return this.listaResposables
+                .map(r => typeof r === "string" ? r : r.nombre_responsable || "")
+                .filter(r => r.toLowerCase().includes(t));
         },
         bloquearCamposServicio() {
             return this.serieSeleccionada === ""; 
@@ -116,18 +120,24 @@
 
         },
         guardarFormulario() {
-            const datosFormulario = {
-                sede: this.textoBusqueda || "",
-                servicio: this.textoBusquedaServicio || "",
-                responsable: this.textoBusquedaResponsable || "",
-            };
-
-            for (const ref in this.$refs) {
-                const campo = this.$refs[ref];
-                if (campo && "value" in campo) {
-                    datosFormulario[ref] = campo.value;
+            let datosFormulario={};
+            if(this.seccion==="General"){
+                datosFormulario = {
+                    sede: this.textoBusqueda || "",
+                    servicio: this.textoBusquedaServicio || "",
+                    responsable: this.textoBusquedaResponsable || "",
+                };
+            }else{
+                datosFormulario={
+                    serie:this.textoBusqueda || "",
                 }
             }
+                for (const ref in this.$refs) {
+                    const campo = this.$refs[ref];
+                    if (campo && "value" in campo) {
+                        datosFormulario[ref] = campo.value;
+                    }
+                }
 
             console.log("Datos a enviar:", datosFormulario);
             this.$emit("guardar-formulario", datosFormulario);
@@ -526,7 +536,8 @@
                 </div>
             </form>
             <div class="formularioAgregar--contenedorbotones" v-if="bloqueCampos===false">
-                <button class="formularioAgregar--botones" @click="guardarFormulario">Guardar</button>
+                <button class="formularioAgregar--botones" @click="guardarFormulario"
+                >Guardar</button>
                 <button class="formularioAgregar--botones" @click="limpiarFormulario">Limpiar</button>
             </div>
             <div class="formularioAgregar--contenedorbotones" v-if="bloqueCampos===true">

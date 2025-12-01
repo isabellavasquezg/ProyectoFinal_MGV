@@ -99,6 +99,39 @@ class EquiposView(View): # Renombrado a EquiposView para claridad
         # Devolver la respuesta en formato JSON
         # safe=False si se devuelve un objeto que no es un diccionario (aquí no es necesario, pero es buena práctica si la lista 'data' fuera la respuesta principal)
         return JsonResponse({"result": data}, status=200)
+    def put_estado(self, request):
+        """
+        Actualiza el estado de uno o varios equipos a 0 (desactivado).
+        Espera un JSON con: {"ids": [1, 5, 8], "estado_equipo": 0}
+        """
+        try:
+            data = json.loads(request.body)
+            ids_a_actualizar = data.get('ids', [])
+            nuevo_estado = data.get('estado_equipo', 0) # Por defecto, 0 (desactivado)
+
+            if not ids_a_actualizar or not isinstance(ids_a_actualizar, list):
+                return JsonResponse({'error': 'Se requiere una lista de IDs de equipos para actualizar.'}, status=400)
+
+            if nuevo_estado not in [0, 1]:
+                 return JsonResponse({'error': 'Estado de equipo inválido. Debe ser 0 o 1.'}, status=400)
+
+            # 1. Ejecutar la actualización masiva
+            # Esto es más eficiente que hacer un bucle de Equipo.objects.get().save()
+            equipos_actualizados = Equipo.objects.filter(id__in=ids_a_actualizar)
+            conteo_actualizado = equipos_actualizados.update(estado_equipo=nuevo_estado)
+
+            if conteo_actualizado == 0:
+                return JsonResponse({'message': 'Ningún equipo encontrado con los IDs proporcionados. No se realizaron cambios.'}, status=200)
+
+            return JsonResponse({
+                'message': f'{conteo_actualizado} equipo(s) actualizados a estado {nuevo_estado} (Desactivado).',
+                'updated_count': conteo_actualizado
+            }, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Formato JSON inválido en el cuerpo de la solicitud'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
     def put(self, request, id_equipo=None):
         """
         """
@@ -246,6 +279,19 @@ class EquiposView(View): # Renombrado a EquiposView para claridad
             return JsonResponse({'error': f'Campo obligatorio faltante: {str(e)}'}, status=400)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
+        
+# views.py (Añade esta clase)
+class EstadoEquipoView(View):
+    """
+    Vista dedicada para la actualización masiva del estado de los equipos.
+    """
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def put(self, request):
+        # Llama a la lógica de actualización de estado ya existente en EquiposView
+        return EquiposView().put_estado(request)
 # ================================================
 # VISTA: RegistroHistorico (Adquisición, Proveedor)
 # ================================================
