@@ -198,20 +198,19 @@ export default {
 
         // --- MÉTODOS DE ACCIÓN (A SER REEMPLAZADOS POR EMITIR EVENTOS) ---
         /** @param {Object} equipo - Fila de datos del equipo. */
-        verEquipo(equipo) {
-            console.log('Ver equipo:', equipo.serie_equipo);
-            // En una aplicación real, se emitiría un evento: this.$emit('ver-equipo', equipo);
-        },
-        /** @param {Object} equipo - Fila de datos del equipo. */
         trasladarEquipo(equipo) {
             console.log('Trasladar equipo:', equipo.serie_equipo);
             // En una aplicación real, se emitiría un evento: this.$emit('trasladar-equipo', equipo);
         },
         /** @param {Object} equipo - Fila de datos del equipo. */
         editarEquipo(equipo) {
-            console.log('Editar equipo:', equipo.serie_equipo);
-            // En una aplicación real, se emitiría un evento: this.$emit('editar-equipo', equipo);
-        }
+            console.log('Editar equipo:', equipo.serie_equipo);
+            // MODIFICACIÓN CLAVE: Emitir el evento 'editar-equipo' con la serie y el modo edición.
+            this.$emit('editar-equipo', {
+                serie: equipo.serie_equipo,
+                modoEditar: true,
+            });
+        }
     },
 };
 </script>

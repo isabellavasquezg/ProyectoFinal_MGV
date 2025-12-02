@@ -133,89 +133,109 @@ class EquiposView(View): # Renombrado a EquiposView para claridad
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
     def put(self, request, id_equipo=None):
-        """
-        """
         if id_equipo is None:
             return JsonResponse({'error': 'Se requiere el ID del equipo para actualizar'}, status=400)
 
         try:
-            # 1. Obtener el equipo a actualizar por su ID
+            # 1. Obtener el equipo a actualizar por su ID y datos de la solicitud
             equipo = Equipo.objects.get(id=id_equipo)
             data = json.loads(request.body)
             
-            # Campos a validar y actualizar
+            # Campos a validar y actualizar (código y serie)
             codigo_inventario_nuevo = data.get('codigo_inventario')
             serie_equipo_nuevo = data.get('serie_equipo')
 
-            # 2. **Verificación de Unicidad**
-            # Buscamos otros equipos (excluyendo el actual) que ya tengan el nuevo código o serie.
-            
-            # Q1: ¿Existe otro equipo con el mismo codigo_inventario?
+            # 2. **Verificación de Unicidad** (Mantenemos esta lógica)
+            # Solo verificamos la unicidad si se proporciona un nuevo valor
             if codigo_inventario_nuevo:
                 if Equipo.objects.exclude(id=id_equipo).filter(codigo_inventario=codigo_inventario_nuevo).exists():
                     return JsonResponse({'error': 'Equipo ya existente: El código de inventario ya está en uso por otro equipo.'}, status=409)
 
-            # Q2: ¿Existe otro equipo con la misma serie_equipo?
             if serie_equipo_nuevo:
                 if Equipo.objects.exclude(id=id_equipo).filter(serie_equipo=serie_equipo_nuevo).exists():
                     return JsonResponse({'error': 'Equipo ya existente: El número de serie ya está en uso por otro equipo.'}, status=409)
             
             # 3. Actualizar los campos del equipo
             
-            # Ejemplo de actualización de campos. Debes listar todos los campos que pueden ser actualizados.
-            if 'sede' in data: 
-                equipo.sede = data['sede']
-            if 'servicio' in data: 
-                equipo.servicio = data['servicio']
-            if 'responsable_servicio' in data: 
-                equipo.responsable_servicio = data['responsable_servicio']
+            # Usamos una función para verificar si la clave existe y si el valor no es nulo/vacío
+            def should_update(key):
+                """Retorna True si la clave existe en data y su valor no es None ni cadena vacía."""
+                return key in data and data[key] is not None and data[key] != ''
                 
-            # 2. Actualizar los campos validados (codigo_inventario y serie_equipo)
-            if codigo_inventario_nuevo: 
-                equipo.codigo_inventario = codigo_inventario_nuevo
-            if serie_equipo_nuevo: 
-                equipo.serie_equipo = serie_equipo_nuevo
+            # Actualización de campos de relaciones (IDs)
+            if should_update('sede'):
+                try:
+                    # Busca y obtiene la INSTANCIA Sede usando el ID recibido
+                    sede_instance = Sede.objects.get(id=data['sede'])
+                    # Asigna la INSTANCIA al campo
+                    equipo.sede = sede_instance
+                except Sede.DoesNotExist:
+                    return JsonResponse({'error': f'Sede con ID {data["sede"]} no existe. No se puede actualizar.'}, status=400)
 
-            # 3. Actualizar Datos del Equipo (Equipo Base)
-            if 'nombre_equipo' in data: 
+            if should_update('servicio'):
+                try:
+                    # Busca y obtiene la INSTANCIA Servicio
+                    servicio_instance = Servicio.objects.get(id=data['servicio'])
+                    equipo.servicio = servicio_instance
+                except Servicio.DoesNotExist:
+                    return JsonResponse({'error': f'Servicio con ID {data["servicio"]} no existe. No se puede actualizar.'}, status=400)
+
+            if should_update('responsable_servicio'):
+                try:
+                    # Busca y obtiene la INSTANCIA Responsable
+                    responsable_instance = Responsable.objects.get(id=data['responsable_servicio'])
+                    equipo.responsable_servicio = responsable_instance
+                except Responsable.DoesNotExist:
+                    return JsonResponse({'error': f'Responsable con ID {data["responsable_servicio"]} no existe. No se puede actualizar.'}, status=400)
+                
+            # Actualizar los campos validados (codigo_inventario y serie_equipo)
+            # Nota: Usamos las variables _nuevo que ya fueron verificadas en la unicidad.
+            if should_update('codigo_inventario'): 
+                equipo.codigo_inventario = data['codigo_inventario']
+
+            if should_update('serie_equipo'): 
+                equipo.serie_equipo = data['serie_equipo']
+
+            # Actualizar Datos del Equipo (Equipo Base)
+            # Aplicamos should_update a todos los campos
+            if should_update('nombre_equipo'): 
                 equipo.nombre_equipo = data['nombre_equipo']
-            if 'marca_equipo' in data: 
+            if should_update('marca_equipo'): 
                 equipo.marca_equipo = data['marca_equipo']
-            if 'modelo_equipo' in data: 
+            if should_update('modelo_equipo'): 
                 equipo.modelo_equipo = data['modelo_equipo']
-            if 'estado_equipo' in data: 
+            if should_update('estado_equipo'): 
                 equipo.estado_equipo = data['estado_equipo']
-            if 'codigo_ips' in data: 
+            if should_update('codigo_ips'): 
                 equipo.codigo_ips = data['codigo_ips']
-            if 'codigo_ecri' in data: 
+            if should_update('codigo_ecri'): 
                 equipo.codigo_ecri = data['codigo_ecri']
-            if 'ubicacion_fisica' in data: 
+            if should_update('ubicacion_fisica'): 
                 equipo.ubicacion_fisica = data['ubicacion_fisica']
-            if 'clasificacion_misional' in data: 
+            if should_update('clasificacion_misional'): 
                 equipo.clasificacion_misional = data['clasificacion_misional']
-            if 'clasificacion_ips' in data: 
+            if should_update('clasificacion_ips'): 
                 equipo.clasificacion_ips = data['clasificacion_ips']
-            if 'clasificacion_riesgo' in data: 
+            if should_update('clasificacion_riesgo'): 
                 equipo.clasificacion_riesgo = data['clasificacion_riesgo']
-            if 'registro_invima' in data: 
+            if should_update('registro_invima'): 
                 equipo.registro_invima = data['registro_invima']
-            if 'descripcion_baja' in data: 
+            if should_update('descripcion_baja'): 
                 equipo.descripcion_baja = data['descripcion_baja']
-            if 'fecha_baja_equipo' in data: # Usar el nombre del campo del modelo (e.fecha_baja_equipo)
+            if should_update('fecha_baja_equipo'): 
                 equipo.fecha_baja_equipo = data['fecha_baja_equipo']
             
             equipo.save()
 
             return JsonResponse({'message': f'Equipo con ID {id_equipo} actualizado exitosamente'}, status=200)
 
+        # ... (Manejo de excepciones: DoesNotExist, JSONDecodeError, Exception)
         except Equipo.DoesNotExist:
             return JsonResponse({'error': f'Equipo con ID {id_equipo} no encontrado'}, status=404)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Formato JSON inválido en el cuerpo de la solicitud'}, status=400)
         except Exception as e:
-            # Capturar otros errores como problemas de base de datos o campos faltantes/inválidos
             return JsonResponse({'error': str(e)}, status=500)
-
     # ---------------------------------------------------------------------
     # --- Nuevo Método POST: Crear Equipo con Verificación de Unicidad ---
     # ---------------------------------------------------------------------
@@ -382,7 +402,7 @@ class RegistroHistoricoView(View):
         return JsonResponse({"result": data}, status=200)
     def put(self, request, id_historico=None):
         """
-        Actualiza un registro histórico existente.
+        Actualiza un registro histórico existente, ignorando campos con valores nulos o vacíos.
         Requiere el ID del registro en la URL.
         """
         if id_historico is None:
@@ -392,19 +412,50 @@ class RegistroHistoricoView(View):
             registro = RegistroHistorico.objects.get(id=id_historico)
             data = json.loads(request.body)
             
-            # 2. Actualizar Campos Propios
-            if 'tiempo_vida_util' in data: registro.tiempo_vida_util = data['tiempo_vida_util']
-            if 'fecha_adquisicion' in data: registro.fecha_adquisicion = data['fecha_adquisicion'] 
-            if 'propietario' in data: registro.propietario = data['propietario']
-            if 'fecha_fabricacion' in data: registro.fecha_fabricacion = data['fecha_fabricacion']
-            if 'nit' in data: registro.nit = data['nit']
-            if 'proveedor' in data: registro.proveedor = data['proveedor']
-            if 'en_garantia' in data: registro.en_garantia = data['en_garantia'] 
-            if 'fecha_fin_garantia' in data: registro.fecha_fin_garantia = data['fecha_fin_garantia']
-            if 'forma_adquisicion' in data: registro.forma_adquisicion = data['forma_adquisicion']
-            if 'tipo_documento' in data: registro.tipo_documento = data['tipo_documento']
-            if 'numero_documento' in data: registro.numero_documento = data['numero_documento']
+            # 1. Función de verificación de actualización
+            def should_update(key):
+                """Retorna True si la clave existe en data y su valor no es None ni cadena vacía."""
+                return key in data and data[key] is not None and data[key] != ''
             
+            # 2. Actualizar Campos Propios (Solo si tienen valor válido)
+            
+            if should_update('tiempo_vida_util'):
+                registro.tiempo_vida_util = data['tiempo_vida_util']
+                
+            if should_update('fecha_adquisicion'):
+                registro.fecha_adquisicion = data['fecha_adquisicion'] 
+                
+            if should_update('propietario'):
+                registro.propietario = data['propietario']
+                
+            if should_update('fecha_fabricacion'):
+                registro.fecha_fabricacion = data['fecha_fabricacion']
+                
+            if should_update('nit'):
+                registro.nit = data['nit']
+                
+            if should_update('proveedor'):
+                registro.proveedor = data['proveedor']
+                
+            # Nota: El campo 'en_garantia' es un booleano (True/False). 
+            # Si se envía explícitamente como True o False, se debe actualizar.
+            # Aquí, solo verificamos que la clave esté en data, asumiendo que el frontend lo maneja.
+            if 'en_garantia' in data: 
+                registro.en_garantia = data['en_garantia'] 
+                
+            if should_update('fecha_fin_garantia'):
+                registro.fecha_fin_garantia = data['fecha_fin_garantia']
+                
+            if should_update('forma_adquisicion'):
+                registro.forma_adquisicion = data['forma_adquisicion']
+                
+            if should_update('tipo_documento'):
+                registro.tipo_documento = data['tipo_documento']
+                
+            if should_update('numero_documento'):
+                registro.numero_documento = data['numero_documento']
+            
+            # 3. Guardar cambios
             registro.save()
 
             return JsonResponse({'message': f'Registro Histórico con ID {id_historico} actualizado exitosamente'}, status=200)
@@ -567,7 +618,6 @@ class MetrologiaAdminView(View):
 
     # ---------------------- ACTUALIZAR ----------------------
     def put(self, request, id_admin=None):
-
         if id_admin is None:
             return JsonResponse({'error': 'Se requiere ID para actualizar'}, status=400)
 
@@ -575,20 +625,41 @@ class MetrologiaAdminView(View):
             registro = MetrologiaAdmin.objects.get(id=id_admin)
             data = json.loads(request.body)
 
-            # Campos editables
-            if "mantenimiento" in data: registro.mantenimiento = data["mantenimiento"]
-            if "tipo_mantenimiento" in data: registro.tipo_mantenimiento = data["tipo_mantenimiento"]
-            if "frecuencia_mantenimiento" in data: registro.frecuencia_mantenimiento = data["frecuencia_mantenimiento"]
-            if "calibracion" in data: registro.calibracion = data["calibracion"]
-            if "tipo_calibracion" in data: registro.tipo_calibracion = data["tipo_calibracion"]
-            if "frecuencia_calibracion" in data: registro.frecuencia_calibracion = data["frecuencia_calibracion"]
+            # Función de verificación de actualización para ignorar None y cadenas vacías
+            def should_update(key):
+                """Retorna True si la clave existe en data y su valor no es None ni cadena vacía."""
+                return key in data and data[key] is not None and data[key] != ''
+
+            # 🚨 Actualización de Campos (Ignorando Nulos/Vacíos) 🚨
+            
+            # Campos Booleanos: Solo verificamos existencia (asumiendo True/False se actualiza)
+            if "mantenimiento" in data: 
+                registro.mantenimiento = data["mantenimiento"]
+                
+            if "calibracion" in data: 
+                registro.calibracion = data["calibracion"]
+
+            # Campos de Texto/Numéricos: Usamos should_update
+            if should_update("tipo_mantenimiento"): 
+                registro.tipo_mantenimiento = data["tipo_mantenimiento"]
+                
+            if should_update("frecuencia_mantenimiento"): 
+                registro.frecuencia_mantenimiento = data["frecuencia_mantenimiento"]
+                
+            if should_update("tipo_calibracion"): 
+                registro.tipo_calibracion = data["tipo_calibracion"]
+                
+            if should_update("frecuencia_calibracion"): 
+                registro.frecuencia_calibracion = data["frecuencia_calibracion"]
 
             registro.save()
+            
             return JsonResponse({'message': f'Metrología Administrativa {id_admin} actualizada'}, status=200)
 
         except MetrologiaAdmin.DoesNotExist:
             return JsonResponse({'error': 'No existe el registro'}, status=404)
         except Exception as e:
+            # Captura errores de JSONDecodeError y otros
             return JsonResponse({'error': str(e)}, status=500)
 
 # ================================================
@@ -701,7 +772,6 @@ class MetrologiaTecnicaView(View):
 
     # ---------------------- ACTUALIZAR ----------------------
     def put(self, request, id_tecnica=None):
-
         if id_tecnica is None:
             return JsonResponse({'error': 'Se requiere ID para actualizar'}, status=400)
 
@@ -709,18 +779,36 @@ class MetrologiaTecnicaView(View):
             registro = MetrologiaTecnica.objects.get(id=id_tecnica)
             data = json.loads(request.body)
 
-            if "magnitud" in data: registro.magnitud = data["magnitud"]
-            if "rango_equipo" in data: registro.rango_equipo = data["rango_equipo"]
-            if "resolucion" in data: registro.resolucion = data["resolucion"]
-            if "rango_trabajo" in data: registro.rango_trabajo = data["rango_trabajo"]
-            if "error_maximo" in data: registro.error_maximo = data["error_maximo"]
+            # Función de verificación de actualización para ignorar None y cadenas vacías
+            def should_update(key):
+                """Retorna True si la clave existe en data y su valor no es None ni cadena vacía."""
+                return key in data and data[key] is not None and data[key] != ''
+
+            # 🚨 Actualización de Campos (Ignorando Nulos/Vacíos) 🚨
+            
+            if should_update("magnitud"): 
+                registro.magnitud = data["magnitud"]
+                
+            if should_update("rango_equipo"): 
+                registro.rango_equipo = data["rango_equipo"]
+                
+            if should_update("resolucion"): 
+                registro.resolucion = data["resolucion"]
+                
+            if should_update("rango_trabajo"): 
+                registro.rango_trabajo = data["rango_trabajo"]
+                
+            if should_update("error_maximo"): 
+                registro.error_maximo = data["error_maximo"]
 
             registro.save()
+            
             return JsonResponse({'message': f'Metrología Técnica {id_tecnica} actualizada'}, status=200)
 
         except MetrologiaTecnica.DoesNotExist:
             return JsonResponse({'error': 'Registro no encontrado'}, status=404)
         except Exception as e:
+            # Captura errores de JSONDecodeError y otros
             return JsonResponse({'error': str(e)}, status=500)
 
 # ================================================
@@ -839,7 +927,6 @@ class DocumentoEquipoView(View): # Renombrado a DocumentoEquipoView
 
     # ---------------------- ACTUALIZAR ----------------------
     def put(self, request, id_doc=None):
-
         if id_doc is None:
             return JsonResponse({'error': 'Se requiere ID para actualizar'}, status=400)
 
@@ -847,15 +934,38 @@ class DocumentoEquipoView(View): # Renombrado a DocumentoEquipoView
             doc = DocumentoEquipo.objects.get(id=id_doc)
             data = json.loads(request.body)
 
-            for campo in [
+            # Función de verificación de actualización para ignorar None y cadenas vacías
+            def should_update(key):
+                """Retorna True si la clave existe en data y su valor no es None ni cadena vacía."""
+                return key in data and data[key] is not None and data[key] != ''
+            
+            # Lista de campos booleanos (de estado, que deben actualizarse aunque sean False)
+            boolean_fields = [
                 "hoja_vida", "registro_importacion", "manual_operacion",
                 "manual_mantenimiento", "guia_rapida", "instructivo_manejo",
-                "protocolo_mantenimiento", "frecuencia_metrologica"
-            ]:
+                "protocolo_mantenimiento"
+            ]
+
+            # Lista de campos de texto/numéricos (que deben ignorar None/vacío)
+            value_fields = [
+                "frecuencia_metrologica"
+            ]
+
+            # 🚨 Actualización de Campos (Lógica de Actualización Parcial) 🚨
+            
+            # 1. Campos Booleanos (Se actualizan si la clave está presente)
+            for campo in boolean_fields:
                 if campo in data:
+                    # Asignamos directamente, ya que True/False es un valor válido
+                    setattr(doc, campo, data[campo])
+
+            # 2. Campos de Texto/Numéricos (Se actualizan solo si tienen un valor válido)
+            for campo in value_fields:
+                if should_update(campo):
                     setattr(doc, campo, data[campo])
 
             doc.save()
+            
             return JsonResponse({'message': f'Documento {id_doc} actualizado'}, status=200)
 
         except DocumentoEquipo.DoesNotExist:
@@ -964,7 +1074,7 @@ class CondicionesFuncionamientoView(View): # Renombrado a CondicionesFuncionamie
                 temperatura=data.get("temperatura"),
                 dimensiones=data.get("dimensiones"),
                 peso=data.get("peso"),
-                otros=data.get("otros_requerimientos"),
+                otros=data.get("otros"),
             )
 
             return JsonResponse({'message': 'Condiciones creadas'}, status=201)
@@ -974,7 +1084,6 @@ class CondicionesFuncionamientoView(View): # Renombrado a CondicionesFuncionamie
 
     # ---------------------- ACTUALIZAR ----------------------
     def put(self, request, id_cond=None):
-
         if id_cond is None:
             return JsonResponse({'error': 'Se requiere ID para actualizar'}, status=400)
 
@@ -982,19 +1091,29 @@ class CondicionesFuncionamientoView(View): # Renombrado a CondicionesFuncionamie
             con = CondicionesFuncionamiento.objects.get(id=id_cond)
             data = json.loads(request.body)
 
+            # Función de verificación de actualización para ignorar None y cadenas vacías
+            def should_update(key):
+                """Retorna True si la clave existe en data y su valor no es None ni cadena vacía."""
+                return key in data and data[key] is not None and data[key] != ''
+
+            # 🚨 Actualización de Campos (Ignorando Nulos/Vacíos) 🚨
+            
             for campo in [
                 "voltaje", "corriente", "humedad",
-                "temperatura", "dimensiones", "peso", "otros"
+                "temperatura", "dimensiones", "peso", "otros" # Asumo que "otros" es "otros_requerimientos" en el modelo
             ]:
-                if campo in data:
+                # Cambiamos la verificación: Usamos should_update en lugar de solo 'campo in data'
+                if should_update(campo):
                     setattr(con, campo, data[campo])
 
             con.save()
+            
             return JsonResponse({'message': f'Condición {id_cond} actualizada'}, status=200)
 
         except CondicionesFuncionamiento.DoesNotExist:
             return JsonResponse({'error': 'Registro no encontrado'}, status=404)
         except Exception as e:
+            # Captura errores de JSONDecodeError y otros
             return JsonResponse({'error': str(e)}, status=500)
 class ResponsablesView(View): 
     @method_decorator(csrf_exempt)

@@ -20,6 +20,8 @@ export default {
     data() {
         return {
             // Estado de la UI
+            modoEdicion: false,         // Bandera para indicar si está en modo edición
+            serieEquipoAEditar: null,
             equiposParaDesactivar: [],
             seccion: "General",         // Sección activa (ej. 'General', 'Registro')
             cargando: false,            // Indica si una operación de red está en curso
@@ -51,7 +53,22 @@ export default {
         };
     },
     methods: {
-        
+        manejarEdicion(payload) {
+            this.serieEquipoAEditar = payload.serie;
+            this.modoEdicion = payload.modoEditar;
+            
+            // Oculta el formulario de agregar si estaba visible y muestra el formulario de edición
+            this.estadoAgregar = true; 
+            
+            // Llama a compararSeries/cargarSelectoresGeneral para precargar el formulario 
+            // en modo edición, usando la nueva serie.
+            this.cargando = true;
+            this.compararSeries().finally(() => {
+                this.cargando = false;
+            });
+            
+            console.log(`Modo Edición Activado para Serie: ${this.serieEquipoAEditar}`);
+        },
         // Se movió la lógica de mounted a methods para mantener la estructura de la aplicación.
         mounted() {
             // Carga inicial de la tabla al montar el componente
@@ -186,7 +203,7 @@ export default {
          */
         async compararSeries() {
             // Solo se ejecuta si estamos agregando y la sección no es 'General'
-            if (this.seccion === "General") {
+            if (this.seccion === "General" || this.modoEdicion ) {
                 // 1. Carga de Selectores: espera a que los datos estén disponibles
                 await this.cargarSelectoresGeneral();
                 // 2. El formulario NUNCA debe bloquearse en General (primer fix)
@@ -274,7 +291,7 @@ export default {
          */
         async manejarGuardado(datosFormulario) {
             let datosFinales = null;
-
+            console.log(this.modoEdicion)
             // 1. Convertir los datos del formulario a la estructura de la API
             // ... (La lógica de mapeo es correcta)
 
@@ -282,10 +299,11 @@ export default {
             // Asumo que tu lógica de mapeo anterior (desde línea 305) se mantiene sin cambios.
             
             if (this.seccion === "General") {
-                const [sedes, responsables, servicios] = await Promise.all([
+                const [sedes, responsables, servicios,general] = await Promise.all([
                     this.obtenerDatos("Sedes"),
                     this.obtenerDatos("Responsables"),
-                    this.obtenerDatos("Servicios")
+                    this.obtenerDatos("Servicios"),
+                    this.obtenerDatos("General")
                 ]);
                 
                 const buscarId = (lista, nombreKey, valor) => {
@@ -293,6 +311,7 @@ export default {
                 };
 
                 datosFinales = {
+                    equipo_id: buscarId(general,'serie_equipo',this.serieEquipoAEditar),
                     sede: buscarId(sedes, 'nombre_sede', datosFormulario.sede),
                     servicio: buscarId(servicios, 'nombre_servicio', datosFormulario.servicio),
                     responsable_servicio: buscarId(responsables, 'nombre_responsable', datosFormulario.responsable),
@@ -310,6 +329,7 @@ export default {
                     registro_invima: datosFormulario.registroInvima,
                     estado_equipo: 1 
                 };
+                console.log(datosFinales.equipo_id)
             } else {
                 const equiposGeneral = await this.obtenerDatos("General");
                 const equipoObj = equiposGeneral.find(
@@ -370,7 +390,7 @@ export default {
                         temperatura: datosFormulario.temperatura|| null,
                         dimensiones: datosFormulario.dimensiones|| null,
                         peso: datosFormulario.peso|| null,
-                        otros_requerimientos:datosFormulario.otros|| null,
+                        otros:datosFormulario.otros|| null,
                     },
                 };
                 datosFinales = mapeoSubSecciones[this.seccion];
@@ -385,21 +405,41 @@ export default {
             }
 
             try {
-                const urlPost = `http://127.0.0.1:8000/api/${this.seccion}/`; 
-                const respuesta = await axios.post(urlPost, datosFinales);
-
-                console.log("📌 Registro guardado:", respuesta.data);
-                alert("Equipo registrado correctamente");
+                const urlBase = `http://127.0.0.1:8000/api/${this.seccion}/`;
+                let respuesta;
+                let mensajeExito;
+                
+                // === LÓGICA CONDICIONAL DE CREACIÓN/ACTUALIZACIÓN ===
+                if (this.modoEdicion) {
+                    // 🚨 MODO EDICIÓN (PUT)
+                    // NOTA: Si tu API requiere la serie en la URL (ej. .../api/Seccion/SERIE_X/), 
+                    // deberás modificar 'urlBase' para incluir 'this.serieEquipoAEditar'.
+                    const urlEdicion = `${urlBase}${this.serieEquipoAEditar ? datosFinales.equipo_id + '/' : ''}`;
+                    this.serieEquipoAEditar=null;
+                    respuesta = await axios.put(urlEdicion, datosFinales);
+                    mensajeExito = "Equipo actualizado correctamente";
+                    
+                } else {
+                    // ✅ MODO CREACIÓN (POST)
+                    respuesta = await axios.post(urlBase, datosFinales);
+                    mensajeExito = "Equipo registrado correctamente";
+                }
+                
+                console.log("📌 Operación exitosa:", respuesta.data);
+                alert(mensajeExito);
+                
             } catch (error) {
-                console.error("❌ Error al guardar:", error.response?.data || error);
-                alert("Hubo un error al guardar. Revisa la consola.");
+                const accion = this.modoEdicion ? "actualizar" : "guardar";
+                console.error(`❌ Error al ${accion}:`, error.response?.data || error);
+                alert(`Hubo un error al intentar ${accion}. Revisa la consola.`);
             }
 
-            // 4. Acciones post-guardado
+            // 4. Acciones post-guardado/actualización
             await this.listarEquipos();  
+            
+            // Llama a toggleAgregar para cerrar el formulario y resetear estados (incluyendo modoEdicion)
             this.toggleAgregar();  
         },
-
         /** Alterna la visibilidad del formulario de agregar/cancelar */
         toggleAgregar() {
             // 1. Si se va a abrir el formulario
@@ -416,6 +456,7 @@ export default {
             } else {
                 // 2. Si se va a cerrar (Cancelar), no necesitamos esperar nada.
                 this.estadoAgregar = false;
+                this.modoEdicion=false
             }
         },
         
@@ -537,6 +578,7 @@ export default {
                     :seccion="seccion" 
                     :filas="filas" 
                     @seleccionados-actualizados="actualizarSeleccionados"
+                    @editar-equipo="manejarEdicion"
                 />    
                 
                 <FormulariosEquipos
@@ -547,6 +589,8 @@ export default {
                     :seriesInesistentes="seriesFaltantes"
                     :bloqueCampos="debeBloquearCampos"
                     :seccion="seccion"
+                    :modoEdicion="modoEdicion"
+                    :serieEditar="serieEquipoAEditar"
                     @actualizar-sede="sedeSeleccionada = $event"
                     @guardar-formulario="manejarGuardado"
                 />

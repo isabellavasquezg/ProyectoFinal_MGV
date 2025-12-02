@@ -1,9 +1,18 @@
 <script>
+    import axios from "axios";
     export default {
     name: "TablasEquipos",
 
     // Recibe la sección activa y las filas de datos desde el padre
     props: {
+        modoEdicion: {
+            type: Boolean,
+            default: false
+        },
+        serieEditar: {
+            type: String, 
+            default: null
+        },
         // Recibe la sección actual para determinar los placeholders dinámicos
         seccion: {
             type: String,
@@ -33,6 +42,7 @@
             type: Array,
             required: true
         }
+        
     },
     data() {
         return {
@@ -294,7 +304,7 @@
                 <div class="formularioAgregar--columnas">
                     <div class="formularioAgregar--input-wrapper" style="z-index: 1;">
                         <div class="autocomplete-container">
-                            <input
+                            <input v-if="modoEdicion===false"
                                 ref="serie"
                                 class="formularioAgregar--inputs"
                                 placeholder="Número de Serie"
@@ -303,7 +313,14 @@
                                 @blur="validarEntrada"
                                 @focus="cerrarTodasLasListas(); mostrarLista = true"
                             >
-                            <ul v-if="mostrarLista && seriesFiltradas.length > 0" class="autocomplete-list">
+                            <input v-if="modoEdicion===true"
+                                ref="serie"
+                                class="formularioAgregar--inputs"
+                                placeholder="Número de Serie"
+                                :value="serieEditar"
+                                readonly>
+                            </input>
+                            <ul v-if="mostrarLista && seriesFiltradas.length > 0 && modoEdicion===false" class="autocomplete-list">
                                 <li 
                                     v-for="(serie, index) in seriesFiltradas"
                                     :key="index"
@@ -356,7 +373,7 @@
                 <div class="formularioAgregar--columnas">
                     <div class="formularioAgregar--input-wrapper" style="z-index: 1;">
                         <div class="autocomplete-container">
-                            <input
+                            <input v-if="modoEdicion===false"
                                 ref="serie"
                                 class="formularioAgregar--inputs"
                                 placeholder="Número de Serie"
@@ -365,7 +382,14 @@
                                 @blur="validarEntrada"
                                 @focus="cerrarTodasLasListas(); mostrarLista = true"
                             >
-                            <ul v-if="mostrarLista && seriesFiltradas.length > 0" class="autocomplete-list" >
+                            <input v-if="modoEdicion===true"
+                                ref="serie"
+                                class="formularioAgregar--inputs"
+                                placeholder="Número de Serie"
+                                :value="serieEditar"
+                                readonly>
+                            </input>
+                            <ul v-if="mostrarLista && seriesFiltradas.length > 0 && modoEdicion===false"" class="autocomplete-list" >
                                 <li 
                                     v-for="(serie, index) in seriesFiltradas"
                                     :key="index"
@@ -413,7 +437,7 @@
                 <div class="formularioAgregar--columnas">
                     <div class="formularioAgregar--input-wrapper" style="z-index: 1;">
                         <div class="autocomplete-container">
-                            <input
+                            <input v-if="modoEdicion===false"
                                 ref="serie"
                                 class="formularioAgregar--inputs"
                                 placeholder="Número de Serie"
@@ -422,7 +446,14 @@
                                 @blur="validarEntrada"
                                 @focus="cerrarTodasLasListas(); mostrarLista = true"
                             >
-                            <ul v-if="mostrarLista && seriesFiltradas.length > 0" class="autocomplete-list">
+                            <input v-if="modoEdicion===true"
+                                ref="serie"
+                                class="formularioAgregar--inputs"
+                                placeholder="Número de Serie"
+                                :value="serieEditar"
+                                readonly>
+                            </input>
+                            <ul v-if="mostrarLista && seriesFiltradas.length > 0 && modoEdicion===false"" class="autocomplete-list" >
                                 <li 
                                     v-for="(serie, index) in seriesFiltradas"
                                     :key="index"
@@ -456,16 +487,23 @@
                 <div class="formularioAgregar--columnas">
                     <div class="formularioAgregar--input-wrapper" style="z-index: 1;">
                         <div class="autocomplete-container">
-                            <input
+                            <input v-if="modoEdicion===false"
                                 ref="serie"
                                 class="formularioAgregar--inputs"
                                 placeholder="Número de Serie"
                                 :disabled="bloqueCampos"
                                 v-model="textoBusqueda"
                                 @blur="validarEntrada"
-                                @focus="cerrarTodasLasListas();mostrarLista = true"
+                                @focus="cerrarTodasLasListas(); mostrarLista = true"
                             >
-                            <ul v-if="mostrarLista && seriesFiltradas.length > 0" class="autocomplete-list">
+                            <input v-if="modoEdicion===true"
+                                ref="serie"
+                                class="formularioAgregar--inputs"
+                                placeholder="Número de Serie"
+                                :value="serieEditar"
+                                readonly>
+                            </input>
+                            <ul v-if="mostrarLista && seriesFiltradas.length > 0 && modoEdicion===false"" class="autocomplete-list" >
                                 <li 
                                     v-for="(serie, index) in seriesFiltradas"
                                     :key="index"
@@ -539,7 +577,7 @@
                 <div class="formularioAgregar--columnas">
                     <div class="formularioAgregar--input-wrapper" style="z-index: 1;">
                         <div class="autocomplete-container">
-                            <input
+                            <input v-if="modoEdicion===false"
                                 ref="serie"
                                 class="formularioAgregar--inputs"
                                 placeholder="Número de Serie"
@@ -548,7 +586,14 @@
                                 @blur="validarEntrada"
                                 @focus="cerrarTodasLasListas(); mostrarLista = true"
                             >
-                            <ul v-if="mostrarLista && seriesFiltradas.length > 0" class="autocomplete-list">
+                            <input v-if="modoEdicion===true"
+                                ref="serie"
+                                class="formularioAgregar--inputs"
+                                placeholder="Número de Serie"
+                                :value="serieEditar"
+                                readonly>
+                            </input>
+                            <ul v-if="mostrarLista && seriesFiltradas.length > 0 && modoEdicion===false"" class="autocomplete-list" >
                                 <li 
                                     v-for="(serie, index) in seriesFiltradas"
                                     :key="index"
