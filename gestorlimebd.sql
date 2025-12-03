@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 03-12-2025 a las 13:47:51
+-- Tiempo de generación: 03-12-2025 a las 17:00:00
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -242,18 +242,26 @@ CREATE TABLE `api_usuario` (
   `id` bigint(20) NOT NULL,
   `nombreusuario` varchar(100) NOT NULL,
   `contraseña` varchar(255) NOT NULL,
-  `rol` varchar(10) NOT NULL,
+  `rol` varchar(15) NOT NULL,
   `activo` tinyint(1) NOT NULL,
-  `fecha_creacion` date NOT NULL
+  `fecha_creacion` date NOT NULL,
+  `cargo` varchar(100) DEFAULT NULL,
+  `creado_por` varchar(100) DEFAULT NULL,
+  `departamento` varchar(100) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `fecha_ultima_modificacion` datetime(6) NOT NULL,
+  `nombre_completo` varchar(255) DEFAULT NULL,
+  `telefono` varchar(20) DEFAULT NULL,
+  `ultimo_acceso` datetime(6) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `api_usuario`
 --
 
-INSERT INTO `api_usuario` (`id`, `nombreusuario`, `contraseña`, `rol`, `activo`, `fecha_creacion`) VALUES
-(1, 'admin', '12345', 'admin', 1, '2025-11-30'),
-(2, 'viewer', '12345', 'viewer', 1, '2025-11-30');
+INSERT INTO `api_usuario` (`id`, `nombreusuario`, `contraseña`, `rol`, `activo`, `fecha_creacion`, `cargo`, `creado_por`, `departamento`, `email`, `fecha_ultima_modificacion`, `nombre_completo`, `telefono`, `ultimo_acceso`) VALUES
+(1, 'admin', 'pbkdf2_sha256$600000$BRnZhTJH1JofsIbxZieY1W$dSBqPtLCOjm2PjznC//tcnxtmJskOyJaqFQRwWvo7U4=', 'admin', 1, '2025-11-30', NULL, NULL, NULL, NULL, '2025-12-03 15:50:30.827242', NULL, NULL, '2025-12-03 15:50:30.826966'),
+(3, 'test', 'pbkdf2_sha256$600000$DKuitPdt98Y7ijYuGK8XAO$S9D3WFNNJ7c1pYmVjU9IfiZZL18LeRfldED75lyRwv4=', 'editor', 1, '2025-12-03', NULL, 'Sistema', NULL, 'test@lime.udea.edu.co', '2025-12-03 15:54:04.130854', 'Usuario de Prueba', NULL, '2025-12-03 15:53:10.928665');
 
 -- --------------------------------------------------------
 
@@ -502,7 +510,8 @@ INSERT INTO `django_migrations` (`id`, `app`, `name`, `applied`) VALUES
 (51, 'api', '0019_usuario_alter_equipo_clasificacion_misional_and_more', '2025-11-30 13:57:06.153082'),
 (52, 'api', '0020_alter_usuario_fecha_creacion', '2025-11-30 13:59:58.250802'),
 (53, 'api', '0002_auto_20251202_2323', '2025-12-03 04:23:42.355590'),
-(54, 'api', '0003_add_missing_traslado_fields', '2025-12-03 04:27:13.292753');
+(54, 'api', '0003_add_missing_traslado_fields', '2025-12-03 04:27:13.292753'),
+(55, 'api', '0004_alter_usuario_options_usuario_cargo_and_more', '2025-12-03 15:32:16.985724');
 
 -- --------------------------------------------------------
 
@@ -561,7 +570,8 @@ ALTER TABLE `api_trasladoequipo`
 --
 ALTER TABLE `api_usuario`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `nombreusuario` (`nombreusuario`);
+  ADD UNIQUE KEY `nombreusuario` (`nombreusuario`),
+  ADD UNIQUE KEY `email` (`email`);
 
 --
 -- Indices de la tabla `auth_group`
@@ -668,7 +678,7 @@ ALTER TABLE `api_trasladoequipo`
 -- AUTO_INCREMENT de la tabla `api_usuario`
 --
 ALTER TABLE `api_usuario`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `auth_group`
@@ -722,7 +732,7 @@ ALTER TABLE `django_content_type`
 -- AUTO_INCREMENT de la tabla `django_migrations`
 --
 ALTER TABLE `django_migrations`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- Restricciones para tablas volcadas
