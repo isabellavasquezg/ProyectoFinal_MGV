@@ -7,21 +7,340 @@ from django import forms
 from django.utils import timezone
 from datetime import date
 from .models import Usuario, Equipo, DesactivacionEquipo, EdicionEquipo, TrasladoEquipo
-from .forms import EquipoForm, TrasladoForm
+from .forms import EquipoForm, TrasladoForm, UsuarioForm, CambioPasswordForm
+
+# ==================== VISTAS DE USUARIOS ====================
+
+def usuarios_lista(request):
+    """Vista para listar todos los usuarios"""
+    if 'user_id' not in request.session:
+        return redirect('login')
+    
+    # Solo admins pueden ver lista de usuarios
+    if request.session.get('rol') != 'admin':
+        messages.error(request, 'No tienes permisos para acceder a esta sección.')
+        return redirect('dashboard')
+    
+    # Filtros
+    rol_filter = request.GET.get('rol', '')
+    activo_filter = request.GET.get('activo', '')
+    search = request.GET.get('search', '')
+    
+    usuarios = Usuario.objects.all()
+    
+    if rol_filter:
+        usuarios = usuarios.filter(rol=rol_filter)
+    if activo_filter:
+        usuarios = usuarios.filter(activo=activo_filter == 'true')
+    if search:
+        usuarios = usuarios.filter(
+            Q(nombreusuario__icontains=search) |
+            Q(nombre_completo__icontains=search) |
+            Q(email__icontains=search)
+        )
+    
+    usuarios = usuarios.order_by('nombreusuario')
+    
+    context = {
+        'user': {
+            'username': request.session.get('username'),
+            'rol': request.session.get('rol')
+        },
+        'usuarios': usuarios,
+        'filtros': {
+            'roles': Usuario._meta.get_field('rol').choices,
+            'rol_actual': rol_filter,
+            'activo_actual': activo_filter,
+            'search_actual': search,
+        },
+        'total_usuarios': usuarios.count()
+    }
+    
+    return render(request, 'usuarios_lista.html', context)
+
+def crear_usuario(request):
+    """Vista para crear nuevo usuario"""
+    if 'user_id' not in request.session:
+        return redirect('login')
+    
+    if request.session.get('rol') != 'admin':
+        messages.error(request, 'No tienes permisos para crear usuarios.')
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        form = UsuarioForm(request.POST, is_edit=False)
+        if form.is_valid():
+            usuario = form.save(commit=False)
+            usuario.creado_por = request.session.get('username')
+            usuario.save()
+            messages.success(request, f'Usuario "{usuario.nombreusuario}" creado exitosamente.')
+            return redirect('usuarios_lista')
+        else:
+            # Mostrar errores específicos
+            for field, errors in form.errors.items():
+                for error in errors:
+                    if field == '__all__':
+                        messages.error(request, f'Error: {error}')
+                    else:
+                        field_name = form.fields[field].label if field in form.fields else field
+                        messages.error(request, f'{field_name}: {error}')
+    else:
+        form = UsuarioForm(is_edit=False)
+    
+    context = {
+        'user': {
+            'username': request.session.get('username'),
+            'rol': request.session.get('rol')
+        },
+        'form': form,
+        'titulo': 'Crear Usuario',
+        'boton_texto': 'Crear Usuario'
+    }
+    
+    return render(request, 'crear_editar_usuario.html', context)
+
+def editar_usuario(request, usuario_id):
+    """Vista para editar usuario existente"""
+    if 'user_id' not in request.session:
+        return redirect('login')
+    
+    current_user_role = request.session.get('rol')
+    current_username = request.session.get('username')
+    
+    try:
+        usuario = Usuario.objects.get(id=usuario_id)
+    except Usuario.DoesNotExist:
+        messages.error(request, 'El usuario no existe.')
+        return redirect('usuarios_lista')
+    
+    # Verificar permisos: admins pueden editar cualquier usuario, otros solo a sí mismos
+    if current_user_role != 'admin' and usuario.nombreusuario != current_username:
+        messages.error(request, 'No tienes permisos para editar este usuario.')
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        form = UsuarioForm(request.POST, instance=usuario, is_edit=True)
+        
+        # Si no es admin, no puede cambiar ciertos campos
+        if current_user_role != 'admin':
+            # Mantener valores originales para campos restringidos
+            form.fields['rol'].disabled = True
+            form.fields['activo'].disabled = True
+        
+        if form.is_valid():
+            usuario_editado = form.save()
+            messages.success(request, f'Usuario "{usuario_editado.nombreusuario}" actualizado exitosamente.')
+            
+            if current_user_role == 'admin':
+                return redirect('usuarios_lista')
+            else:
+                return redirect('dashboard')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    if field == '__all__':
+                        messages.error(request, f'Error: {error}')
+                    else:
+                        field_name = form.fields[field].label if field in form.fields else field
+                        messages.error(request, f'{field_name}: {error}')
+    else:
+        form = UsuarioForm(instance=usuario, is_edit=True)
+        
+        if current_user_role != 'admin':
+            form.fields['rol'].disabled = True
+            form.fields['activo'].disabled = True
+    
+    context = {
+        'user': {
+            'username': current_username,
+            'rol': current_user_role
+        },
+        'form': form,
+        'usuario_editado': usuario,
+        'titulo': f'Editar Usuario: {usuario.nombreusuario}',
+        'boton_texto': 'Actualizar Usuario',
+        'es_edicion_propia': usuario.nombreusuario == current_username
+    }
+    
+    return render(request, 'crear_editar_usuario.html', context)
+
+def detalle_usuario(request, usuario_id):
+    """Vista para ver detalles de un usuario"""
+    if 'user_id' not in request.session:
+        return redirect('login')
+    
+    current_user_role = request.session.get('rol')
+    current_username = request.session.get('username')
+    
+    try:
+        usuario = Usuario.objects.get(id=usuario_id)
+    except Usuario.DoesNotExist:
+        messages.error(request, 'El usuario no existe.')
+        return redirect('usuarios_lista' if current_user_role == 'admin' else 'dashboard')
+    
+    # Verificar permisos
+    if current_user_role != 'admin' and usuario.nombreusuario != current_username:
+        messages.error(request, 'No tienes permisos para ver este usuario.')
+        return redirect('dashboard')
+    
+    context = {
+        'user': {
+            'username': current_username,
+            'rol': current_user_role
+        },
+        'usuario_detalle': usuario,
+        'es_usuario_propio': usuario.nombreusuario == current_username
+    }
+    
+    return render(request, 'detalle_usuario.html', context)
+
+def cambiar_password(request, usuario_id):
+    """Vista para cambiar contraseña"""
+    if 'user_id' not in request.session:
+        return redirect('login')
+    
+    current_user_role = request.session.get('rol')
+    current_username = request.session.get('username')
+    
+    try:
+        usuario = Usuario.objects.get(id=usuario_id)
+    except Usuario.DoesNotExist:
+        messages.error(request, 'El usuario no existe.')
+        return redirect('dashboard')
+    
+    # Verificar permisos
+    if current_user_role != 'admin' and usuario.nombreusuario != current_username:
+        messages.error(request, 'No tienes permisos para cambiar la contraseña de este usuario.')
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        form = CambioPasswordForm(usuario, request.POST)
+        if form.is_valid():
+            nueva_password = form.cleaned_data['password_nueva']
+            usuario.set_password(nueva_password)
+            usuario.save()
+            
+            messages.success(request, 'Contraseña cambiada exitosamente.')
+            
+            # Si cambió su propia contraseña, cerrar sesión
+            if usuario.nombreusuario == current_username:
+                request.session.flush()
+                messages.info(request, 'Por seguridad, debes iniciar sesión nuevamente.')
+                return redirect('login')
+            else:
+                return redirect('detalle_usuario', usuario_id=usuario.id)
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    if field == '__all__':
+                        messages.error(request, f'Error: {error}')
+                    else:
+                        field_name = form.fields[field].label if field in form.fields else field
+                        messages.error(request, f'{field_name}: {error}')
+    else:
+        form = CambioPasswordForm(usuario)
+    
+    context = {
+        'user': {
+            'username': current_username,
+            'rol': current_user_role
+        },
+        'form': form,
+        'usuario_password': usuario
+    }
+    
+    return render(request, 'cambiar_password.html', context)
+
+def togglear_estado_usuario(request, usuario_id):
+    """Vista para activar/desactivar usuario"""
+    if 'user_id' not in request.session:
+        return redirect('login')
+    
+    if request.session.get('rol') != 'admin':
+        messages.error(request, 'No tienes permisos para cambiar el estado de usuarios.')
+        return redirect('dashboard')
+    
+    try:
+        usuario = Usuario.objects.get(id=usuario_id)
+    except Usuario.DoesNotExist:
+        messages.error(request, 'El usuario no existe.')
+        return redirect('usuarios_lista')
+    
+    # Prevenir que se desactive a sí mismo
+    if usuario.nombreusuario == request.session.get('username'):
+        messages.error(request, 'No puedes desactivar tu propia cuenta.')
+        return redirect('usuarios_lista')
+    
+    if request.method == 'POST':
+        usuario.activo = not usuario.activo
+        usuario.save()
+        
+        estado = "activado" if usuario.activo else "desactivado"
+        messages.success(request, f'Usuario "{usuario.nombreusuario}" {estado} exitosamente.')
+    
+    return redirect('usuarios_lista')
+
+def eliminar_usuario(request, usuario_id):
+    """Vista para eliminar usuario (solo admins)"""
+    if 'user_id' not in request.session:
+        return redirect('login')
+    
+    if request.session.get('rol') != 'admin':
+        messages.error(request, 'No tienes permisos para eliminar usuarios.')
+        return redirect('dashboard')
+    
+    try:
+        usuario = Usuario.objects.get(id=usuario_id)
+    except Usuario.DoesNotExist:
+        messages.error(request, 'El usuario no existe.')
+        return redirect('usuarios_lista')
+    
+    # Prevenir que se elimine a sí mismo
+    if usuario.nombreusuario == request.session.get('username'):
+        messages.error(request, 'No puedes eliminar tu propia cuenta.')
+        return redirect('usuarios_lista')
+    
+    if request.method == 'POST':
+        confirmacion = request.POST.get('confirmacion', '')
+        
+        if confirmacion == usuario.nombreusuario:
+            nombre_usuario = usuario.nombreusuario
+            usuario.delete()
+            messages.success(request, f'Usuario "{nombre_usuario}" eliminado exitosamente.')
+        else:
+            messages.error(request, 'La confirmación no coincide. No se eliminó el usuario.')
+    
+    return redirect('usuarios_lista')
+
+# ==================== ACTUALIZAR VISTA DE LOGIN ====================
 
 def login_view(request):
-    """Vista para página de login"""
+    """Vista para página de login con mejoras"""
     if request.method == 'POST':
-        username = request.POST.get('username')
+        username = request.POST.get('username', '').strip().lower()
         password = request.POST.get('password')
         
         try:
-            user = Usuario.objects.get(nombreusuario=username, contraseña=password, activo=True)
-            # Guardar sesión
-            request.session['user_id'] = user.id
-            request.session['username'] = user.nombreusuario
-            request.session['rol'] = user.rol
-            return redirect('dashboard')
+            user = Usuario.objects.get(nombreusuario=username, activo=True)
+            
+            # Verificar contraseña usando el método mejorado
+            if user.check_password(password):
+                # Actualizar último acceso
+                from django.utils import timezone
+                user.ultimo_acceso = timezone.now()
+                user.save()
+                
+                # Guardar sesión
+                request.session['user_id'] = user.id
+                request.session['username'] = user.nombreusuario
+                request.session['rol'] = user.rol
+                request.session['nombre_completo'] = user.get_nombre_display()
+                
+                messages.success(request, f'Bienvenido, {user.get_nombre_display()}')
+                return redirect('dashboard')
+            else:
+                messages.error(request, 'Usuario o contraseña incorrectos')
+                
         except Usuario.DoesNotExist:
             messages.error(request, 'Usuario o contraseña incorrectos')
     

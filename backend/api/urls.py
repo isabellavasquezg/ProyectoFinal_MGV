@@ -7,6 +7,16 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
+    
+    # URLs para usuarios
+    path('usuarios/', views.usuarios_lista, name='usuarios_lista'),
+    path('usuarios/crear/', views.crear_usuario, name='crear_usuario'),
+    path('usuarios/<int:usuario_id>/', views.detalle_usuario, name='detalle_usuario'),
+    path('usuarios/<int:usuario_id>/editar/', views.editar_usuario, name='editar_usuario'),
+    path('usuarios/<int:usuario_id>/password/', views.cambiar_password, name='cambiar_password'),
+    path('usuarios/<int:usuario_id>/toggle/', views.togglear_estado_usuario, name='togglear_estado_usuario'),
+    path('usuarios/<int:usuario_id>/eliminar/', views.eliminar_usuario, name='eliminar_usuario'),
+    
     path('equipos/', views.equipos_view, name='equipos'),
     path('equipos/crear/', views.crear_equipo, name='crear_equipo'),
     path('equipos/inactivos/', views.equipos_inactivos_view, name='equipos_inactivos'),

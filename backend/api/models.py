@@ -1,19 +1,47 @@
 # api/models.py
 from django.db import models
+from django.contrib.auth.hashers import make_password, check_password
 
 class Usuario(models.Model):
     """Modelo para usuarios del sistema basado en tabla api_usuario"""
     nombreusuario = models.CharField(max_length=100, unique=True)
     contraseña = models.CharField(max_length=255)
-    rol = models.CharField(max_length=10, choices=[('admin', 'Admin'), ('viewer', 'Viewer')])
+    email = models.EmailField(max_length=255, unique=True, null=True, blank=True)
+    nombre_completo = models.CharField(max_length=255, null=True, blank=True)
+    telefono = models.CharField(max_length=20, null=True, blank=True)
+    cargo = models.CharField(max_length=100, null=True, blank=True)
+    departamento = models.CharField(max_length=100, null=True, blank=True)
+    rol = models.CharField(max_length=15, choices=[
+        ('admin', 'Administrador'),
+        ('editor', 'Editor'),
+        ('viewer', 'Visualizador')
+    ])
     activo = models.BooleanField(default=True)
     fecha_creacion = models.DateField(auto_now_add=True)
+    fecha_ultima_modificacion = models.DateTimeField(auto_now=True)
+    ultimo_acceso = models.DateTimeField(null=True, blank=True)
+    creado_por = models.CharField(max_length=100, null=True, blank=True)
     
     class Meta:
         db_table = 'api_usuario'
+        verbose_name = 'Usuario'
+        verbose_name_plural = 'Usuarios'
+        ordering = ['nombreusuario']
     
     def __str__(self):
-        return f"{self.nombreusuario} ({self.rol})"
+        return f"{self.nombreusuario} ({self.get_rol_display()})"
+    
+    def set_password(self, raw_password):
+        """Establece la contraseña con hash"""
+        self.contraseña = make_password(raw_password)
+        
+    def check_password(self, raw_password):
+        """Verifica la contraseña"""
+        return check_password(raw_password, self.contraseña)
+    
+    def get_nombre_display(self):
+        """Retorna el nombre completo o username"""
+        return self.nombre_completo if self.nombre_completo else self.nombreusuario
 
 class Equipo(models.Model):
     """Modelo para equipos basado en tabla api_equipo"""

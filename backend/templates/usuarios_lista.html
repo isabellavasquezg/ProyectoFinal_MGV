@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Usuarios{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-users me-2"></i>Gestión de Usuarios</h2>
+            <p class="text-muted">Administra los usuarios del sistema</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'crear_usuario' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nuevo Usuario
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Búsqueda</label>
+                    <input type="text" class="form-control" name="search" 
+                           value="{{ filtros.search_actual }}" 
+                           placeholder="Usuario, nombre o email">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Rol</label>
+                    <select name="rol" class="form-select">
+                        <option value="">Todos los roles</option>
+                        {% for value, label in filtros.roles %}
+                        <option value="{{ value }}" {% if value == filtros.rol_actual %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Estado</label>
+                    <select name="activo" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="true" {% if filtros.activo_actual == 'true' %}selected{% endif %}>Activos</option>
+                        <option value="false" {% if filtros.activo_actual == 'false' %}selected{% endif %}>Inactivos</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-secondary me-2">
+                        <i class="fas fa-search me-2"></i>Filtrar
+                    </button>
+                    <a href="{% url 'usuarios_lista' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-2"></i>Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Total de usuarios encontrados: <strong>{{ total_usuarios }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de usuarios -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Nombre Completo</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Departamento</th>
+                            <th>Estado</th>
+                            <th>Último Acceso</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in usuarios %}
+                        <tr>
+                            <td>
+                                <strong>{{ usuario.nombreusuario }}</strong>
+                                {% if usuario.nombreusuario == user.username %}
+                                <span class="badge bg-info ms-1">Tú</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ usuario.nombre_completo|default:"-" }}</td>
+                            <td>{{ usuario.email|default:"-" }}</td>
+                            <td>
+                                <span class="badge bg-{% if usuario.rol == 'admin' %}danger{% elif usuario.rol == 'editor' %}warning{% else %}secondary{% endif %}">
+                                    {{ usuario.get_rol_display }}
+                                </span>
+                            </td>
+                            <td>{{ usuario.departamento|default:"-" }}</td>
+                            <td>
+                                {% if usuario.activo %}
+                                <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if usuario.ultimo_acceso %}
+                                {{ usuario.ultimo_acceso|date:"d/m/Y H:i" }}
+                                {% else %}
+                                <em class="text-muted">Nunca</em>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'detalle_usuario' usuario.id %}" 
+                                       class="btn btn-sm btn-outline-primary" title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'editar_usuario' usuario.id %}" 
+                                       class="btn btn-sm btn-outline-warning" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% if usuario.nombreusuario != user.username %}
+                                    <form method="post" action="{% url 'togglear_estado_usuario' usuario.id %}" 
+                                          class="d-inline" onsubmit="return confirm('¿Estás seguro?')">
+                                        {% csrf_token %}
+                                        <button type="submit" 
+                                                class="btn btn-sm btn-outline-{% if usuario.activo %}secondary{% else %}success{% endif %}" 
+                                                title="{% if usuario.activo %}Desactivar{% else %}Activar{% endif %}">
+                                            <i class="fas fa-{% if usuario.activo %}ban{% else %}check{% endif %}"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <i class="fas fa-users fa-2x text-muted mb-2"></i>
+                                <p class="text-muted">No se encontraron usuarios</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-submit del formulario al cambiar los selects
+document.addEventListener('DOMContentLoaded', function() {
+    const selects = document.querySelectorAll('select[name="rol"], select[name="activo"]');
+    selects.forEach(select => {
+        select.addEventListener('change', function() {
+            this.form.submit();
+        });
+    });
+});
+</script>
+{% endblock %}

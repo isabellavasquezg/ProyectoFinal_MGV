@@ -1,5 +1,5 @@
 from django import forms
-from .models import Equipo, TrasladoEquipo
+from .models import Equipo, TrasladoEquipo, Usuario
 
 class EquipoForm(forms.ModelForm):
     """Formulario para crear y editar equipos"""
@@ -284,3 +284,174 @@ class TrasladoForm(forms.ModelForm):
         if justificacion and len(justificacion.strip()) < 10:
             raise forms.ValidationError('La justificación debe tener al menos 10 caracteres')
         return justificacion
+
+class UsuarioForm(forms.ModelForm):
+    """Formulario para crear y editar usuarios"""
+    
+    password1 = forms.CharField(
+        label='Contraseña',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        required=False,
+        help_text='Dejar vacío para mantener la contraseña actual (solo en edición)'
+    )
+    password2 = forms.CharField(
+        label='Confirmar contraseña',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        required=False
+    )
+    
+    class Meta:
+        model = Usuario
+        fields = [
+            'nombreusuario', 'email', 'nombre_completo', 
+            'telefono', 'cargo', 'departamento', 'rol', 'activo'
+        ]
+        widgets = {
+            'nombreusuario': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Usuario único sin espacios'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'correo@ejemplo.com'
+            }),
+            'nombre_completo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre completo del usuario'
+            }),
+            'telefono': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '+57 300 123 4567'
+            }),
+            'cargo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Cargo o posición'
+            }),
+            'departamento': forms.Select(attrs={'class': 'form-select'}, choices=[
+                ('', 'Seleccionar departamento'),
+                ('Administración', 'Administración'),
+                ('Ingeniería Biomédica', 'Ingeniería Biomédica'),
+                ('Mantenimiento', 'Mantenimiento'),
+                ('Sistemas', 'Sistemas'),
+                ('Calidad', 'Calidad'),
+                ('Operaciones', 'Operaciones'),
+            ]),
+            'rol': forms.Select(attrs={'class': 'form-select'}),
+            'activo': forms.CheckboxInput(attrs={'class': 'form-check-input'})
+        }
+        labels = {
+            'nombreusuario': 'Nombre de Usuario',
+            'email': 'Correo Electrónico',
+            'nombre_completo': 'Nombre Completo',
+            'telefono': 'Teléfono',
+            'cargo': 'Cargo',
+            'departamento': 'Departamento',
+            'rol': 'Rol del Usuario',
+            'activo': 'Usuario Activo'
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.is_edit = kwargs.pop('is_edit', False)
+        super().__init__(*args, **kwargs)
+        
+        if self.is_edit:
+            # En modo edición, hacer password opcional
+            self.fields['password1'].help_text = 'Dejar vacío para mantener la contraseña actual'
+            self.fields['password1'].required = False
+            self.fields['password2'].required = False
+        else:
+            # En modo creación, password es obligatorio
+            self.fields['password1'].required = True
+            self.fields['password2'].required = True
+            self.fields['password1'].help_text = 'Mínimo 6 caracteres'
+
+    def clean_nombreusuario(self):
+        nombreusuario = self.cleaned_data.get('nombreusuario')
+        if nombreusuario:
+            nombreusuario = nombreusuario.strip().lower()
+            # Validar que no tenga espacios
+            if ' ' in nombreusuario:
+                raise forms.ValidationError('El nombre de usuario no puede contener espacios')
+            # Verificar unicidad (excluyendo instancia actual en edición)
+            if self.instance.pk:
+                if Usuario.objects.filter(nombreusuario=nombreusuario).exclude(pk=self.instance.pk).exists():
+                    raise forms.ValidationError('Este nombre de usuario ya existe')
+            else:
+                if Usuario.objects.filter(nombreusuario=nombreusuario).exists():
+                    raise forms.ValidationError('Este nombre de usuario ya existe')
+        return nombreusuario
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            # Verificar unicidad del email (excluyendo instancia actual en edición)
+            if self.instance.pk:
+                if Usuario.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
+                    raise forms.ValidationError('Este correo electrónico ya está registrado')
+            else:
+                if Usuario.objects.filter(email=email).exists():
+                    raise forms.ValidationError('Este correo electrónico ya está registrado')
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get('password1')
+        password2 = cleaned_data.get('password2')
+
+        if password1 or password2:
+            if password1 != password2:
+                raise forms.ValidationError('Las contraseñas no coinciden')
+            if len(password1) < 6:
+                raise forms.ValidationError('La contraseña debe tener al menos 6 caracteres')
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        usuario = super().save(commit=False)
+        password1 = self.cleaned_data.get('password1')
+        
+        if password1:
+            usuario.set_password(password1)
+        
+        if commit:
+            usuario.save()
+        return usuario
+
+class CambioPasswordForm(forms.Form):
+    """Formulario específico para cambio de contraseña"""
+    password_actual = forms.CharField(
+        label='Contraseña actual',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    password_nueva = forms.CharField(
+        label='Nueva contraseña',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        help_text='Mínimo 6 caracteres'
+    )
+    password_confirmacion = forms.CharField(
+        label='Confirmar nueva contraseña',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    
+    def __init__(self, usuario, *args, **kwargs):
+        self.usuario = usuario
+        super().__init__(*args, **kwargs)
+    
+    def clean_password_actual(self):
+        password = self.cleaned_data.get('password_actual')
+        if not self.usuario.check_password(password):
+            raise forms.ValidationError('La contraseña actual es incorrecta')
+        return password
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        password_nueva = cleaned_data.get('password_nueva')
+        password_confirmacion = cleaned_data.get('password_confirmacion')
+        
+        if password_nueva and password_confirmacion:
+            if password_nueva != password_confirmacion:
+                raise forms.ValidationError('Las nuevas contraseñas no coinciden')
+            if len(password_nueva) < 6:
+                raise forms.ValidationError('La nueva contraseña debe tener al menos 6 caracteres')
+        
+        return cleaned_data

@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>
+                <i class="fas fa-{% if usuario_editado %}edit{% else %}user-plus{% endif %} me-2"></i>
+                {{ titulo }}
+            </h2>
+            {% if usuario_editado %}
+            <p class="text-muted">Modificar información del usuario: <strong>{{ usuario_editado.nombreusuario }}</strong></p>
+            {% else %}
+            <p class="text-muted">Crear un nuevo usuario en el sistema</p>
+            {% endif %}
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'usuarios_lista' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Información básica -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">
+                                    <i class="fas fa-user me-2"></i>Información Básica
+                                </h5>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.nombreusuario.label }} *</label>
+                                {{ form.nombreusuario }}
+                                {% if form.nombreusuario.help_text %}
+                                <div class="form-text">{{ form.nombreusuario.help_text }}</div>
+                                {% endif %}
+                                {% if form.nombreusuario.errors %}
+                                <div class="text-danger small">{{ form.nombreusuario.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.email.label }}</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                <div class="text-danger small">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.nombre_completo.label }}</label>
+                                {{ form.nombre_completo }}
+                                {% if form.nombre_completo.errors %}
+                                <div class="text-danger small">{{ form.nombre_completo.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.telefono.label }}</label>
+                                {{ form.telefono }}
+                                {% if form.telefono.errors %}
+                                <div class="text-danger small">{{ form.telefono.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Información laboral -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">
+                                    <i class="fas fa-briefcase me-2"></i>Información Laboral
+                                </h5>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.cargo.label }}</label>
+                                {{ form.cargo }}
+                                {% if form.cargo.errors %}
+                                <div class="text-danger small">{{ form.cargo.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.departamento.label }}</label>
+                                {{ form.departamento }}
+                                {% if form.departamento.errors %}
+                                <div class="text-danger small">{{ form.departamento.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Permisos y acceso -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">
+                                    <i class="fas fa-shield-alt me-2"></i>Permisos y Acceso
+                                </h5>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.rol.label }} *</label>
+                                {{ form.rol }}
+                                <div class="form-text">
+                                    <strong>Administrador:</strong> Acceso total al sistema<br>
+                                    <strong>Editor:</strong> Puede editar equipos y crear traslados<br>
+                                    <strong>Visualizador:</strong> Solo puede ver información
+                                </div>
+                                {% if form.rol.errors %}
+                                <div class="text-danger small">{{ form.rol.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 d-flex align-items-center">
+                                <div class="form-check">
+                                    {{ form.activo }}
+                                    <label class="form-check-label" for="{{ form.activo.id_for_label }}">
+                                        {{ form.activo.label }}
+                                    </label>
+                                </div>
+                                {% if form.activo.errors %}
+                                <div class="text-danger small">{{ form.activo.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Contraseña -->
+                        {% if not usuario_editado or not es_edicion_propia %}
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">
+                                    <i class="fas fa-key me-2"></i>Contraseña
+                                    {% if usuario_editado %}
+                                    <small class="text-muted">(Opcional - dejar vacío para mantener actual)</small>
+                                    {% endif %}
+                                </h5>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.password1.label }}{% if not usuario_editado %} *{% endif %}</label>
+                                {{ form.password1 }}
+                                {% if form.password1.help_text %}
+                                <div class="form-text">{{ form.password1.help_text }}</div>
+                                {% endif %}
+                                {% if form.password1.errors %}
+                                <div class="text-danger small">{{ form.password1.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.password2.label }}{% if not usuario_editado %} *{% endif %}</label>
+                                {{ form.password2 }}
+                                {% if form.password2.errors %}
+                                <div class="text-danger small">{{ form.password2.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Errores generales del formulario -->
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+
+                        <!-- Botones -->
+                        <div class="row">
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'usuarios_lista' %}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancelar
+                                    </a>
+                                    <div>
+                                        {% if usuario_editado and es_edicion_propia %}
+                                        <a href="{% url 'cambiar_password' usuario_editado.id %}" 
+                                           class="btn btn-outline-warning me-2">
+                                            <i class="fas fa-key me-2"></i>Cambiar Contraseña
+                                        </a>
+                                        {% endif %}
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save me-2"></i>{{ boton_texto }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación en tiempo real del nombre de usuario
+    const usernameField = document.querySelector('input[name="nombreusuario"]');
+    if (usernameField) {
+        usernameField.addEventListener('input', function() {
+            let value = this.value.toLowerCase().replace(/\s/g, '');
+            this.value = value;
+        });
+    }
+
+    // Mostrar/ocultar ayuda del rol
+    const rolField = document.querySelector('select[name="rol"]');
+    if (rolField) {
+        rolField.addEventListener('change', function() {
+            // Aquí se puede agregar lógica adicional si es necesario
+        });
+    }
+});
+</script>
+{% endblock %}

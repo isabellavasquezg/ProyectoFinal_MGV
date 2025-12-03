@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle Usuario - {{ usuario_detalle.nombreusuario }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>
+                <i class="fas fa-user me-2"></i>
+                {{ usuario_detalle.get_nombre_display }}
+                {% if es_usuario_propio %}
+                <span class="badge bg-info ms-2">Tu Perfil</span>
+                {% endif %}
+            </h2>
+            <p class="text-muted">
+                Usuario: <strong>{{ usuario_detalle.nombreusuario }}</strong>
+                {% if not usuario_detalle.activo %}
+                <span class="badge bg-secondary ms-2">Inactivo</span>
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="btn-group">
+                <a href="{% if user.rol == 'admin' %}{% url 'usuarios_lista' %}{% else %}{% url 'dashboard' %}{% endif %}" 
+                   class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </a>
+                <a href="{% url 'editar_usuario' usuario_detalle.id %}" class="btn btn-warning">
+                    <i class="fas fa-edit me-2"></i>Editar
+                </a>
+                <a href="{% url 'cambiar_password' usuario_detalle.id %}" class="btn btn-outline-warning">
+                    <i class="fas fa-key me-2"></i>Cambiar Contraseña
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Información Personal -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>Información Personal
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Nombre de Usuario</label>
+                                <div class="fw-bold">{{ usuario_detalle.nombreusuario }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Nombre Completo</label>
+                                <div>{{ usuario_detalle.nombre_completo|default:"<em class='text-muted'>No especificado</em>" }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Correo Electrónico</label>
+                                <div>
+                                    {% if usuario_detalle.email %}
+                                    <a href="mailto:{{ usuario_detalle.email }}">{{ usuario_detalle.email }}</a>
+                                    {% else %}
+                                    <em class="text-muted">No especificado</em>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Teléfono</label>
+                                <div>
+                                    {% if usuario_detalle.telefono %}
+                                    <a href="tel:{{ usuario_detalle.telefono }}">{{ usuario_detalle.telefono }}</a>
+                                    {% else %}
+                                    <em class="text-muted">No especificado</em>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Cargo</label>
+                                <div>{{ usuario_detalle.cargo|default:"<em class='text-muted'>No especificado</em>" }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Departamento</label>
+                                <div>{{ usuario_detalle.departamento|default:"<em class='text-muted'>No especificado</em>" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del Sistema -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>Información del Sistema
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Rol</label>
+                                <div>
+                                    <span class="badge bg-{% if usuario_detalle.rol == 'admin' %}danger{% elif usuario_detalle.rol == 'editor' %}warning{% else %}secondary{% endif %} fs-6">
+                                        {{ usuario_detalle.get_rol_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Estado</label>
+                                <div>
+                                    {% if usuario_detalle.activo %}
+                                    <span class="badge bg-success fs-6">Activo</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary fs-6">Inactivo</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Fecha de Creación</label>
+                                <div>{{ usuario_detalle.fecha_creacion|date:"d/m/Y" }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Última Modificación</label>
+                                <div>{{ usuario_detalle.fecha_ultima_modificacion|date:"d/m/Y H:i" }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Último Acceso</label>
+                                <div>
+                                    {% if usuario_detalle.ultimo_acceso %}
+                                    {{ usuario_detalle.ultimo_acceso|date:"d/m/Y H:i" }}
+                                    {% else %}
+                                    <em class="text-muted">Nunca ha iniciado sesión</em>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Tarjeta de acciones rápidas -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tools me-2"></i>Acciones Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'editar_usuario' usuario_detalle.id %}" class="btn btn-outline-warning">
+                            <i class="fas fa-edit me-2"></i>Editar Información
+                        </a>
+                        <a href="{% url 'cambiar_password' usuario_detalle.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-key me-2"></i>Cambiar Contraseña
+                        </a>
+                        {% if user.rol == 'admin' and not es_usuario_propio %}
+                        <hr>
+                        <form method="post" action="{% url 'togglear_estado_usuario' usuario_detalle.id %}" 
+                              onsubmit="return confirm('¿Estás seguro de cambiar el estado de este usuario?')">
+                            {% csrf_token %}
+                            <button type="submit" 
+                                    class="btn btn-outline-{% if usuario_detalle.activo %}secondary{% else %}success{% endif %} w-100">
+                                <i class="fas fa-{% if usuario_detalle.activo %}ban{% else %}check{% endif %} me-2"></i>
+                                {% if usuario_detalle.activo %}Desactivar Usuario{% else %}Activar Usuario{% endif %}
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#eliminarModal">
+                            <i class="fas fa-trash me-2"></i>Eliminar Usuario
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de permisos -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>Permisos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if usuario_detalle.rol == 'admin' %}
+                    <div class="alert alert-danger">
+                        <strong>Administrador</strong><br>
+                        Acceso completo a todas las funciones del sistema.
+                    </div>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>Gestionar usuarios</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Crear/editar equipos</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Aprobar traslados</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Ejecutar traslados</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Ver reportes</li>
+                    </ul>
+                    {% elif usuario_detalle.rol == 'editor' %}
+                    <div class="alert alert-warning">
+                        <strong>Editor</strong><br>
+                        Puede editar equipos y crear traslados.
+                    </div>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-times text-danger me-2"></i>Gestionar usuarios</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Crear/editar equipos</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Solicitar traslados</li>
+                        <li><i class="fas fa-times text-danger me-2"></i>Aprobar traslados</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Ver reportes</li>
+                    </ul>
+                    {% else %}
+                    <div class="alert alert-secondary">
+                        <strong>Visualizador</strong><br>
+                        Solo puede consultar información.
+                    </div>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-times text-danger me-2"></i>Gestionar usuarios</li>
+                        <li><i class="fas fa-times text-danger me-2"></i>Crear/editar equipos</li>
+                        <li><i class="fas fa-times text-danger me-2"></i>Solicitar traslados</li>
+                        <li><i class="fas fa-times text-danger me-2"></i>Aprobar traslados</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Ver reportes</li>
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para eliminar usuario -->
+{% if user.rol == 'admin' and not es_usuario_propio %}
+<div class="modal fade" id="eliminarModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Eliminar Usuario
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>¡ATENCIÓN!</strong> Esta acción no se puede deshacer.</p>
+                <p>Para confirmar la eliminación del usuario <strong>{{ usuario_detalle.nombreusuario }}</strong>, 
+                   escribe exactamente su nombre de usuario en el campo de abajo:</p>
+                
+                <form method="post" action="{% url 'eliminar_usuario' usuario_detalle.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <input type="text" class="form-control" name="confirmacion" 
+                               placeholder="Escribe: {{ usuario_detalle.nombreusuario }}" required>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>Eliminar Definitivamente
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 03-12-2025 a las 12:19:40
+-- Tiempo de generación: 03-12-2025 a las 13:47:51
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -66,7 +66,9 @@ CREATE TABLE `api_edicionequipo` (
 --
 
 INSERT INTO `api_edicionequipo` (`id`, `fecha`, `justificacion`, `equipo_id`, `responsable_anterior`, `responsable_nuevo`, `sede_anterior`, `sede_nueva`, `servicio_anterior`, `servicio_nuevo`) VALUES
-(16, '2025-12-03', 'Traslado ejecutado: Traslado a nueva sede momentariamente', 276, 'Gloria Zapata / Gloria Zapata', 'Gloria Zapata / Gloria Zapata', 'Prado', 'Prado', 'Procesamiento Seccion C', 'Procesamiento Seccion C');
+(16, '2025-12-03', 'Traslado ejecutado: Traslado a nueva sede momentariamente', 276, 'Gloria Zapata / Gloria Zapata', 'Gloria Zapata / Gloria Zapata', 'Prado', 'Prado', 'Procesamiento Seccion C', 'Procesamiento Seccion C'),
+(17, '2025-12-03', 'Traslado ejecutado: Traslado por renovación', 276, 'Gloria Zapata / Gloria Zapata', 'Gloria Zapata / Gloria Zapata', 'Prado', 'Prado', 'Procesamiento Seccion C', 'Procesamiento Seccion C'),
+(18, '2025-12-03', 'Traslado ejecutado: Prueba de traslado aprobado y ejecutado', 298, 'Juan Jose Serrano / Gloria Vasquez', 'Juan Jose Serrano / Gloria Vasquez', 'SIU', 'SIU', 'SIU - Laboratorio trasplantes - Torre 1, Lab 410', 'SIU - Laboratorio trasplantes - Torre 1, Lab 410');
 
 -- --------------------------------------------------------
 
@@ -227,7 +229,8 @@ CREATE TABLE `api_trasladoequipo` (
 --
 
 INSERT INTO `api_trasladoequipo` (`id`, `fecha_solicitud`, `usuario_solicitante`, `sede_origen`, `sede_destino`, `justificacion`, `estado`, `fecha_aprobacion`, `observaciones_aprobacion`, `fecha_ejecucion`, `observaciones_ejecucion`, `equipo_id`, `aprobado_por`, `ejecutado_por`, `fecha_rechazo`, `fecha_traslado`, `motivo_rechazo`, `observaciones`, `rechazado_por`, `responsable_destino`, `responsable_origen`, `ubicacion_destino`, `ubicacion_origen`) VALUES
-(1, '2025-12-03', 'admin', 'Prado', 'Prado', 'Traslado a nueva sede momentariamente', 'ejecutado', NULL, NULL, NULL, NULL, 276, NULL, 'admin', NULL, '2025-12-03', NULL, '', NULL, 'Gloria Zapata / Gloria Zapata', 'Gloria Zapata / Gloria Zapata', 'Procesamiento Seccion C', 'Procesamiento Seccion C');
+(4, '2025-12-03', 'admin', 'Prado', 'Prado', 'Prueba de traslado y guardado en base de datos', 'cancelado', NULL, NULL, NULL, NULL, 283, NULL, NULL, '2025-12-03 12:18:13.111614', NULL, 'No aprobado por admin', 'Cancelado por admin: No aprobado por admin', 'admin', 'Gloria Zapata / Vanessa Santiago (Patologa)', 'Gloria Zapata / Vanessa Santiago (Patologa)', 'Procesamiento Seccion A', 'Procesamiento Seccion A'),
+(5, '2025-12-03', 'admin', 'SIU', 'SIU', 'Prueba de traslado aprobado y ejecutado', 'ejecutado', '2025-12-03 12:19:39.237605', '', '2025-12-03 12:19:56.101373', 'Aceptado', 298, 'admin', 'admin', NULL, '2025-12-03', NULL, '', NULL, 'Juan Jose Serrano / Gloria Vasquez', 'Juan Jose Serrano / Gloria Vasquez', 'SIU - Laboratorio trasplantes - Torre 1, Lab 410', 'SIU - Laboratorio trasplantes - Torre 1, Lab 410');
 
 -- --------------------------------------------------------
 
@@ -519,7 +522,8 @@ CREATE TABLE `django_session` (
 
 INSERT INTO `django_session` (`session_key`, `session_data`, `expire_date`) VALUES
 ('e78d0mhvyppoklatt4fw5mskoz2bnd6d', '.eJyrViotTi2Kz0xRsjLUAbPzEnNTlayUElNyM_OUdJSK8nPgvFoAagwPLg:1vQbio:xqcRu-2zReX05IGOa8n5Jav5s94KD8fzhX_5mZ7uvNw', '2025-12-03 02:31:58.669489'),
-('ghvog21lkfl4quc6kgwjqqy9g5v4yu6c', '.eJyrViotTi2Kz0xRsjLUAbPzEnNTlayUElNyM_OUdJSK8nPgvFoAagwPLg:1vQenC:owmst5XlnL9DprWmv0gfPzjsmbZURh4uSosCcEi3wtU', '2025-12-03 05:48:42.588941');
+('ghvog21lkfl4quc6kgwjqqy9g5v4yu6c', '.eJyrViotTi2Kz0xRsjLUAbPzEnNTlayUElNyM_OUdJSK8nPgvFoAagwPLg:1vQenC:owmst5XlnL9DprWmv0gfPzjsmbZURh4uSosCcEi3wtU', '2025-12-03 05:48:42.588941'),
+('qny8c2s3cfh9f9i833iya0q8a770t5zs', '.eJyrViotTi2Kz0xRsjLUAbPzEnNTlayUElNyM_OUdJSK8nPgvFoAagwPLg:1vQlLN:LlijS3UFM6vVpADH2H0h3JBuvBdFk_NcyroA-h9t-XU', '2025-12-03 12:48:25.999278');
 
 --
 -- Índices para tablas volcadas
@@ -646,7 +650,7 @@ ALTER TABLE `api_desactivacionequipo`
 -- AUTO_INCREMENT de la tabla `api_edicionequipo`
 --
 ALTER TABLE `api_edicionequipo`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT de la tabla `api_equipo`
@@ -658,7 +662,7 @@ ALTER TABLE `api_equipo`
 -- AUTO_INCREMENT de la tabla `api_trasladoequipo`
 --
 ALTER TABLE `api_trasladoequipo`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `api_usuario`
