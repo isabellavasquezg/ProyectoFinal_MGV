@@ -612,11 +612,31 @@ def aprobar_traslado_view(request, traslado_id):
         messages.error(request, 'Solo se pueden aprobar traslados pendientes.')
         return redirect('detalle_traslado', traslado_id=traslado_id)
     
-    traslado.estado = 'aprobado'
-    traslado.save()
+    if request.method == 'POST':
+        observaciones_aprobacion = request.POST.get('observaciones_aprobacion', '')
+        
+        # Actualizar todos los campos relacionados con la aprobación
+        traslado.estado = 'aprobado'
+        traslado.fecha_aprobacion = timezone.now()
+        traslado.aprobado_por = request.session.get('username')
+        traslado.observaciones_aprobacion = observaciones_aprobacion
+        traslado.save()
+        
+        messages.success(request, f'Traslado aprobado para {traslado.equipo.nombre_equipo}')
+        return redirect('detalle_traslado', traslado_id=traslado_id)
     
-    messages.success(request, f'Traslado aprobado para {traslado.equipo.nombre_equipo}')
-    return redirect('detalle_traslado', traslado_id=traslado_id)
+    # Si es GET, mostrar formulario de aprobación
+    context = {
+        'traslado': traslado,
+        'user': {
+            'username': request.session.get('username'),
+            'rol': request.session.get('rol')
+        },
+        'user_rol': request.session.get('rol'),
+        'username': request.session.get('username')
+    }
+    
+    return render(request, 'aprobar_traslado.html', context)
 
 def ejecutar_traslado_view(request, traslado_id):
     """Vista para ejecutar un traslado aprobado (solo administradores)"""
@@ -634,6 +654,20 @@ def ejecutar_traslado_view(request, traslado_id):
         return redirect('detalle_traslado', traslado_id=traslado_id)
     
     if request.method == 'POST':
+        # Obtener datos del formulario
+        observaciones_ejecucion = request.POST.get('observaciones_ejecucion', '')
+        fecha_ejecucion_str = request.POST.get('fecha_ejecucion', '')
+        
+        # Procesar fecha de ejecución
+        fecha_ejecucion = date.today()
+        if fecha_ejecucion_str:
+            try:
+                from datetime import datetime
+                fecha_ejecucion = datetime.strptime(fecha_ejecucion_str, '%Y-%m-%d').date()
+            except ValueError:
+                messages.error(request, 'Formato de fecha inválido.')
+                return redirect('ejecutar_traslado', traslado_id=traslado_id)
+        
         # Actualizar información del equipo
         equipo = traslado.equipo
         equipo.sede = traslado.sede_destino
@@ -641,15 +675,17 @@ def ejecutar_traslado_view(request, traslado_id):
         equipo.responsable = traslado.responsable_destino
         equipo.save()
         
-        # Actualizar estado del traslado
+        # Actualizar todos los campos relacionados con la ejecución
         traslado.estado = 'ejecutado'
-        traslado.fecha_traslado = date.today()
+        traslado.fecha_traslado = fecha_ejecucion
+        traslado.fecha_ejecucion = timezone.now()
         traslado.ejecutado_por = request.session.get('username')
+        traslado.observaciones_ejecucion = observaciones_ejecucion
         traslado.save()
         
         # Crear registro en EdicionEquipo para auditoría
         EdicionEquipo.objects.create(
-            fecha=date.today(),
+            fecha=fecha_ejecucion,
             justificacion=f'Traslado ejecutado: {traslado.justificacion}',
             equipo=equipo,
             responsable_anterior=traslado.responsable_origen,
@@ -665,8 +701,13 @@ def ejecutar_traslado_view(request, traslado_id):
     
     context = {
         'traslado': traslado,
+        'user': {
+            'username': request.session.get('username'),
+            'rol': request.session.get('rol')
+        },
         'user_rol': request.session.get('rol'),
-        'username': request.session.get('username')
+        'username': request.session.get('username'),
+        'today': date.today()
     }
     
     return render(request, 'ejecutar_traslado.html', context)
@@ -692,9 +733,22 @@ def cancelar_traslado_view(request, traslado_id):
     if request.method == 'POST':
         motivo_cancelacion = request.POST.get('motivo_cancelacion', '')
         
+        if not motivo_cancelacion.strip():
+            messages.error(request, 'El motivo de cancelación es obligatorio.')
+            return redirect('cancelar_traslado', traslado_id=traslado_id)
+        
+        # Actualizar todos los campos relacionados con la cancelación/rechazo
         traslado.estado = 'cancelado'
-        if motivo_cancelacion:
+        traslado.fecha_rechazo = timezone.now()
+        traslado.rechazado_por = username
+        traslado.motivo_rechazo = motivo_cancelacion
+        
+        # Actualizar observaciones generales agregando el motivo de cancelación
+        if traslado.observaciones:
             traslado.observaciones = f"{traslado.observaciones}\n\nCancelado por {username}: {motivo_cancelacion}".strip()
+        else:
+            traslado.observaciones = f"Cancelado por {username}: {motivo_cancelacion}"
+        
         traslado.save()
         
         messages.success(request, f'Traslado cancelado para {traslado.equipo.nombre_equipo}')
@@ -702,6 +756,10 @@ def cancelar_traslado_view(request, traslado_id):
     
     context = {
         'traslado': traslado,
+        'user': {
+            'username': username,
+            'rol': user_rol
+        },
         'user_rol': user_rol,
         'username': username
     }
