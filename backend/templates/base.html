@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -280,9 +282,9 @@
                 
                 <div class="footer-logos mb-3">
                     {# Asegúrate de que las rutas a las imágenes sean correctas con {% static %} si usas Django #}
-                    <img src="{% static 'img/images/lime.png' %}" alt="Logo LIME" class="footer-logo">
-                    <img src="{% static 'images/alma.png' %}" alt="Logo Alma" class="footer-logo">
-                    <img src="{% static 'images/universidad.png' %}" alt="Logo Universidad" class="footer-logo">
+                    <img src="{% static 'img/logos/lime.png' %}" alt="Logo LIME" class="footer-logo">
+                    <img src="{% static 'img/logos/alma.png' %}" alt="Logo Alma" class="footer-logo">
+                    <img src="{% static 'img/logos/universidad.png' %}" alt="Logo Universidad" class="footer-logo">
                 </div>
                 
                 <hr class="my-2">
