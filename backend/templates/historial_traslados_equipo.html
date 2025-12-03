@@ -5,131 +5,163 @@
 
 {% block extra_css %}
 <style>
+    /* Paleta del logo (Asegura la definición de variables) */
+    :root {
+        --azul: #0C2D57;
+        --turquesa: #02C6C6;
+        --agua: #47E5BC;
+        --gris: #7A7A7A;
+    }
+
+    /* Encabezado del Equipo (equipo-header) */
     .equipo-header {
-        background: linear-gradient(135deg, #007bff, #0056b3);
+        background: linear-gradient(135deg, var(--azul), var(--turquesa));
         color: white;
         padding: 2rem;
         margin-bottom: 2rem;
         border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     }
-    
+    .equipo-header h1 i, .equipo-header h3 {
+        color: white;
+    }
+    /* Botón Volver */
+    .btn-light-lime {
+        background-color: white;
+        color: var(--azul);
+        border: none;
+        font-weight: 600;
+    }
+    .btn-light-lime:hover {
+        background-color: #f0f0f0;
+        color: var(--azul);
+    }
+    /* Botón Nuevo Traslado */
+    .btn-success-lime {
+        background-color: var(--agua);
+        border-color: var(--agua);
+        color: var(--azul);
+        font-weight: 600;
+    }
+    .btn-success-lime:hover {
+        background-color: #37D1A9; /* Tono más oscuro de agua */
+        border-color: #37D1A9;
+        color: var(--azul);
+    }
+
+    /* Tarjetas de Traslado */
     .traslado-card {
-        border: 1px solid #dee2e6;
+        border: 1px solid var(--turquesa);
+        border-left: 5px solid var(--turquesa);
         border-radius: 8px;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
         transition: all 0.3s ease;
+        background-color: #ffffff;
     }
-    
     .traslado-card:hover {
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 45, 87, 0.1); /* Sombra basada en azul */
+        transform: translateY(-3px);
     }
-    
     .traslado-header {
         padding: 1rem 1.25rem;
+        background-color: #f8f9fa;
         border-bottom: 1px solid #dee2e6;
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
-    
-    .traslado-body {
-        padding: 1.25rem;
+
+    /* Info rows */
+    .info-label {
+        font-weight: 600;
+        color: var(--azul); /* Azul para labels */
+        min-width: 140px;
     }
-    
+    .info-row {
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    /* Títulos de Origen/Destino */
+    .text-primary-lime-title { color: var(--azul) !important; }
+    .text-success-lime-title { color: var(--turquesa) !important; }
+    .text-info-lime-title { color: var(--agua) !important; }
+    .text-warning-lime-title { color: var(--turquesa) !important; } /* Usamos turquesa para Justificación */
+
+    /* Badges de Estado adaptados a LIME */
     .estado-badge {
         font-size: 0.85rem;
-        font-weight: 600;
+        font-weight: 700;
         padding: 0.4rem 0.8rem;
         border-radius: 20px;
     }
-    
     .estado-pendiente {
-        background-color: #fff3cd;
-        color: #856404;
-        border: 1px solid #ffeaa7;
+        background-color: var(--turquesa);
+        color: var(--azul);
+        border: 1px solid #02C6C6;
     }
-    
     .estado-aprobado {
-        background-color: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
+        background-color: var(--agua);
+        color: var(--azul);
+        border: 1px solid var(--agua);
     }
-    
     .estado-ejecutado {
-        background-color: #d1ecf1;
-        color: #0c5460;
-        border: 1px solid #bee5eb;
+        background-color: var(--azul);
+        color: white;
+        border: 1px solid var(--azul);
     }
-    
     .estado-cancelado {
-        background-color: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f1b0b7;
+        background-color: var(--gris);
+        color: white;
+        border: 1px solid var(--gris);
     }
-    
-    .info-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 0.5rem;
-        padding: 0.25rem 0;
-        border-bottom: 1px solid #f8f9fa;
+
+    /* Tarjetas de Estadísticas Rápidas */
+    .card-info-lime { border-color: var(--azul) !important; }
+    .text-info-lime { color: var(--azul) !important; }
+
+    .card-warning-lime { border-color: var(--turquesa) !important; }
+    .text-warning-lime { color: var(--turquesa) !important; }
+
+    .card-success-lime { border-color: var(--agua) !important; }
+    .text-success-lime { color: var(--agua) !important; }
+
+    .card-danger-lime { border-color: var(--gris) !important; }
+    .text-danger-lime { color: var(--gris) !important; }
+
+    /* Acciones en la tarjeta */
+    .btn-outline-primary-lime {
+        color: var(--azul);
+        border-color: var(--azul);
     }
-    
-    .info-row:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
+    .btn-outline-primary-lime:hover {
+        background-color: var(--azul);
+        color: white;
     }
-    
-    .info-label {
-        font-weight: 600;
-        color: #495057;
-        min-width: 140px;
+    .btn-sm-success-lime {
+        background-color: var(--agua);
+        border-color: var(--agua);
+        color: var(--azul);
     }
-    
-    .info-value {
-        color: #212529;
-        text-align: right;
-        flex: 1;
+    .btn-sm-info-lime {
+        background-color: var(--turquesa);
+        border-color: var(--turquesa);
+        color: var(--azul);
     }
-    
-    .timeline-item {
-        position: relative;
-        padding-left: 2rem;
-        margin-bottom: 1rem;
+    .btn-outline-danger-lime {
+        color: var(--gris);
+        border-color: var(--gris);
     }
-    
-    .timeline-item::before {
-        content: '';
-        position: absolute;
-        left: 0.5rem;
-        top: 0.5rem;
-        width: 0.75rem;
-        height: 0.75rem;
-        background-color: #007bff;
-        border-radius: 50%;
-        border: 2px solid white;
-        box-shadow: 0 0 0 2px #007bff;
+
+    /* Sin Traslados */
+    .no-traslados h4 {
+        color: var(--azul);
     }
-    
-    .no-traslados {
-        text-align: center;
-        padding: 3rem;
-        color: #6c757d;
-    }
-    
-    .no-traslados i {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-        color: #dee2e6;
-    }
+
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Encabezado del equipo -->
     <div class="equipo-header">
         <div class="row align-items-center">
             <div class="col-md-8">
@@ -144,11 +176,11 @@
                 </p>
             </div>
             <div class="col-md-4 text-end">
-                <a href="{% url 'equipo_detalle' equipo.id %}" class="btn btn-light btn-lg me-2">
+                <a href="{% url 'equipo_detalle' equipo.id %}" class="btn btn-light-lime btn-lg me-2">
                     <i class="fas fa-arrow-left"></i> Volver al Equipo
                 </a>
                 {% if user_rol == 'admin' or user_rol == 'tecnico' %}
-                    <a href="{% url 'solicitar_traslado_desde_equipo' equipo.id %}" class="btn btn-success btn-lg">
+                    <a href="{% url 'solicitar_traslado_desde_equipo' equipo.id %}" class="btn btn-success-lime btn-lg">
                         <i class="fas fa-plus"></i> Nuevo Traslado
                     </a>
                 {% endif %}
@@ -156,45 +188,55 @@
         </div>
     </div>
 
-    <!-- Contenido principal -->
     <div class="row">
         <div class="col-12">
             {% if traslados %}
-                <!-- Estadísticas rápidas -->
                 <div class="row mb-4">
                     <div class="col-md-3">
-                        <div class="card text-center border-info">
+                        <div class="card text-center card-info-lime">
                             <div class="card-body">
-                                <h5 class="card-title text-info">{{ traslados|length }}</h5>
+                                <h5 class="card-title text-info-lime">{{ traslados|length }}</h5>
                                 <p class="card-text">Total Traslados</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card text-center border-warning">
+                        <div class="card text-center card-warning-lime">
                             <div class="card-body">
-                                <h5 class="card-title text-warning">
-                                    {% for t in traslados %}{% if t.estado == 'pendiente' %}{{ forloop.counter0|add:1 }}{% endif %}{% empty %}0{% endfor %}
+                                <h5 class="card-title text-warning-lime">
+                                    {# Django template logic to count 'pendiente' #}
+                                    {% with count_pendiente=0 %}
+                                        {% for t in traslados %}{% if t.estado == 'pendiente' %}{% with count_pendiente=count_pendiente|add:1 %}{% endwith %}{% endif %}{% endfor %}
+                                        {{ count_pendiente }}
+                                    {% endwith %}
                                 </h5>
                                 <p class="card-text">Pendientes</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card text-center border-success">
+                        <div class="card text-center card-success-lime">
                             <div class="card-body">
-                                <h5 class="card-title text-success">
-                                    {% for t in traslados %}{% if t.estado == 'ejecutado' %}{{ forloop.counter0|add:1 }}{% endif %}{% empty %}0{% endfor %}
+                                <h5 class="card-title text-success-lime">
+                                    {# Django template logic to count 'ejecutado' #}
+                                    {% with count_ejecutado=0 %}
+                                        {% for t in traslados %}{% if t.estado == 'ejecutado' %}{% with count_ejecutado=count_ejecutado|add:1 %}{% endwith %}{% endif %}{% endfor %}
+                                        {{ count_ejecutado }}
+                                    {% endwith %}
                                 </h5>
                                 <p class="card-text">Ejecutados</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card text-center border-danger">
+                        <div class="card text-center card-danger-lime">
                             <div class="card-body">
-                                <h5 class="card-title text-danger">
-                                    {% for t in traslados %}{% if t.estado == 'cancelado' %}{{ forloop.counter0|add:1 }}{% endif %}{% empty %}0{% endfor %}
+                                <h5 class="card-title text-danger-lime">
+                                    {# Django template logic to count 'cancelado' #}
+                                    {% with count_cancelado=0 %}
+                                        {% for t in traslados %}{% if t.estado == 'cancelado' %}{% with count_cancelado=count_cancelado|add:1 %}{% endwith %}{% endif %}{% endfor %}
+                                        {{ count_cancelado }}
+                                    {% endwith %}
                                 </h5>
                                 <p class="card-text">Cancelados</p>
                             </div>
@@ -202,9 +244,8 @@
                     </div>
                 </div>
 
-                <!-- Lista de traslados -->
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header" style="color: var(--azul); font-weight: 600; border-bottom: 2px solid var(--turquesa);">
                         <h4 class="mb-0">
                             <i class="fas fa-list"></i> Registro de Traslados
                         </h4>
@@ -214,7 +255,7 @@
                             <div class="traslado-card">
                                 <div class="traslado-header">
                                     <div>
-                                        <h6 class="mb-1">
+                                        <h6 class="mb-1" style="color: var(--azul);">
                                             Traslado #{{ traslado.id }}
                                             <small class="text-muted">- {{ traslado.fecha_solicitud|date:"d/m/Y" }}</small>
                                         </h6>
@@ -236,7 +277,7 @@
                                 <div class="traslado-body">
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <h6 class="text-primary">
+                                            <h6 class="text-primary-lime-title">
                                                 <i class="fas fa-map-marker-alt"></i> Origen
                                             </h6>
                                             <div class="info-row">
@@ -254,7 +295,7 @@
                                         </div>
                                         
                                         <div class="col-md-6">
-                                            <h6 class="text-success">
+                                            <h6 class="text-success-lime-title">
                                                 <i class="fas fa-arrow-right"></i> Destino
                                             </h6>
                                             <div class="info-row">
@@ -274,7 +315,7 @@
                                     
                                     {% if traslado.justificacion %}
                                         <div class="mt-3">
-                                            <h6 class="text-info">
+                                            <h6 class="text-warning-lime-title">
                                                 <i class="fas fa-comment"></i> Justificación
                                             </h6>
                                             <p class="text-muted mb-2">{{ traslado.justificacion }}</p>
@@ -283,7 +324,7 @@
                                     
                                     {% if traslado.observaciones %}
                                         <div class="mt-2">
-                                            <h6 class="text-warning">
+                                            <h6 class="text-info-lime-title">
                                                 <i class="fas fa-sticky-note"></i> Observaciones
                                             </h6>
                                             <p class="text-muted mb-2">{{ traslado.observaciones }}</p>
@@ -292,7 +333,7 @@
                                     
                                     {% if traslado.estado == 'ejecutado' and traslado.fecha_traslado %}
                                         <div class="mt-2">
-                                            <small class="text-success">
+                                            <small class="text-success-lime-title">
                                                 <i class="fas fa-calendar-check"></i>
                                                 Ejecutado el {{ traslado.fecha_traslado|date:"d/m/Y" }}
                                                 {% if traslado.ejecutado_por %}
@@ -302,30 +343,29 @@
                                         </div>
                                     {% endif %}
                                     
-                                    <!-- Acciones -->
                                     <div class="mt-3 text-end">
-                                        <a href="{% url 'detalle_traslado' traslado.id %}" class="btn btn-sm btn-outline-primary">
+                                        <a href="{% url 'detalle_traslado' traslado.id %}" class="btn btn-sm btn-outline-primary-lime">
                                             <i class="fas fa-eye"></i> Ver Detalle
                                         </a>
                                         
                                         {% if user_rol == 'admin' %}
                                             {% if traslado.estado == 'pendiente' %}
-                                                <a href="{% url 'aprobar_traslado' traslado.id %}" class="btn btn-sm btn-success ms-1">
+                                                <a href="{% url 'aprobar_traslado' traslado.id %}" class="btn btn-sm btn-success-lime ms-1">
                                                     <i class="fas fa-check"></i> Aprobar
                                                 </a>
                                             {% elif traslado.estado == 'aprobado' %}
-                                                <a href="{% url 'ejecutar_traslado' traslado.id %}" class="btn btn-sm btn-info ms-1">
+                                                <a href="{% url 'ejecutar_traslado' traslado.id %}" class="btn btn-sm btn-info-lime ms-1">
                                                     <i class="fas fa-play"></i> Ejecutar
                                                 </a>
                                             {% endif %}
                                             
                                             {% if traslado.estado != 'ejecutado' %}
-                                                <a href="{% url 'cancelar_traslado' traslado.id %}" class="btn btn-sm btn-outline-danger ms-1">
+                                                <a href="{% url 'cancelar_traslado' traslado.id %}" class="btn btn-sm btn-outline-danger-lime ms-1">
                                                     <i class="fas fa-times"></i> Cancelar
                                                 </a>
                                             {% endif %}
                                         {% elif traslado.usuario_solicitante == username and traslado.estado == 'pendiente' %}
-                                            <a href="{% url 'cancelar_traslado' traslado.id %}" class="btn btn-sm btn-outline-danger ms-1">
+                                            <a href="{% url 'cancelar_traslado' traslado.id %}" class="btn btn-sm btn-outline-danger-lime ms-1">
                                                 <i class="fas fa-times"></i> Cancelar
                                             </a>
                                         {% endif %}
@@ -336,13 +376,12 @@
                     </div>
                 </div>
             {% else %}
-                <!-- Sin traslados -->
                 <div class="no-traslados">
                     <i class="fas fa-exchange-alt"></i>
                     <h4>Sin Historial de Traslados</h4>
                     <p class="text-muted">Este equipo no tiene traslados registrados aún.</p>
                     {% if user_rol == 'admin' or user_rol == 'tecnico' %}
-                        <a href="{% url 'solicitar_traslado_equipo' equipo.id %}" class="btn btn-primary">
+                        <a href="{% url 'solicitar_traslado_desde_equipo' equipo.id %}" class="btn btn-primary-lime">
                             <i class="fas fa-plus"></i> Crear Primer Traslado
                         </a>
                     {% endif %}

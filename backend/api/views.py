@@ -1,4 +1,5 @@
 # api/views.py
+from django.views.decorators.cache import never_cache
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db.models import Count, Q
@@ -313,7 +314,7 @@ def eliminar_usuario(request, usuario_id):
     return redirect('usuarios_lista')
 
 # ==================== ACTUALIZAR VISTA DE LOGIN ====================
-
+@never_cache
 def login_view(request):
     """Vista para página de login con mejoras"""
     if request.method == 'POST':

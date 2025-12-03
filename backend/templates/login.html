@@ -2,30 +2,68 @@
 
 {% block title %}Login - Gestor LIME{% endblock %}
 
+{% block navbar %}
+    {% endblock %}
+
+{% block footer %}
+    {% endblock %}
 {% block extra_css %}
 <style>
-    body {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
     }
+    /* VARIABLES DE COLOR */
+    /* Define los colores principales de la marca para fácil modificación */
+    :root {
+        --color-primario-oscuro: #004D79; /* Azul marino */
+        --color-acento-claro: #00A5AD;   /* Cian / Turquesa */
+        --color-intermedio: #3075A0;     /* Azul intermedio más suave */
+    }
+
+    /* 1. Fondo del cuerpo (Se usa el degradado de la nueva paleta) */
+    main {
+        /* Usa el degradado de los colores primario y acento */
+        background: linear-gradient(
+            135deg, 
+            var(--color-primario-oscuro) 0%, /* Inicia con Azul Marino */
+            var(--color-intermedio) 50%,     /* Transición suave a un azul más claro en el medio */
+            var(--color-acento-claro) 100%   /* Finaliza con Cian/Turquesa */
+        );
+    }
+    
     .login-card {
         background: white;
         border-radius: 15px;
         box-shadow: 0 15px 35px rgba(0,0,0,0.1);
         padding: 2rem;
+        margin-left: 33rem;
+        margin-top: 6rem;
         max-width: 400px;
         width: 100%;
     }
+    .login-card:hover{
+        box-shadow: 4px 4px 0 rgba(0,0,0,0.1);
+        transform: scale(1.02);
+    }
+    
     .login-header {
         text-align: center;
         margin-bottom: 2rem;
     }
+    
+    /* 2. Color del ícono (Usamos el color de acento) */
     .login-header i {
         font-size: 3rem;
-        color: #667eea;
+        color: var(--color-acento-claro); /* Icono en color Cian/Turquesa */
         margin-bottom: 1rem;
     }
+    
+    /* 3. Estilo del botón (Se usa el degradado de la nueva paleta) */
     .btn-login {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        /* Degradado similar al fondo, pero asegurando buen contraste */
+        background: linear-gradient(135deg, var(--color-primario-oscuro) 0%, var(--color-acento-claro) 100%);
         border: none;
         border-radius: 25px;
         padding: 12px;
@@ -33,14 +71,30 @@
         text-transform: uppercase;
         letter-spacing: 1px;
     }
+    
     .form-control {
         border-radius: 25px;
         padding: 12px 20px;
         border: 2px solid #e9ecef;
     }
+    
+    /* 4. Enfoque del input (Se usa el color de acento) */
     .form-control:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        border-color: var(--color-acento-claro); /* Borde Cian/Turquesa al enfocar */
+        box-shadow: 0 0 0 0.2rem rgba(0, 165, 173, 0.25); /* Sombra suave del Cian/Turquesa */
+    }
+    .btn-login:hover{
+        transform: scale(1.03);
+    }
+    .btn-login:focus, 
+    .btn-login.focus,
+    .btn-login:active, 
+    .btn-login.active {
+        outline: none !important; /* Elimina el borde de enfoque por defecto */
+        box-shadow: none !important; /* Elimina la sombra que simula el outline */
+        border: none !important;
+        /* Asegura que el botón no cambie de color ni se escale al hacer clic */
+        transform: none !important; 
     }
 </style>
 {% endblock %}
@@ -48,6 +102,7 @@
 {% block content %}
 <div class="login-card">
     <div class="login-header">
+        {% load static %}
         <i class="fas fa-microscope"></i>
         <h2 class="mb-0">Gestor LIME</h2>
         <p class="text-muted">Sistema de Gestión de Equipos</p>
@@ -58,13 +113,13 @@
         <div class="mb-3">
             <label for="username" class="form-label">Usuario</label>
             <input type="text" class="form-control" id="username" name="username" required 
-                   placeholder="Ingrese su usuario">
+                    placeholder="Ingrese su usuario">
         </div>
         
         <div class="mb-4">
             <label for="password" class="form-label">Contraseña</label>
             <input type="password" class="form-control" id="password" name="password" required 
-                   placeholder="Ingrese su contraseña">
+                    placeholder="Ingrese su contraseña">
         </div>
         
         <button type="submit" class="btn btn-primary btn-login w-100">
@@ -73,11 +128,6 @@
     </form>
     
     <div class="mt-4 text-center">
-        <small class="text-muted">
-            <strong>Usuarios de prueba:</strong><br>
-            Admin: admin / 12345<br>
-            Viewer: viewer / 12345
-        </small>
     </div>
 </div>
 {% endblock %}

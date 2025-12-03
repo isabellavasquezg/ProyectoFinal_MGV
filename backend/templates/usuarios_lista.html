@@ -3,29 +3,160 @@
 {% block title %}Gestión de Usuarios{% endblock %}
 
 {% block content %}
+<style>
+    /* Paleta del logo (Asegura la definición de variables) */
+    :root {
+        --azul: #0C2D57;
+        --turquesa: #02C6C6;
+        --agua: #47E5BC;
+        --gris: #7A7A7A;
+    }
+
+    /* Títulos */
+    h2 {
+        color: var(--azul);
+    }
+    h2 i {
+        color: var(--turquesa);
+    }
+
+    /* Botón Principal (Nuevo Usuario) */
+    .btn-primary-lime {
+        background-color: var(--azul);
+        border-color: var(--azul);
+        color: white;
+    }
+    .btn-primary-lime:hover {
+        background-color: #14498E; /* Tono más oscuro de Azul */
+        border-color: #14498E;
+    }
+
+    /* Botones de Filtro */
+    .btn-filtrar {
+        background-color: var(--turquesa);
+        border-color: var(--turquesa);
+        color: var(--azul);
+        font-weight: 600;
+    }
+    .btn-filtrar:hover {
+        background-color: #03A3A3;
+        border-color: #03A3A3;
+    }
+    .btn-limpiar {
+        color: var(--gris);
+        border-color: var(--gris);
+    }
+    .btn-limpiar:hover {
+        background-color: var(--gris);
+        color: white;
+    }
+
+    /* Alerta de Estadísticas */
+    .alert-info-lime {
+        background-color: var(--agua);
+        border-color: var(--turquesa);
+        color: var(--azul);
+        font-weight: 500;
+    }
+    .alert-info-lime strong {
+        font-weight: 700;
+    }
+
+    /* Tabla */
+    .table-header-lime {
+        background-color: var(--azul) !important;
+        color: white;
+    }
+
+    /* Badges de Estado */
+    .badge-activo {
+        background-color: var(--agua) !important;
+        color: var(--azul) !important;
+        font-weight: 600;
+    }
+    .badge-inactivo {
+        background-color: var(--gris) !important;
+        color: white !important;
+    }
+    .badge-self {
+        background-color: var(--turquesa) !important;
+        color: var(--azul) !important;
+    }
+
+    /* Badges de Rol */
+    .badge-rol-admin {
+        background-color: var(--azul) !important;
+        color: white !important;
+    }
+    .badge-rol-editor {
+        background-color: var(--turquesa) !important;
+        color: var(--azul) !important;
+        font-weight: 600;
+    }
+    .badge-rol-default {
+        background-color: var(--gris) !important;
+        color: white !important;
+    }
+
+    /* Botones de Acción en la Tabla */
+    .btn-outline-primary-lime {
+        color: var(--azul);
+        border-color: var(--azul);
+    }
+    .btn-outline-primary-lime:hover {
+        background-color: var(--azul);
+        color: white;
+    }
+
+    .btn-outline-warning-lime {
+        color: var(--turquesa);
+        border-color: var(--turquesa);
+    }
+    .btn-outline-warning-lime:hover {
+        background-color: var(--turquesa);
+        color: var(--azul);
+    }
+
+    .btn-outline-secondary-lime {
+        color: var(--gris);
+        border-color: var(--gris);
+    }
+    .btn-outline-secondary-lime:hover {
+        background-color: var(--gris);
+        color: white;
+    }
+    .btn-outline-success-lime {
+        color: var(--agua);
+        border-color: var(--agua);
+    }
+    .btn-outline-success-lime:hover {
+        background-color: var(--agua);
+        color: var(--azul);
+    }
+
+</style>
+
 <div class="container-fluid">
-    <!-- Header -->
     <div class="row mb-4">
         <div class="col-md-8">
             <h2><i class="fas fa-users me-2"></i>Gestión de Usuarios</h2>
             <p class="text-muted">Administra los usuarios del sistema</p>
         </div>
         <div class="col-md-4 text-end">
-            <a href="{% url 'crear_usuario' %}" class="btn btn-primary">
+            <a href="{% url 'crear_usuario' %}" class="btn btn-primary-lime">
                 <i class="fas fa-plus me-2"></i>Nuevo Usuario
             </a>
         </div>
     </div>
 
-    <!-- Filtros -->
     <div class="card mb-4">
         <div class="card-body">
             <form method="get" class="row g-3">
                 <div class="col-md-3">
                     <label class="form-label">Búsqueda</label>
                     <input type="text" class="form-control" name="search" 
-                           value="{{ filtros.search_actual }}" 
-                           placeholder="Usuario, nombre o email">
+                            value="{{ filtros.search_actual }}" 
+                            placeholder="Usuario, nombre o email">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Rol</label>
@@ -47,10 +178,10 @@
                     </select>
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-secondary me-2">
+                    <button type="submit" class="btn btn-filtrar me-2">
                         <i class="fas fa-search me-2"></i>Filtrar
                     </button>
-                    <a href="{% url 'usuarios_lista' %}" class="btn btn-outline-secondary">
+                    <a href="{% url 'usuarios_lista' %}" class="btn btn-outline-secondary btn-limpiar">
                         <i class="fas fa-times me-2"></i>Limpiar
                     </a>
                 </div>
@@ -58,22 +189,20 @@
         </div>
     </div>
 
-    <!-- Estadísticas -->
     <div class="row mb-4">
         <div class="col-md-12">
-            <div class="alert alert-info">
+            <div class="alert alert-info-lime">
                 <i class="fas fa-info-circle me-2"></i>
                 Total de usuarios encontrados: <strong>{{ total_usuarios }}</strong>
             </div>
         </div>
     </div>
 
-    <!-- Tabla de usuarios -->
     <div class="card">
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover">
-                    <thead class="table-light">
+                    <thead class="table-header-lime">
                         <tr>
                             <th>Usuario</th>
                             <th>Nombre Completo</th>
@@ -91,22 +220,30 @@
                             <td>
                                 <strong>{{ usuario.nombreusuario }}</strong>
                                 {% if usuario.nombreusuario == user.username %}
-                                <span class="badge bg-info ms-1">Tú</span>
+                                <span class="badge badge-self ms-1">Tú</span>
                                 {% endif %}
                             </td>
                             <td>{{ usuario.nombre_completo|default:"-" }}</td>
                             <td>{{ usuario.email|default:"-" }}</td>
                             <td>
-                                <span class="badge bg-{% if usuario.rol == 'admin' %}danger{% elif usuario.rol == 'editor' %}warning{% else %}secondary{% endif %}">
+                                <span class="badge 
+                                    {% if usuario.rol == 'admin' %}
+                                        badge-rol-admin
+                                    {% elif usuario.rol == 'editor' %}
+                                        badge-rol-editor
+                                    {% else %}
+                                        badge-rol-default
+                                    {% endif %}
+                                ">
                                     {{ usuario.get_rol_display }}
                                 </span>
                             </td>
                             <td>{{ usuario.departamento|default:"-" }}</td>
                             <td>
                                 {% if usuario.activo %}
-                                <span class="badge bg-success">Activo</span>
+                                <span class="badge badge-activo">Activo</span>
                                 {% else %}
-                                <span class="badge bg-secondary">Inactivo</span>
+                                <span class="badge badge-inactivo">Inactivo</span>
                                 {% endif %}
                             </td>
                             <td>
@@ -119,19 +256,19 @@
                             <td>
                                 <div class="btn-group" role="group">
                                     <a href="{% url 'detalle_usuario' usuario.id %}" 
-                                       class="btn btn-sm btn-outline-primary" title="Ver detalles">
+                                       class="btn btn-sm btn-outline-primary-lime" title="Ver detalles">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <a href="{% url 'editar_usuario' usuario.id %}" 
-                                       class="btn btn-sm btn-outline-warning" title="Editar">
+                                       class="btn btn-sm btn-outline-warning-lime" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     {% if usuario.nombreusuario != user.username %}
                                     <form method="post" action="{% url 'togglear_estado_usuario' usuario.id %}" 
-                                          class="d-inline" onsubmit="return confirm('¿Estás seguro?')">
+                                            class="d-inline" onsubmit="return confirm('¿Estás seguro que deseas {% if usuario.activo %}DESACTIVAR{% else %}ACTIVAR{% endif %} al usuario {{ usuario.nombreusuario }}?')">
                                         {% csrf_token %}
                                         <button type="submit" 
-                                                class="btn btn-sm btn-outline-{% if usuario.activo %}secondary{% else %}success{% endif %}" 
+                                                class="btn btn-sm btn-outline-{% if usuario.activo %}secondary-lime{% else %}success-lime{% endif %}" 
                                                 title="{% if usuario.activo %}Desactivar{% else %}Activar{% endif %}">
                                             <i class="fas fa-{% if usuario.activo %}ban{% else %}check{% endif %}"></i>
                                         </button>

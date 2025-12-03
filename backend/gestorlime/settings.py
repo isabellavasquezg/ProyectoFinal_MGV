@@ -81,7 +81,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    BASE_DIR / "static",  # Nuestra carpeta static
+    BASE_DIR / "static/images",  # Nuestra carpeta static
 ]
 
 # Default primary key field type

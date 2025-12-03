@@ -3,6 +3,159 @@
 {% block title %}Detalle Usuario - {{ usuario_detalle.nombreusuario }}{% endblock %}
 
 {% block content %}
+<style>
+    /* Paleta del logo */
+    :root {
+        --azul: #0C2D57;
+        --turquesa: #02C6C6;
+        --agua: #47E5BC;
+        --gris: #7A7A7A;
+        --peligro: #E94B3C; /* Rojo para acciones peligrosas */
+    }
+
+    /* Títulos principales */
+    h2 {
+        color: var(--azul);
+    }
+    h2 i {
+        color: var(--turquesa);
+    }
+
+    /* Badge Tu Perfil (Agua/Azul) */
+    .badge-self {
+        background-color: var(--agua) !important;
+        color: var(--azul) !important;
+        font-weight: 600;
+    }
+    /* Badge Inactivo (Gris) */
+    .badge-inactive {
+        background-color: var(--gris) !important;
+        color: white !important;
+    }
+
+    /* Botones de Encabezado */
+    .btn-outline-secondary-lime {
+        color: var(--gris);
+        border-color: var(--gris);
+    }
+    .btn-outline-secondary-lime:hover {
+        background-color: var(--gris);
+        color: white;
+    }
+
+    .btn-warning-lime {
+        background-color: var(--turquesa);
+        border-color: var(--turquesa);
+        color: var(--azul);
+        font-weight: 600;
+    }
+    .btn-warning-lime:hover {
+        background-color: #03A3A3;
+        border-color: #03A3A3;
+        color: var(--azul);
+    }
+    .btn-outline-warning-lime {
+        color: var(--turquesa);
+        border-color: var(--turquesa);
+    }
+    .btn-outline-warning-lime:hover {
+        background-color: var(--turquesa);
+        color: var(--azul);
+    }
+
+    /* Títulos de las tarjetas */
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid var(--agua);
+    }
+    .card-header h5 {
+        color: var(--azul);
+        font-weight: 600;
+    }
+    .card-header h5 i {
+        color: var(--turquesa);
+    }
+
+    /* Labels de detalles */
+    .text-muted-label {
+        color: var(--gris) !important;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+    }
+
+    /* Badges de Rol y Estado */
+    .badge-rol-admin {
+        background-color: var(--azul) !important;
+        color: white !important;
+    }
+    .badge-rol-editor {
+        background-color: var(--turquesa) !important;
+        color: var(--azul) !important;
+    }
+    .badge-rol-default {
+        background-color: var(--gris) !important;
+        color: white !important;
+    }
+    .badge-activo-lime {
+        background-color: var(--agua) !important;
+        color: var(--azul) !important;
+    }
+    .badge-inactivo-lime {
+        background-color: var(--gris) !important;
+        color: white !important;
+    }
+
+    /* Permisos */
+    .alert-admin {
+        background-color: var(--azul);
+        color: white;
+        border-color: var(--turquesa);
+    }
+    .alert-editor {
+        background-color: #fcf8e3; /* Amarillo claro */
+        color: #8a6d3b;
+        border-color: #faebcc;
+    }
+    .alert-visualizador {
+        background-color: #f0f0f0;
+        color: var(--gris);
+        border-color: var(--gris);
+    }
+
+    /* Botones de acciones rápidas */
+    .btn-outline-primary-lime-action {
+        color: var(--azul);
+        border-color: var(--azul);
+    }
+    .btn-outline-primary-lime-action:hover {
+        background-color: var(--azul);
+        color: white;
+    }
+    .btn-outline-success-lime {
+        color: var(--agua);
+        border-color: var(--agua);
+    }
+    .btn-outline-success-lime:hover {
+        background-color: var(--agua);
+        color: var(--azul);
+    }
+    .btn-outline-danger-lime {
+        color: var(--peligro);
+        border-color: var(--peligro);
+    }
+    .btn-outline-danger-lime:hover {
+        background-color: var(--peligro);
+        color: white;
+    }
+
+    /* Modal de Eliminación */
+    .modal-header-danger {
+        background-color: var(--peligro) !important;
+        color: white;
+    }
+
+</style>
+
 <div class="container-fluid">
     <!-- Header -->
     <div class="row mb-4">
@@ -11,27 +164,27 @@
                 <i class="fas fa-user me-2"></i>
                 {{ usuario_detalle.get_nombre_display }}
                 {% if es_usuario_propio %}
-                <span class="badge bg-info ms-2">Tu Perfil</span>
+                <span class="badge badge-self ms-2">Tu Perfil</span>
                 {% endif %}
             </h2>
             <p class="text-muted">
                 Usuario: <strong>{{ usuario_detalle.nombreusuario }}</strong>
                 {% if not usuario_detalle.activo %}
-                <span class="badge bg-secondary ms-2">Inactivo</span>
+                <span class="badge badge-inactive ms-2">Inactivo</span>
                 {% endif %}
             </p>
         </div>
         <div class="col-md-4 text-end">
             <div class="btn-group">
                 <a href="{% if user.rol == 'admin' %}{% url 'usuarios_lista' %}{% else %}{% url 'dashboard' %}{% endif %}" 
-                   class="btn btn-outline-secondary">
+                   class="btn btn-outline-secondary btn-outline-secondary-lime">
                     <i class="fas fa-arrow-left me-2"></i>Volver
                 </a>
-                <a href="{% url 'editar_usuario' usuario_detalle.id %}" class="btn btn-warning">
+                <a href="{% url 'editar_usuario' usuario_detalle.id %}" class="btn btn-warning-lime">
                     <i class="fas fa-edit me-2"></i>Editar
                 </a>
-                <a href="{% url 'cambiar_password' usuario_detalle.id %}" class="btn btn-outline-warning">
-                    <i class="fas fa-key me-2"></i>Cambiar Contraseña
+                <a href="{% url 'cambiar_password' usuario_detalle.id %}" class="btn btn-outline-warning-lime">
+                    <i class="fas fa-key me-2"></i>Contraseña
                 </a>
             </div>
         </div>
@@ -39,26 +192,26 @@
 
     <div class="row">
         <div class="col-lg-8">
-            <!-- Información Personal -->
-            <div class="card mb-4">
+            <!-- Información Personal y Laboral -->
+            <div class="card mb-4 shadow-sm">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="fas fa-user me-2"></i>Información Personal
+                        <i class="fas fa-id-card-alt me-2"></i>Datos de Contacto y Laborales
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label text-muted">Nombre de Usuario</label>
+                                <label class="form-label text-muted-label">Nombre de Usuario</label>
                                 <div class="fw-bold">{{ usuario_detalle.nombreusuario }}</div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label text-muted">Nombre Completo</label>
+                                <label class="form-label text-muted-label">Nombre Completo</label>
                                 <div>{{ usuario_detalle.nombre_completo|default:"<em class='text-muted'>No especificado</em>" }}</div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label text-muted">Correo Electrónico</label>
+                                <label class="form-label text-muted-label">Correo Electrónico</label>
                                 <div>
                                     {% if usuario_detalle.email %}
                                     <a href="mailto:{{ usuario_detalle.email }}">{{ usuario_detalle.email }}</a>
@@ -70,7 +223,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label text-muted">Teléfono</label>
+                                <label class="form-label text-muted-label">Teléfono</label>
                                 <div>
                                     {% if usuario_detalle.telefono %}
                                     <a href="tel:{{ usuario_detalle.telefono }}">{{ usuario_detalle.telefono }}</a>
@@ -80,11 +233,11 @@
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label text-muted">Cargo</label>
+                                <label class="form-label text-muted-label">Cargo</label>
                                 <div>{{ usuario_detalle.cargo|default:"<em class='text-muted'>No especificado</em>" }}</div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label text-muted">Departamento</label>
+                                <label class="form-label text-muted-label">Departamento</label>
                                 <div>{{ usuario_detalle.departamento|default:"<em class='text-muted'>No especificado</em>" }}</div>
                             </div>
                         </div>
@@ -93,7 +246,7 @@
             </div>
 
             <!-- Información del Sistema -->
-            <div class="card">
+            <div class="card shadow-sm">
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-cogs me-2"></i>Información del Sistema
@@ -103,35 +256,39 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label text-muted">Rol</label>
+                                <label class="form-label text-muted-label">Rol</label>
                                 <div>
-                                    <span class="badge bg-{% if usuario_detalle.rol == 'admin' %}danger{% elif usuario_detalle.rol == 'editor' %}warning{% else %}secondary{% endif %} fs-6">
+                                    <span class="badge fs-6 
+                                        {% if usuario_detalle.rol == 'admin' %}badge-rol-admin
+                                        {% elif usuario_detalle.rol == 'editor' %}badge-rol-editor
+                                        {% else %}badge-rol-default
+                                        {% endif %}">
                                         {{ usuario_detalle.get_rol_display }}
                                     </span>
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label text-muted">Estado</label>
+                                <label class="form-label text-muted-label">Estado</label>
                                 <div>
                                     {% if usuario_detalle.activo %}
-                                    <span class="badge bg-success fs-6">Activo</span>
+                                    <span class="badge badge-activo-lime fs-6">Activo</span>
                                     {% else %}
-                                    <span class="badge bg-secondary fs-6">Inactivo</span>
+                                    <span class="badge badge-inactivo-lime fs-6">Inactivo</span>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label text-muted">Fecha de Creación</label>
+                                <label class="form-label text-muted-label">Fecha de Creación</label>
                                 <div>{{ usuario_detalle.fecha_creacion|date:"d/m/Y" }}</div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label text-muted">Última Modificación</label>
+                                <label class="form-label text-muted-label">Última Modificación</label>
                                 <div>{{ usuario_detalle.fecha_ultima_modificacion|date:"d/m/Y H:i" }}</div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label text-muted">Último Acceso</label>
+                                <label class="form-label text-muted-label">Último Acceso</label>
                                 <div>
                                     {% if usuario_detalle.ultimo_acceso %}
                                     {{ usuario_detalle.ultimo_acceso|date:"d/m/Y H:i" }}
@@ -148,7 +305,7 @@
 
         <div class="col-lg-4">
             <!-- Tarjeta de acciones rápidas -->
-            <div class="card mb-4">
+            <div class="card mb-4 shadow-sm">
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-tools me-2"></i>Acciones Rápidas
@@ -156,10 +313,10 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{% url 'editar_usuario' usuario_detalle.id %}" class="btn btn-outline-warning">
+                        <a href="{% url 'editar_usuario' usuario_detalle.id %}" class="btn btn-warning-lime">
                             <i class="fas fa-edit me-2"></i>Editar Información
                         </a>
-                        <a href="{% url 'cambiar_password' usuario_detalle.id %}" class="btn btn-outline-primary">
+                        <a href="{% url 'cambiar_password' usuario_detalle.id %}" class="btn btn-outline-primary-lime-action">
                             <i class="fas fa-key me-2"></i>Cambiar Contraseña
                         </a>
                         {% if user.rol == 'admin' and not es_usuario_propio %}
@@ -168,12 +325,15 @@
                               onsubmit="return confirm('¿Estás seguro de cambiar el estado de este usuario?')">
                             {% csrf_token %}
                             <button type="submit" 
-                                    class="btn btn-outline-{% if usuario_detalle.activo %}secondary{% else %}success{% endif %} w-100">
+                                    class="btn w-100 
+                                    {% if usuario_detalle.activo %}btn-outline-secondary-lime
+                                    {% else %}btn-outline-success-lime
+                                    {% endif %}">
                                 <i class="fas fa-{% if usuario_detalle.activo %}ban{% else %}check{% endif %} me-2"></i>
                                 {% if usuario_detalle.activo %}Desactivar Usuario{% else %}Activar Usuario{% endif %}
                             </button>
                         </form>
-                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#eliminarModal">
+                        <button type="button" class="btn btn-outline-danger-lime" data-bs-toggle="modal" data-bs-target="#eliminarModal">
                             <i class="fas fa-trash me-2"></i>Eliminar Usuario
                         </button>
                         {% endif %}
@@ -182,7 +342,7 @@
             </div>
 
             <!-- Información de permisos -->
-            <div class="card">
+            <div class="card shadow-sm">
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-shield-alt me-2"></i>Permisos
@@ -190,31 +350,31 @@
                 </div>
                 <div class="card-body">
                     {% if usuario_detalle.rol == 'admin' %}
-                    <div class="alert alert-danger">
+                    <div class="alert alert-admin">
                         <strong>Administrador</strong><br>
                         Acceso completo a todas las funciones del sistema.
                     </div>
                     <ul class="list-unstyled">
-                        <li><i class="fas fa-check text-success me-2"></i>Gestionar usuarios</li>
-                        <li><i class="fas fa-check text-success me-2"></i>Crear/editar equipos</li>
-                        <li><i class="fas fa-check text-success me-2"></i>Aprobar traslados</li>
-                        <li><i class="fas fa-check text-success me-2"></i>Ejecutar traslados</li>
-                        <li><i class="fas fa-check text-success me-2"></i>Ver reportes</li>
+                        <li><i class="fas fa-check text-success-lime me-2" style="color: var(--agua) !important;"></i>Gestionar usuarios</li>
+                        <li><i class="fas fa-check text-success-lime me-2" style="color: var(--agua) !important;"></i>Crear/editar equipos</li>
+                        <li><i class="fas fa-check text-success-lime me-2" style="color: var(--agua) !important;"></i>Aprobar traslados</li>
+                        <li><i class="fas fa-check text-success-lime me-2" style="color: var(--agua) !important;"></i>Ejecutar traslados</li>
+                        <li><i class="fas fa-check text-success-lime me-2" style="color: var(--agua) !important;"></i>Ver reportes</li>
                     </ul>
                     {% elif usuario_detalle.rol == 'editor' %}
-                    <div class="alert alert-warning">
+                    <div class="alert alert-editor">
                         <strong>Editor</strong><br>
                         Puede editar equipos y crear traslados.
                     </div>
                     <ul class="list-unstyled">
                         <li><i class="fas fa-times text-danger me-2"></i>Gestionar usuarios</li>
-                        <li><i class="fas fa-check text-success me-2"></i>Crear/editar equipos</li>
-                        <li><i class="fas fa-check text-success me-2"></i>Solicitar traslados</li>
+                        <li><i class="fas fa-check text-success-lime me-2" style="color: var(--agua) !important;"></i>Crear/editar equipos</li>
+                        <li><i class="fas fa-check text-success-lime me-2" style="color: var(--agua) !important;"></i>Solicitar traslados</li>
                         <li><i class="fas fa-times text-danger me-2"></i>Aprobar traslados</li>
-                        <li><i class="fas fa-check text-success me-2"></i>Ver reportes</li>
+                        <li><i class="fas fa-check text-success-lime me-2" style="color: var(--agua) !important;"></i>Ver reportes</li>
                     </ul>
                     {% else %}
-                    <div class="alert alert-secondary">
+                    <div class="alert alert-visualizador">
                         <strong>Visualizador</strong><br>
                         Solo puede consultar información.
                     </div>
@@ -223,7 +383,7 @@
                         <li><i class="fas fa-times text-danger me-2"></i>Crear/editar equipos</li>
                         <li><i class="fas fa-times text-danger me-2"></i>Solicitar traslados</li>
                         <li><i class="fas fa-times text-danger me-2"></i>Aprobar traslados</li>
-                        <li><i class="fas fa-check text-success me-2"></i>Ver reportes</li>
+                        <li><i class="fas fa-check text-success-lime me-2" style="color: var(--agua) !important;"></i>Ver reportes</li>
                     </ul>
                     {% endif %}
                 </div>
@@ -237,7 +397,7 @@
 <div class="modal fade" id="eliminarModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
+            <div class="modal-header modal-header-danger">
                 <h5 class="modal-title">
                     <i class="fas fa-exclamation-triangle me-2"></i>Eliminar Usuario
                 </h5>
@@ -246,7 +406,7 @@
             <div class="modal-body">
                 <p><strong>¡ATENCIÓN!</strong> Esta acción no se puede deshacer.</p>
                 <p>Para confirmar la eliminación del usuario <strong>{{ usuario_detalle.nombreusuario }}</strong>, 
-                   escribe exactamente su nombre de usuario en el campo de abajo:</p>
+                    escribe exactamente su nombre de usuario en el campo de abajo:</p>
                 
                 <form method="post" action="{% url 'eliminar_usuario' usuario_detalle.id %}">
                     {% csrf_token %}
@@ -255,7 +415,7 @@
                                placeholder="Escribe: {{ usuario_detalle.nombreusuario }}" required>
                     </div>
                     <div class="text-end">
-                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-secondary-lime me-2" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-danger">
                             <i class="fas fa-trash me-2"></i>Eliminar Definitivamente
                         </button>

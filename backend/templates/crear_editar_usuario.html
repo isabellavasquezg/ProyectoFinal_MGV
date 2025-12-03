@@ -3,8 +3,87 @@
 {% block title %}{{ titulo }}{% endblock %}
 
 {% block content %}
+<style>
+    /* Paleta del logo */
+    :root {
+        --azul: #0C2D57;
+        --turquesa: #02C6C6;
+        --agua: #47E5BC;
+        --gris: #7A7A7A;
+    }
+
+    /* Títulos principales y subtítulos */
+    h2 {
+        color: var(--azul);
+    }
+    h2 i {
+        color: var(--turquesa);
+    }
+    h5 {
+        color: var(--azul);
+        font-weight: 600;
+        border-bottom: 2px solid var(--turquesa) !important;
+    }
+    h5 i {
+        color: var(--turquesa);
+    }
+
+    /* Botón Volver */
+    .btn-outline-secondary-lime {
+        color: var(--gris);
+        border-color: var(--gris);
+    }
+    .btn-outline-secondary-lime:hover {
+        background-color: var(--gris);
+        color: white;
+    }
+
+    /* Alerta de Errores */
+    .alert-danger-lime {
+        background-color: #f8d7da;
+        color: #721c24;
+        border-color: #f5c6cb;
+    }
+
+    /* Texto de ayuda y errores */
+    .form-text, .text-muted {
+        color: var(--gris) !important;
+    }
+    .text-danger {
+        color: #dc3545 !important; /* Mantener el rojo estándar para errores críticos */
+    }
+
+    /* Botones de acción del formulario */
+    .btn-secondary-lime {
+        color: var(--gris);
+        border-color: var(--gris);
+    }
+    .btn-secondary-lime:hover {
+        background-color: var(--gris);
+        color: white;
+    }
+    .btn-primary-lime {
+        background-color: var(--azul);
+        border-color: var(--azul);
+        color: white;
+    }
+    .btn-primary-lime:hover {
+        background-color: #14498E;
+        border-color: #14498E;
+    }
+
+    /* Botón extra (Cambiar Contraseña) */
+    .btn-outline-warning-lime {
+        color: var(--turquesa);
+        border-color: var(--turquesa);
+    }
+    .btn-outline-warning-lime:hover {
+        background-color: var(--turquesa);
+        color: var(--azul);
+    }
+</style>
+
 <div class="container-fluid">
-    <!-- Header -->
     <div class="row mb-4">
         <div class="col-md-8">
             <h2>
@@ -18,21 +97,19 @@
             {% endif %}
         </div>
         <div class="col-md-4 text-end">
-            <a href="{% url 'usuarios_lista' %}" class="btn btn-outline-secondary">
+            <a href="{% url 'usuarios_lista' %}" class="btn btn-outline-secondary btn-outline-secondary-lime">
                 <i class="fas fa-arrow-left me-2"></i>Volver
             </a>
         </div>
     </div>
 
-    <!-- Formulario -->
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card">
+            <div class="card shadow">
                 <div class="card-body">
                     <form method="post" novalidate>
                         {% csrf_token %}
                         
-                        <!-- Información básica -->
                         <div class="row mb-4">
                             <div class="col-12">
                                 <h5 class="border-bottom pb-2">
@@ -78,7 +155,6 @@
                             </div>
                         </div>
 
-                        <!-- Información laboral -->
                         <div class="row mb-4">
                             <div class="col-12">
                                 <h5 class="border-bottom pb-2">
@@ -104,7 +180,6 @@
                             </div>
                         </div>
 
-                        <!-- Permisos y acceso -->
                         <div class="row mb-4">
                             <div class="col-12">
                                 <h5 class="border-bottom pb-2">
@@ -139,7 +214,6 @@
                             </div>
                         </div>
 
-                        <!-- Contraseña -->
                         {% if not usuario_editado or not es_edicion_propia %}
                         <div class="row mb-4">
                             <div class="col-12">
@@ -173,29 +247,27 @@
                         </div>
                         {% endif %}
 
-                        <!-- Errores generales del formulario -->
                         {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
+                        <div class="alert alert-danger-lime">
                             {{ form.non_field_errors }}
                         </div>
                         {% endif %}
 
-                        <!-- Botones -->
                         <div class="row">
                             <div class="col-12">
                                 <hr>
                                 <div class="d-flex justify-content-between">
-                                    <a href="{% url 'usuarios_lista' %}" class="btn btn-secondary">
+                                    <a href="{% url 'usuarios_lista' %}" class="btn btn-secondary btn-secondary-lime">
                                         <i class="fas fa-times me-2"></i>Cancelar
                                     </a>
                                     <div>
                                         {% if usuario_editado and es_edicion_propia %}
                                         <a href="{% url 'cambiar_password' usuario_editado.id %}" 
-                                           class="btn btn-outline-warning me-2">
+                                           class="btn btn-outline-warning-lime me-2">
                                             <i class="fas fa-key me-2"></i>Cambiar Contraseña
                                         </a>
                                         {% endif %}
-                                        <button type="submit" class="btn btn-primary">
+                                        <button type="submit" class="btn btn-primary btn-primary-lime">
                                             <i class="fas fa-save me-2"></i>{{ boton_texto }}
                                         </button>
                                     </div>

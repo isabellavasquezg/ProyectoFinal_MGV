@@ -2,147 +2,302 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}Gestor LIME{% endblock %}</title>
+    
     {% load static %}
-    <!-- Bootstrap CSS -->
+    
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- CSS personalizado -->
+    
+    <style>
+        /* ==================================== */
+        /* VARIABLES GLOBALES         */
+        /* ==================================== */
+        :root {
+            --color-primario-oscuro: #004D79; 
+            --color-acento-claro: #00A5AD; 
+            --color-navbar-fondo: #00796B; 
+            --color-hover-iluminado: #CCFF90;
+            --color-gris-claro: #f8f9fa;
+        }
+
+        /* ------------------- ESTILOS DEL NAVBAR ------------------- */
+
+        /* 1. Fondo del Navbar */
+        .navbar.bg-primary {
+            background-color: var(--color-navbar-fondo) !important; 
+            border-bottom: 3px solid var(--color-acento-claro); /* Borde de acento */
+        }
+
+        /* 2. Estilo base del enlace */
+        .navbar-nav .nav-link, 
+        .navbar-nav .dropdown-toggle {
+            color: white !important;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+            outline: none !important;
+            box-shadow: none !important;
+            padding: 10px 15px; /* Más espacio para el click */
+            border-radius: 5px;
+        }
+
+        /* 3. Efecto HOVER: "Iluminación" */
+        .navbar-nav .nav-link:hover,
+        .navbar-nav .nav-link:focus,
+        .navbar-nav .dropdown-toggle:hover,
+        .navbar-nav .dropdown-toggle:focus {
+            color: var(--color-hover-iluminado) !important;
+            background-color: rgba(255, 255, 255, 0.1) !important; /* Fondo sutil */
+            transform: scale(1.03); 
+        }
+
+        /* 4. Efecto CLICK (Active/Presionado) */
+        .navbar-nav .nav-link:active,
+        .navbar-nav .dropdown-toggle:active {
+            transform: scale(0.98) !important;
+            color: var(--color-hover-iluminado) !important;
+        }
+        
+        /* 5. Estilo del Logo de la Marca */
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        /* 6. Estilo de los Menús Desplegables (Dropdowns) */
+        .dropdown-menu {
+            border-radius: 8px; /* Más redondeado */
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--color-acento-claro);
+            padding: 5px 0;
+            animation: fadeIn 0.3s ease-out; /* Animación sutil */
+        }
+
+        .dropdown-menu .dropdown-item {
+            color: var(--color-primario-oscuro);
+            transition: all 0.2s;
+            padding: 8px 15px;
+        }
+        
+        .dropdown-menu .dropdown-item:hover {
+            background-color: var(--color-acento-claro);
+            color: white;
+            padding-left: 20px; /* Deslizamiento sutil al pasar el mouse */
+        }
+        
+        .dropdown-menu .dropdown-header {
+            color: var(--color-navbar-fondo); /* Título con color del navbar */
+            font-weight: 700;
+            border-bottom: 1px solid var(--color-gris-claro);
+            margin-bottom: 5px;
+        }
+        
+        /* ------------------- ESTILOS DEL FOOTER ------------------- */
+        
+        .footer {
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .footer-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            padding-bottom: 10px;
+        }
+        
+        /* Ajustar los logos a un tamaño razonable */
+        .footer-logos img {
+            max-height: 40px; 
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+        
+        .footer-logos img:hover {
+            opacity: 1;
+        }
+
+        /* ------------------- ANIMACIONES ------------------- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    
     {% block extra_css %}{% endblock %}
 </head>
-<body>
-    {% if user %}
-    <!-- Navbar Principal -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'dashboard' %}">
-                <i class="fas fa-microscope"></i> Gestor LIME
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <!-- Menú principal -->
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'dashboard' %}">
-                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-cogs me-1"></i>Equipos
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'equipos' %}">
-                                <i class="fas fa-list me-2"></i>Lista de Equipos
-                            </a></li>
-                            {% if user.rol == 'admin' or user.rol == 'editor' %}
-                            <li><a class="dropdown-item" href="{% url 'crear_equipo' %}">
-                                <i class="fas fa-plus me-2"></i>Crear Equipo
-                            </a></li>
-                            {% endif %}
-                            <li><a class="dropdown-item" href="{% url 'equipos_inactivos' %}">
-                                <i class="fas fa-archive me-2"></i>Equipos Inactivos
-                            </a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-exchange-alt me-1"></i>Traslados
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'listar_traslados' %}">
-                                <i class="fas fa-list me-2"></i>Lista de Traslados
-                            </a></li>
-                            {% if user.rol == 'admin' or user.rol == 'editor' %}
-                            <li><a class="dropdown-item" href="{% url 'crear_traslado' %}">
-                                <i class="fas fa-plus me-2"></i>Crear Traslado
-                            </a></li>
-                            {% endif %}
-                        </ul>
-                    </li>
-                    {% if user.rol == 'admin' %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-users me-1"></i>Usuarios
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'usuarios_lista' %}">
-                                <i class="fas fa-list me-2"></i>Lista de Usuarios
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% url 'crear_usuario' %}">
-                                <i class="fas fa-user-plus me-2"></i>Crear Usuario
-                            </a></li>
-                        </ul>
-                    </li>
-                    {% endif %}
-                </ul>
+<body class="d-flex flex-column min-vh-100">
+    {% block navbar %}
+        {% if user %}
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow-sm">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="{% url 'dashboard' %}">
+                    <i class="fas fa-microscope me-2"></i> Gestor LIME
+                </a>
                 
-                <!-- Menú de usuario -->
-                <div class="navbar-nav">
-                    <div class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user"></i> 
-                            {% if user.username %}
-                                {{ user.username }}
-                                {% if user.rol %}
-                                    <span class="badge bg-light text-dark ms-1">{{ user.rol|title }}</span>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="{% url 'dashboard' %}">
+                                <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                            </a>
+                        </li>
+                        
+                        {# Menú Equipos #}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-cogs me-1"></i> Equipos
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'equipos' %}">
+                                    <i class="fas fa-list me-2"></i> Lista de Equipos
+                                </a></li>
+                                {% if user.rol == 'admin' or user.rol == 'editor' %}
+                                <li><a class="dropdown-item" href="{% url 'crear_equipo' %}">
+                                    <i class="fas fa-plus me-2"></i> Crear Equipo
+                                </a></li>
                                 {% endif %}
-                            {% else %}
-                                Usuario
-                            {% endif %}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><h6 class="dropdown-header">Mi Cuenta</h6></li>
-                            {% if request.session.user_id %}
-                            <li><a class="dropdown-item" href="{% url 'detalle_usuario' request.session.user_id %}">
-                                <i class="fas fa-user-circle me-2"></i>Ver Mi Perfil
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% url 'editar_usuario' request.session.user_id %}">
-                                <i class="fas fa-edit me-2"></i>Editar Perfil
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% url 'cambiar_password' request.session.user_id %}">
-                                <i class="fas fa-key me-2"></i>Cambiar Contraseña
-                            </a></li>
-                            {% else %}
-                            <li><span class="dropdown-item-text text-muted">Sesión no disponible</span></li>
-                            {% endif %}
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">
-                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-                            </a></li>
-                        </ul>
+                                <li><a class="dropdown-item" href="{% url 'equipos_inactivos' %}">
+                                    <i class="fas fa-archive me-2"></i> Equipos Inactivos
+                                </a></li>
+                            </ul>
+                        </li>
+                        
+                        {# Menú Traslados #}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-exchange-alt me-1"></i> Traslados
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'listar_traslados' %}">
+                                    <i class="fas fa-list-alt me-2"></i> Historial de Traslados
+                                </a></li>
+                                {% if user.rol == 'admin' or user.rol == 'editor' %}
+                                <li><a class="dropdown-item" href="{% url 'crear_traslado' %}">
+                                    <i class="fas fa-plus-circle me-2"></i> Solicitar Nuevo
+                                </a></li>
+                                {% endif %}
+                            </ul>
+                        </li>
+                        
+                        {# Menú Admin (solo para administradores) #}
+                        {% if user.rol == 'admin' %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-users-cog me-1"></i> Administración
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><h6 class="dropdown-header">Gestión de Usuarios</h6></li>
+                                <li><a class="dropdown-item" href="{% url 'usuarios_lista' %}">
+                                    <i class="fas fa-users me-2"></i> Lista de Usuarios
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'crear_usuario' %}">
+                                    <i class="fas fa-user-plus me-2"></i> Crear Usuario
+                                </a></li>
+                            </ul>
+                        </li>
+                        {% endif %}
+                    </ul>
+                    
+                    <div class="navbar-nav ms-auto">
+                        <div class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle"></i> 
+                                {% if user.username %}
+                                    <span class="d-none d-lg-inline">{{ user.username }}</span>
+                                    {% if user.rol %}
+                                        <span class="badge bg-light text-dark ms-1">{{ user.rol|title }}</span>
+                                    {% endif %}
+                                {% else %}
+                                    Usuario
+                                {% endif %}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><h6 class="dropdown-header">Mi Cuenta</h6></li>
+                                {% if request.session.user_id %}
+                                <li><a class="dropdown-item" href="{% url 'detalle_usuario' request.session.user_id %}">
+                                    <i class="fas fa-user-edit me-2"></i> Ver Perfil
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'editar_usuario' request.session.user_id %}">
+                                    <i class="fas fa-edit me-2"></i> Editar Perfil
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'cambiar_password' request.session.user_id %}">
+                                    <i class="fas fa-key me-2"></i> Cambiar Contraseña
+                                </a></li>
+                                {% else %}
+                                <li><span class="dropdown-item-text text-muted">Sesión no disponible</span></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger fw-bold" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                                </a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </nav>
-    {% endif %}
-
-    <!-- Contenido principal -->
-    <main class="{% if not user %}d-flex justify-content-center align-items-center min-vh-100{% else %}container-fluid py-4{% endif %}">
+        </nav>
+        {% endif %}
+    {% endblock %}
+    
+    <main class="flex-grow-1 p-4">
+        <div class="container-fluid">
         {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            {# Contenedor de mensajes centrado y con estilo #}
+            <div class="row justify-content-center mb-4">
+                <div class="col-lg-8">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                            {% if message.tags == 'success' %}<i class="fas fa-check-circle me-2"></i>{% endif %}
+                            {% if message.tags == 'error' %}<i class="fas fa-exclamation-triangle me-2"></i>{% endif %}
+                            {% if message.tags == 'warning' %}<i class="fas fa-exclamation-circle me-2"></i>{% endif %}
+                            {% if message.tags == 'info' %}<i class="fas fa-info-circle me-2"></i>{% endif %}
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
                 </div>
-            {% endfor %}
+            </div>
         {% endif %}
         
         {% block content %}{% endblock %}
+        </div>
     </main>
-
-    <!-- Bootstrap JS -->
+    
+    {% block footer %}
+        {% if user %}
+        <footer class="footer mt-auto py-3 bg-light text-dark">
+            <div class="container-fluid text-center">
+                
+                <div class="footer-logos mb-3">
+                    {# Asegúrate de que las rutas a las imágenes sean correctas con {% static %} si usas Django #}
+                    <img src="{% static 'img/images/lime.png' %}" alt="Logo LIME" class="footer-logo">
+                    <img src="{% static 'images/alma.png' %}" alt="Logo Alma" class="footer-logo">
+                    <img src="{% static 'images/universidad.png' %}" alt="Logo Universidad" class="footer-logo">
+                </div>
+                
+                <hr class="my-2">
+                
+                <span class="text-muted small">
+                    <i class="fas fa-code me-1"></i> &copy; {% now "Y" %} **Gestor LIME** | Desarrollado con <span style="color: red;">&#10084;</span> | Versión 1.0
+                </span>
+            </div>
+        </footer>
+        {% endif %}
+    {% endblock %}
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Chart.js para gráficas -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>
