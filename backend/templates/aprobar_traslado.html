@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Aprobar Traslado{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-check-circle text-success"></i>
+            Aprobar Solicitud de Traslado
+        </h1>
+        <a href="{% url 'detalle_traslado' traslado.id %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver a Detalles
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Resumen del traslado -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Resumen del Traslado a Aprobar</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-muted mb-3">Información General</h6>
+                            <p><strong>Equipo:</strong> {{ traslado.equipo.nombre_equipo }}</p>
+                            {% if traslado.equipo.codigo_interno %}
+                                <p><strong>Código:</strong> {{ traslado.equipo.codigo_interno }}</p>
+                            {% endif %}
+                            <p><strong>Solicitante:</strong> {{ traslado.usuario_solicitante }}</p>
+                            <p><strong>Fecha de solicitud:</strong> {{ traslado.fecha_solicitud|date:"d/m/Y" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-muted mb-3">Ubicaciones</h6>
+                            <div class="mb-3">
+                                <strong class="text-danger">Desde:</strong> {{ traslado.sede_origen|default:"Sin sede" }}
+                                {% if traslado.ubicacion_origen %} - {{ traslado.ubicacion_origen }}{% endif %}
+                            </div>
+                            <div>
+                                <strong class="text-success">Hacia:</strong> {{ traslado.sede_destino }}
+                                {% if traslado.ubicacion_destino %} - {{ traslado.ubicacion_destino }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div>
+                        <h6 class="fw-bold text-muted mb-2">Justificación:</h6>
+                        <p class="text-muted">{{ traslado.justificacion }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de aprobación -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">
+                        <i class="fas fa-check me-2"></i>Confirmar Aprobación
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>¿Está seguro que desea aprobar este traslado?</strong>
+                            <br>Una vez aprobado, el traslado podrá ser ejecutado por cualquier administrador.
+                        </div>
+
+                        <!-- Observaciones de aprobación -->
+                        <div class="mb-4">
+                            <label for="observaciones_aprobacion" class="form-label">Observaciones de Aprobación (opcional)</label>
+                            <textarea name="observaciones_aprobacion" id="observaciones_aprobacion" 
+                                      class="form-control" rows="3" 
+                                      placeholder="Comentarios adicionales sobre la aprobación..."></textarea>
+                            <div class="form-text">Puede agregar comentarios que considere relevantes para la ejecución del traslado.</div>
+                        </div>
+
+                        <!-- Información del aprobador -->
+                        <div class="alert alert-light border">
+                            <i class="fas fa-user-shield me-2"></i>
+                            <strong>Aprobado por:</strong> {{ username }}
+                            <br>
+                            <strong>Fecha de aprobación:</strong> {{ "now"|date:"d/m/Y" }}
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'detalle_traslado' traslado.id %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-2"></i>Confirmar Aprobación
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

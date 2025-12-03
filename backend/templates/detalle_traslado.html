@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Detalles del Traslado{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-info-circle text-primary"></i>
+            Detalles del Traslado
+        </h1>
+        <div>
+            <a href="{% url 'listar_traslados' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+            </a>
+            
+            {% if user_rol == 'admin' and traslado.estado == 'pendiente' %}
+                <a href="{% url 'aprobar_traslado' traslado.id %}" class="btn btn-success">
+                    <i class="fas fa-check me-2"></i>Aprobar
+                </a>
+            {% endif %}
+            
+            {% if user_rol == 'admin' and traslado.estado == 'aprobado' %}
+                <a href="{% url 'ejecutar_traslado' traslado.id %}" class="btn btn-info">
+                    <i class="fas fa-play me-2"></i>Ejecutar
+                </a>
+            {% endif %}
+            
+            {% if traslado.estado in 'pendiente,aprobado' %}
+                {% if user_rol == 'admin' or traslado.usuario_solicitante == username %}
+                    <a href="{% url 'cancelar_traslado' traslado.id %}" class="btn btn-danger">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </a>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Información del traslado -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Información General</h6>
+                    {% if traslado.estado == 'pendiente' %}
+                        <span class="badge bg-warning">Pendiente</span>
+                    {% elif traslado.estado == 'aprobado' %}
+                        <span class="badge bg-info">Aprobado</span>
+                    {% elif traslado.estado == 'ejecutado' %}
+                        <span class="badge bg-success">Ejecutado</span>
+                    {% elif traslado.estado == 'cancelado' %}
+                        <span class="badge bg-danger">Cancelado</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Información de la Solicitud</h6>
+                            <table class="table table-borderless table-sm">
+                                <tr>
+                                    <td class="fw-bold">Fecha de Solicitud:</td>
+                                    <td>{{ traslado.fecha_solicitud|date:"d/m/Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Solicitante:</td>
+                                    <td>{{ traslado.usuario_solicitante }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Estado:</td>
+                                    <td>
+                                        {% if traslado.estado == 'pendiente' %}
+                                            <span class="badge bg-warning">Pendiente de aprobación</span>
+                                        {% elif traslado.estado == 'aprobado' %}
+                                            <span class="badge bg-info">Aprobado - Pendiente de ejecución</span>
+                                        {% elif traslado.estado == 'ejecutado' %}
+                                            <span class="badge bg-success">Ejecutado el {{ traslado.fecha_traslado|date:"d/m/Y" }}</span>
+                                        {% elif traslado.estado == 'cancelado' %}
+                                            <span class="badge bg-danger">Cancelado</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% if traslado.estado == 'ejecutado' and traslado.ejecutado_por %}
+                                <tr>
+                                    <td class="fw-bold">Ejecutado por:</td>
+                                    <td>{{ traslado.ejecutado_por }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Equipo Involucrado</h6>
+                            <div class="border-start border-primary ps-3">
+                                <h6 class="mb-2">{{ traslado.equipo.nombre_equipo }}</h6>
+                                {% if traslado.equipo.codigo_interno %}
+                                    <p class="text-muted mb-1">Código: {{ traslado.equipo.codigo_interno }}</p>
+                                {% endif %}
+                                {% if traslado.equipo.marca %}
+                                    <p class="text-muted mb-1">Marca: {{ traslado.equipo.marca }}</p>
+                                {% endif %}
+                                {% if traslado.equipo.modelo %}
+                                    <p class="text-muted mb-1">Modelo: {{ traslado.equipo.modelo }}</p>
+                                {% endif %}
+                                <a href="{% url 'equipo_detalle' traslado.equipo.id %}" class="btn btn-sm btn-outline-primary mt-2">
+                                    <i class="fas fa-external-link-alt me-1"></i>Ver Equipo
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de ubicaciones -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Ubicaciones</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Ubicación origen -->
+                        <div class="col-md-6">
+                            <div class="border-end pe-3">
+                                <h6 class="text-danger mb-3">
+                                    <i class="fas fa-map-marker-alt me-2"></i>Ubicación Actual/Origen
+                                </h6>
+                                <div class="mb-2">
+                                    <strong>Sede:</strong> 
+                                    <span class="text-muted">{{ traslado.sede_origen|default:"No especificada" }}</span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Ubicación:</strong> 
+                                    <span class="text-muted">{{ traslado.ubicacion_origen|default:"No especificada" }}</span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Responsable:</strong> 
+                                    <span class="text-muted">{{ traslado.responsable_origen|default:"No especificado" }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ubicación destino -->
+                        <div class="col-md-6">
+                            <h6 class="text-success mb-3">
+                                <i class="fas fa-map-marker-alt me-2"></i>Nueva Ubicación/Destino
+                            </h6>
+                            <div class="mb-2">
+                                <strong>Sede:</strong> 
+                                <span class="text-muted">{{ traslado.sede_destino }}</span>
+                            </div>
+                            <div class="mb-2">
+                                <strong>Ubicación:</strong> 
+                                <span class="text-muted">{{ traslado.ubicacion_destino|default:"No especificada" }}</span>
+                            </div>
+                            <div class="mb-2">
+                                <strong>Responsable:</strong> 
+                                <span class="text-muted">{{ traslado.responsable_destino|default:"No especificado" }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Flecha indicativa -->
+                    <div class="text-center my-3">
+                        <i class="fas fa-arrow-right fa-2x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Justificación y observaciones -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Detalles</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-muted">Justificación del Traslado:</h6>
+                        <p class="mb-0">{{ traslado.justificacion|linebreaks }}</p>
+                    </div>
+
+                    {% if traslado.observaciones %}
+                    <div class="mb-0">
+                        <h6 class="fw-bold text-muted">Observaciones:</h6>
+                        <p class="mb-0">{{ traslado.observaciones|linebreaks }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel lateral con acciones -->
+        <div class="col-lg-4">
+            <!-- Estado y acciones -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Acciones Disponibles</h6>
+                </div>
+                <div class="card-body">
+                    {% if traslado.estado == 'pendiente' %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-clock me-2"></i>
+                            <strong>Pendiente de Aprobación</strong>
+                            <br>Este traslado está esperando la aprobación de un administrador.
+                        </div>
+                        
+                        {% if user_rol == 'admin' %}
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'aprobar_traslado' traslado.id %}" class="btn btn-success">
+                                    <i class="fas fa-check me-2"></i>Aprobar Traslado
+                                </a>
+                                <a href="{% url 'cancelar_traslado' traslado.id %}" class="btn btn-danger">
+                                    <i class="fas fa-times me-2"></i>Rechazar/Cancelar
+                                </a>
+                            </div>
+                        {% elif traslado.usuario_solicitante == username %}
+                            <div class="d-grid">
+                                <a href="{% url 'cancelar_traslado' traslado.id %}" class="btn btn-outline-danger">
+                                    <i class="fas fa-times me-2"></i>Cancelar Solicitud
+                                </a>
+                            </div>
+                        {% endif %}
+
+                    {% elif traslado.estado == 'aprobado' %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-thumbs-up me-2"></i>
+                            <strong>Traslado Aprobado</strong>
+                            <br>Este traslado ha sido aprobado y está listo para ser ejecutado.
+                        </div>
+                        
+                        {% if user_rol == 'admin' %}
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'ejecutar_traslado' traslado.id %}" class="btn btn-info">
+                                    <i class="fas fa-play me-2"></i>Ejecutar Traslado
+                                </a>
+                                <a href="{% url 'cancelar_traslado' traslado.id %}" class="btn btn-outline-danger">
+                                    <i class="fas fa-times me-2"></i>Cancelar
+                                </a>
+                            </div>
+                        {% endif %}
+
+                    {% elif traslado.estado == 'ejecutado' %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Traslado Ejecutado</strong>
+                            <br>Este traslado se completó exitosamente el {{ traslado.fecha_traslado|date:"d/m/Y" }}.
+                        </div>
+
+                    {% elif traslado.estado == 'cancelado' %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-times-circle me-2"></i>
+                            <strong>Traslado Cancelado</strong>
+                            <br>Este traslado fue cancelado y no se puede ejecutar.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Historial del equipo -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Historial del Equipo</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'historial_traslados_equipo' traslado.equipo.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-history me-2"></i>Ver Historial de Traslados
+                        </a>
+                        <a href="{% url 'equipo_detalle' traslado.equipo.id %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-external-link-alt me-2"></i>Ver Detalles del Equipo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

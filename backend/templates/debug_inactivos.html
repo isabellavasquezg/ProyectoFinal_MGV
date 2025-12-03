@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+
+{% block title %}Debug Equipos Inactivos - Gestor LIME{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-bug text-warning"></i> Debug: Equipos Inactivos
+            </h1>
+            <a href="{% url 'equipos_inactivos' %}" class="btn btn-primary">
+                <i class="fas fa-arrow-left"></i> Volver a Inactivos
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Estadísticas de Debug -->
+<div class="row mb-4">
+    <div class="col-lg-2 col-md-4 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h6 class="card-title">Total Equipos</h6>
+                <h3>{{ debug_info.total_equipos }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6 class="card-title">Activos</h6>
+                <h3>{{ debug_info.equipos_activos }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 mb-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h6 class="card-title">Inactivos Total</h6>
+                <h3>{{ debug_info.equipos_inactivos_total }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-4 mb-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h6 class="card-title">Registros Desactivación</h6>
+                <h3>{{ debug_info.registros_desactivacion }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-4 mb-3">
+        <div class="card bg-dark text-white">
+            <div class="card-body">
+                <h6 class="card-title">Sin Registro</h6>
+                <h3>{{ debug_info.equipos_sin_registro }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if equipos_sin_registro %}
+<!-- Equipos Inactivos SIN Registro de Desactivación -->
+<div class="card mb-4">
+    <div class="card-header bg-danger text-white">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-exclamation-triangle"></i> PROBLEMA: Equipos Inactivos SIN Registro de Desactivación
+        </h5>
+    </div>
+    <div class="card-body">
+        <p class="text-danger"><strong>Estos equipos están marcados como inactivos pero NO tienen registro en la tabla de desactivación:</strong></p>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Proceso</th>
+                        <th>Serie</th>
+                        <th>Sede</th>
+                        <th>Estado en BD</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for equipo in equipos_sin_registro %}
+                    <tr>
+                        <td><span class="badge bg-danger">{{ equipo.id }}</span></td>
+                        <td>{{ equipo.nombre_equipo|truncatechars:30 }}</td>
+                        <td>{{ equipo.proceso }}</td>
+                        <td>{{ equipo.serie|default:"-" }}</td>
+                        <td>{{ equipo.sede|default:"-" }}</td>
+                        <td>
+                            <span class="badge bg-danger">
+                                activo = {{ equipo.activo }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'equipo_detalle' equipo.id %}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i> Ver Detalle
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="alert alert-warning">
+            <h6><i class="fas fa-lightbulb"></i> Posibles Soluciones:</h6>
+            <ul class="mb-0">
+                <li><strong>Opción 1:</strong> Reactivar estos equipos y luego desactivarlos correctamente</li>
+                <li><strong>Opción 2:</strong> Crear registros manuales de desactivación para estos equipos</li>
+                <li><strong>Opción 3:</strong> Cambiar la lógica para mostrar todos los equipos inactivos aunque no tengan registro</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Todos los Equipos Inactivos -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list"></i> Todos los Equipos Inactivos (activo = False)
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if equipos_inactivos %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Proceso</th>
+                        <th>Serie</th>
+                        <th>Sede</th>
+                        <th>¿Tiene Registro?</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for equipo in equipos_inactivos %}
+                    <tr>
+                        <td><span class="badge bg-secondary">{{ equipo.id }}</span></td>
+                        <td>{{ equipo.nombre_equipo|truncatechars:30 }}</td>
+                        <td>{{ equipo.proceso }}</td>
+                        <td>{{ equipo.serie|default:"-" }}</td>
+                        <td>{{ equipo.sede|default:"-" }}</td>
+                        <td>
+                            {% for registro in registros_desactivacion %}
+                                {% if registro.equipo.id == equipo.id %}
+                                    <span class="badge bg-success">SÍ</span>
+                                    {% break %}
+                                {% endif %}
+                            {% empty %}
+                                <span class="badge bg-danger">NO</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <a href="{% url 'equipo_detalle' equipo.id %}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i> Ver
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No hay equipos inactivos en la base de datos.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Registros de Desactivación -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-database"></i> Registros en api_desactivacionequipo
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if registros_desactivacion %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID Registro</th>
+                        <th>Equipo ID</th>
+                        <th>Nombre Equipo</th>
+                        <th>Fecha Desactivación</th>
+                        <th>Responsable</th>
+                        <th>Justificación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for registro in registros_desactivacion %}
+                    <tr>
+                        <td>{{ registro.id }}</td>
+                        <td><span class="badge bg-primary">{{ registro.equipo.id }}</span></td>
+                        <td>{{ registro.equipo.nombre_equipo|truncatechars:30 }}</td>
+                        <td>{{ registro.fecha_desactivacion }}</td>
+                        <td>{{ registro.responsable_desactivacion }}</td>
+                        <td>{{ registro.justificacion|truncatechars:50 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No hay registros de desactivación en la base de datos.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

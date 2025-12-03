@@ -1,0 +1,430 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ equipo.nombre_equipo }} - Gestor LIME{% endblock %}
+
+{% block extra_css %}
+<style>
+    .nav-tabs .nav-link {
+        border-radius: 0;
+        font-weight: 500;
+    }
+    
+    .nav-tabs .nav-link.active {
+        background-color: #0d6efd;
+        color: white;
+        border-color: #0d6efd;
+    }
+    
+    .tab-content {
+        border: 1px solid #dee2e6;
+        border-top: none;
+        padding: 1.5rem;
+        background-color: #fff;
+    }
+    
+    .info-badge {
+        background-color: #f8f9fa;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        border-left: 4px solid #0d6efd;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Formulario oculto para obtener token CSRF -->
+<form style="display: none;" id="csrfForm">
+    {% csrf_token %}
+</form>
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-microscope"></i> {{ equipo.nombre_equipo|truncatechars:50 }}
+                    {% if not equipo.activo %}
+                        <span class="badge bg-danger ms-2">INACTIVO</span>
+                    {% endif %}
+                </h1>
+                <p class="text-muted mb-0">
+                    <strong>ID:</strong> {{ equipo.id }} | 
+                    <strong>Proceso:</strong> {{ equipo.proceso }} | 
+                    <strong>Serie:</strong> {{ equipo.serie|default:"Sin serie" }}
+                    {% if not equipo.activo and registro_desactivacion %}
+                    <br><strong>Desactivado el:</strong> {{ registro_desactivacion.fecha_desactivacion }} 
+                    por {{ registro_desactivacion.responsable_desactivacion }}
+                    {% endif %}
+                </p>
+            </div>
+            <div>
+                {% if equipo.activo %}
+                    <a href="{% url 'crear_traslado' %}?equipo_id={{ equipo.id }}" class="btn btn-warning me-2">
+                        <i class="fas fa-exchange-alt"></i> Solicitar Traslado
+                    </a>
+                    <a href="{% url 'equipos' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver a Equipos
+                    </a>
+                {% else %}
+                    <a href="{% url 'equipos_inactivos' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver a Inactivos
+                    </a>
+                    <button class="btn btn-success ms-2" onclick="confirmarReactivacion({{ equipo.id }}, '{{ equipo.nombre_equipo|escapejs }}')">
+                        <i class="fas fa-check-circle"></i> Reactivar Equipo
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pestañas de Navegación -->
+<ul class="nav nav-tabs" id="equipoTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if tab_activa == 'general' %}active{% endif %}" 
+                id="general-tab" data-bs-toggle="tab" data-bs-target="#general" 
+                type="button" role="tab">
+            <i class="fas fa-info-circle"></i> Información General
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if tab_activa == 'historico' %}active{% endif %}" 
+                id="historico-tab" data-bs-toggle="tab" data-bs-target="#historico" 
+                type="button" role="tab">
+            <i class="fas fa-history"></i> Registro Histórico
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if tab_activa == 'metrologia_admin' %}active{% endif %}" 
+                id="metrologia-admin-tab" data-bs-toggle="tab" data-bs-target="#metrologia-admin" 
+                type="button" role="tab">
+            <i class="fas fa-tools"></i> Metrología Administrativa
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if tab_activa == 'metrologia_tecnica' %}active{% endif %}" 
+                id="metrologia-tecnica-tab" data-bs-toggle="tab" data-bs-target="#metrologia-tecnica" 
+                type="button" role="tab">
+            <i class="fas fa-ruler-combined"></i> Metrología Técnica
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if tab_activa == 'documentacion' %}active{% endif %}" 
+                id="documentacion-tab" data-bs-toggle="tab" data-bs-target="#documentacion" 
+                type="button" role="tab">
+            <i class="fas fa-file-alt"></i> Documentación
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if tab_activa == 'funcionamiento' %}active{% endif %}" 
+                id="funcionamiento-tab" data-bs-toggle="tab" data-bs-target="#funcionamiento" 
+                type="button" role="tab">
+            <i class="fas fa-cogs"></i> Condición de Funcionamiento
+        </button>
+    </li>
+</ul>
+
+<!-- Contenido de las Pestañas -->
+<div class="tab-content" id="equipoTabsContent">
+    
+    <!-- Información General -->
+    <div class="tab-pane fade {% if tab_activa == 'general' %}show active{% endif %}" 
+         id="general" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-info-circle"></i> Información General</h5>
+            <div class="dropdown">
+                <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" href="{% url 'editar_equipo_seccion' equipo.id 'general' %}">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <tr><th width="200">Sede</th><td>{{ equipo.sede|default:"-" }}</td></tr>
+                <tr><th>Servicio</th><td>{{ equipo.proceso|default:"-" }}</td></tr>
+                <tr><th>Número de Serie</th><td>{{ equipo.serie|default:"-" }}</td></tr>
+                <tr><th>Marca</th><td>{{ equipo.marca|default:"-" }}</td></tr>
+                <tr><th>Modelo</th><td>{{ equipo.modelo|default:"-" }}</td></tr>
+                <tr><th>Nombre Equipo</th><td>{{ equipo.nombre_equipo|default:"-" }}</td></tr>
+                <tr><th>Responsable Servicio</th><td>{{ equipo.responsable|default:"-" }}</td></tr>
+                <tr><th>Código Inventario</th><td>{{ equipo.codigo_interno|default:"-" }}</td></tr>
+                <tr><th>Código IPS</th><td>{{ equipo.codigo_ips|default:"-" }}</td></tr>
+                <tr><th>Código ECRI</th><td>{{ equipo.codigo_ecri|default:"-" }}</td></tr>
+                <tr><th>Ubicación</th><td>{{ equipo.ubicacion|default:"-" }}</td></tr>
+                <tr><th>Clasificación Misional</th><td>{{ equipo.clasificacion_misional|default:"-" }}</td></tr>
+                <tr><th>Clasificación IPS</th><td>{{ equipo.clasificacion_ips|default:"-" }}</td></tr>
+                <tr><th>Clasificación Riesgo</th><td>{{ equipo.clasificacion_riesgo|default:"-" }}</td></tr>
+                <tr><th>Registro Invima</th><td>{{ equipo.registro_invima|default:"-" }}</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Registro Histórico -->
+    <div class="tab-pane fade {% if tab_activa == 'historico' %}show active{% endif %}" 
+         id="historico" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-history"></i> Registro Histórico</h5>
+            <div class="dropdown">
+                <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" href="{% url 'editar_equipo_seccion' equipo.id 'historico' %}">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <tr><th width="200">Sede</th><td>{{ equipo.sede|default:"-" }}</td></tr>
+                <tr><th>Servicio</th><td>{{ equipo.proceso|default:"-" }}</td></tr>
+                <tr><th>Número de Serie</th><td>{{ equipo.serie|default:"-" }}</td></tr>
+                <tr><th>Vida Útil</th><td>{{ equipo.tiempo_vida_util|default:"-" }}</td></tr>
+                <tr><th>Fecha Adquisición</th><td>{{ equipo.fecha_adquisicion|default:"-" }}</td></tr>
+                <tr><th>Propietario Equipo</th><td>{{ equipo.propietario|default:"-" }}</td></tr>
+                <tr><th>Fecha de Fabricación</th><td>{{ equipo.fecha_fabricacion|default:"-" }}</td></tr>
+                <tr><th>NIT</th><td>{{ equipo.nit|default:"-" }}</td></tr>
+                <tr><th>Proveedor Equipo</th><td>{{ equipo.proveedor|default:"-" }}</td></tr>
+                <tr><th>Estado de Garantía</th><td>{{ equipo.en_garantia|default:"-" }}</td></tr>
+                <tr><th>Terminación Garantía</th><td>{{ equipo.fecha_fin_garantia|default:"-" }}</td></tr>
+                <tr><th>Forma Adquisición</th><td>{{ equipo.forma_adquisicion|default:"-" }}</td></tr>
+                <tr><th>Tipo Documento</th><td>{{ equipo.tipo_documento|default:"-" }}</td></tr>
+                <tr><th>Número Documento</th><td>{{ equipo.numero_documento|default:"-" }}</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Metrología Administrativa -->
+    <div class="tab-pane fade {% if tab_activa == 'metrologia_admin' %}show active{% endif %}" 
+         id="metrologia-admin" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-tools"></i> Metrología Administrativa</h5>
+            <div class="dropdown">
+                <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" href="{% url 'editar_equipo_seccion' equipo.id 'metrologia_admin' %}">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <tr><th width="200">Sede</th><td>{{ equipo.sede|default:"-" }}</td></tr>
+                <tr><th>Servicio</th><td>{{ equipo.proceso|default:"-" }}</td></tr>
+                <tr><th>Número de Serie</th><td>{{ equipo.serie|default:"-" }}</td></tr>
+                <tr><th>Tiene Mantenimiento</th><td>{{ equipo.mantenimiento|default:"-" }}</td></tr>
+                <tr><th>Frecuencia Mto</th><td>{{ equipo.frecuencia_mantenimiento|default:"-" }}</td></tr>
+                <tr><th>Tiene Calibración</th><td>{{ equipo.calibracion|default:"-" }}</td></tr>
+                <tr><th>Frecuencia Calibración</th><td>{{ equipo.frecuencia_calibracion|default:"-" }}</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Metrología Técnica -->
+    <div class="tab-pane fade {% if tab_activa == 'metrologia_tecnica' %}show active{% endif %}" 
+         id="metrologia-tecnica" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-ruler-combined"></i> Metrología Técnica</h5>
+            <div class="dropdown">
+                <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" href="{% url 'editar_equipo_seccion' equipo.id 'metrologia_tecnica' %}">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <tr><th width="200">Sede</th><td>{{ equipo.sede|default:"-" }}</td></tr>
+                <tr><th>Servicio</th><td>{{ equipo.proceso|default:"-" }}</td></tr>
+                <tr><th>Número de Serie</th><td>{{ equipo.serie|default:"-" }}</td></tr>
+                <tr><th>Magnitud</th><td>{{ equipo.magnitud|default:"-" }}</td></tr>
+                <tr><th>Rango Equipo</th><td>{{ equipo.rango|default:"-" }}</td></tr>
+                <tr><th>Resolución</th><td>{{ equipo.resolucion|default:"-" }}</td></tr>
+                <tr><th>Rango Trabajo</th><td>{{ equipo.rango_trabajo|default:"-" }}</td></tr>
+                <tr><th>Error Máximo</th><td>{{ equipo.error_maximo|default:"-" }}</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Documentación -->
+    <div class="tab-pane fade {% if tab_activa == 'documentacion' %}show active{% endif %}" 
+         id="documentacion" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-file-alt"></i> Documentación</h5>
+            <div class="dropdown">
+                <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" href="{% url 'editar_equipo_seccion' equipo.id 'documentacion' %}">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <tr><th width="200">Sede</th><td>{{ equipo.sede|default:"-" }}</td></tr>
+                <tr><th>Servicio</th><td>{{ equipo.proceso|default:"-" }}</td></tr>
+                <tr><th>Número de Serie</th><td>{{ equipo.serie|default:"-" }}</td></tr>
+                <tr><th>Hoja de Vida</th><td>{{ equipo.hoja_vida|default:"-" }}</td></tr>
+                <tr><th>Reg. Importación</th><td>{{ equipo.registro_importacion|default:"-" }}</td></tr>
+                <tr><th>Manual Operación</th><td>{{ equipo.manual_operacion|default:"-" }}</td></tr>
+                <tr><th>Manual Mantenimiento</th><td>{{ equipo.manual_mantenimiento|default:"-" }}</td></tr>
+                <tr><th>Guía Rápida</th><td>{{ equipo.guia_rapida|default:"-" }}</td></tr>
+                <tr><th>Instructivo Uso</th><td>{{ equipo.instructivo|default:"-" }}</td></tr>
+                <tr><th>Protocolo Mantenimiento</th><td>{{ equipo.protocolo_mto|default:"-" }}</td></tr>
+                <tr><th>Frec. Metrológica</th><td>{{ equipo.frecuencia_metrologica|default:"-" }}</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Condición de Funcionamiento -->
+    <div class="tab-pane fade {% if tab_activa == 'funcionamiento' %}show active{% endif %}" 
+         id="funcionamiento" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-cogs"></i> Condición de Funcionamiento</h5>
+            <div class="dropdown">
+                <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" href="{% url 'editar_equipo_seccion' equipo.id 'funcionamiento' %}">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <tr><th width="200">Sede</th><td>{{ equipo.sede|default:"-" }}</td></tr>
+                <tr><th>Servicio</th><td>{{ equipo.proceso|default:"-" }}</td></tr>
+                <tr><th>Número de Serie</th><td>{{ equipo.serie|default:"-" }}</td></tr>
+                <tr><th>Voltaje</th><td>{{ equipo.voltaje|default:"-" }}</td></tr>
+                <tr><th>Corriente</th><td>{{ equipo.corriente|default:"-" }}</td></tr>
+                <tr><th>Humedad Relativa</th><td>{{ equipo.humedad|default:"-" }}</td></tr>
+                <tr><th>Temperatura</th><td>{{ equipo.temperatura|default:"-" }}</td></tr>
+                <tr><th>Dimensiones</th><td>{{ equipo.dimensiones|default:"-" }}</td></tr>
+                <tr><th>Peso</th><td>{{ equipo.peso|default:"-" }}</td></tr>
+                <tr><th>Otros</th><td>{{ equipo.otros|default:"-" }}</td></tr>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mantener pestaña activa en URL
+    const tabLinks = document.querySelectorAll('#equipoTabs button[data-bs-toggle="tab"]');
+    tabLinks.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            const url = new URL(window.location);
+            url.searchParams.set('tab', e.target.id.replace('-tab', ''));
+            window.history.replaceState({}, '', url);
+        });
+    });
+});
+
+function confirmarReactivacion(id, nombre) {
+    // Obtener token CSRF del formulario oculto
+    const csrfToken = document.querySelector('#csrfForm [name=csrfmiddlewaretoken]').value;
+    
+    console.log('Token CSRF obtenido:', csrfToken); // Debug
+    
+    if (!csrfToken) {
+        alert('Error: No se pudo obtener el token de seguridad. Recarga la página.');
+        return;
+    }
+    
+    const modal = `
+        <div class="modal fade" id="modalReactivar" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-check-circle"></i> Confirmar Reactivación
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>¿Estás seguro de que deseas reactivar el siguiente equipo?</strong></p>
+                        <div class="alert alert-info">
+                            <strong>Equipo:</strong> ${nombre}<br>
+                            <strong>ID:</strong> ${id}
+                        </div>
+                        <form id="formReactivar" method="POST" action="/equipos/${id}/activar/">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                        </form>
+                        <p class="small text-muted">
+                            <i class="fas fa-info-circle"></i> 
+                            Una vez reactivado, el equipo volverá a aparecer en la lista de equipos activos.
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="ejecutarReactivacion()">
+                            <i class="fas fa-check-circle"></i> Reactivar Equipo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remover modal existente si existe
+    const existingModal = document.getElementById('modalReactivar');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Agregar modal al DOM
+    document.body.insertAdjacentHTML('beforeend', modal);
+    
+    // Mostrar modal
+    const modalElement = new bootstrap.Modal(document.getElementById('modalReactivar'));
+    modalElement.show();
+}
+
+function ejecutarReactivacion() {
+    const form = document.getElementById('formReactivar');
+    form.submit();
+}
+</script>
+{% endblock %}

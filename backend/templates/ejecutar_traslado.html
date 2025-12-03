@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Ejecutar Traslado{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-play-circle text-info"></i>
+            Ejecutar Traslado
+        </h1>
+        <a href="{% url 'detalle_traslado' traslado.id %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver a Detalles
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Resumen del traslado -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Resumen del Traslado a Ejecutar</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-muted mb-3">Información General</h6>
+                            <p><strong>Equipo:</strong> {{ traslado.equipo.nombre_equipo }}</p>
+                            {% if traslado.equipo.codigo_interno %}
+                                <p><strong>Código:</strong> {{ traslado.equipo.codigo_interno }}</p>
+                            {% endif %}
+                            <p><strong>Solicitante:</strong> {{ traslado.usuario_solicitante }}</p>
+                            <p><strong>Fecha de solicitud:</strong> {{ traslado.fecha_solicitud|date:"d/m/Y" }}</p>
+                            <p><strong>Estado:</strong> <span class="badge bg-info">Aprobado</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-muted mb-3">Traslado</h6>
+                            <div class="mb-3">
+                                <strong class="text-danger">Desde:</strong> {{ traslado.sede_origen|default:"Sin sede" }}
+                                {% if traslado.ubicacion_origen %} - {{ traslado.ubicacion_origen }}{% endif %}
+                            </div>
+                            <div class="text-center my-2">
+                                <i class="fas fa-arrow-down text-primary"></i>
+                            </div>
+                            <div>
+                                <strong class="text-success">Hacia:</strong> {{ traslado.sede_destino }}
+                                {% if traslado.ubicacion_destino %} - {{ traslado.ubicacion_destino }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div>
+                        <h6 class="fw-bold text-muted mb-2">Justificación:</h6>
+                        <p class="text-muted">{{ traslado.justificacion }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de ejecución -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-play me-2"></i>Confirmar Ejecución del Traslado
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>¡Atención!</strong> Al ejecutar este traslado se actualizará automáticamente la ubicación del equipo en el sistema.
+                            <br><br>
+                            <strong>Cambios que se realizarán:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Sede del equipo: {{ traslado.equipo.sede|default:"Sin sede" }} → {{ traslado.sede_destino }}</li>
+                                {% if traslado.ubicacion_destino %}
+                                <li>Ubicación del equipo: {{ traslado.equipo.ubicacion|default:"Sin ubicación" }} → {{ traslado.ubicacion_destino }}</li>
+                                {% endif %}
+                                {% if traslado.responsable_destino %}
+                                <li>Responsable del equipo: {{ traslado.equipo.responsable|default:"Sin responsable" }} → {{ traslado.responsable_destino }}</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+
+                        <!-- Confirmación de traslado físico -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input type="checkbox" id="confirmacion_fisica" name="confirmacion_fisica" 
+                                       class="form-check-input" required>
+                                <label for="confirmacion_fisica" class="form-check-label">
+                                    <strong>Confirmo que el equipo ha sido trasladado físicamente a la nueva ubicación</strong>
+                                </label>
+                            </div>
+                            <div class="form-text text-danger">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Esta confirmación es obligatoria. Solo marque esta casilla si el equipo ya se encuentra en la nueva ubicación.
+                            </div>
+                        </div>
+
+                        <!-- Observaciones de ejecución -->
+                        <div class="mb-4">
+                            <label for="observaciones_ejecucion" class="form-label">Observaciones de Ejecución (opcional)</label>
+                            <textarea name="observaciones_ejecucion" id="observaciones_ejecucion" 
+                                      class="form-control" rows="3" 
+                                      placeholder="Comentarios sobre la ejecución del traslado, condiciones especiales, incidencias, etc."></textarea>
+                            <div class="form-text">Documente cualquier detalle relevante sobre cómo se realizó el traslado.</div>
+                        </div>
+
+                        <!-- Fecha de ejecución (opcional, por defecto hoy) -->
+                        <div class="mb-4">
+                            <label for="fecha_ejecucion" class="form-label">Fecha de Ejecución</label>
+                            <input type="date" name="fecha_ejecucion" id="fecha_ejecucion" 
+                                   class="form-control" value="{{ today|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}">
+                            <div class="form-text">Por defecto se usa la fecha actual. Puede cambiarla si el traslado se realizó en una fecha anterior.</div>
+                        </div>
+
+                        <!-- Información del ejecutor -->
+                        <div class="alert alert-light border">
+                            <i class="fas fa-user-cog me-2"></i>
+                            <strong>Ejecutado por:</strong> {{ username }}
+                            <br>
+                            <strong>Fecha de registro:</strong> {{ "now"|date:"d/m/Y H:i" }}
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'detalle_traslado' traslado.id %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-info" id="btnEjecutar" disabled>
+                                <i class="fas fa-play me-2"></i>Ejecutar Traslado
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmacionCheckbox = document.getElementById('confirmacion_fisica');
+    const btnEjecutar = document.getElementById('btnEjecutar');
+    
+    // Habilitar/deshabilitar botón según confirmación
+    confirmacionCheckbox.addEventListener('change', function() {
+        btnEjecutar.disabled = !this.checked;
+        if (this.checked) {
+            btnEjecutar.classList.remove('btn-secondary');
+            btnEjecutar.classList.add('btn-info');
+        } else {
+            btnEjecutar.classList.remove('btn-info');
+            btnEjecutar.classList.add('btn-secondary');
+        }
+    });
+
+    // Validación del formulario
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        if (!confirmacionCheckbox.checked) {
+            e.preventDefault();
+            alert('Debe confirmar que el equipo ha sido trasladado físicamente antes de proceder.');
+            return false;
+        }
+        
+        // Confirmación adicional
+        const confirmacion = confirm(
+            '¿Está completamente seguro de que desea ejecutar este traslado?\n\n' +
+            'Esta acción actualizará permanentemente la ubicación del equipo en el sistema.'
+        );
+        
+        if (!confirmacion) {
+            e.preventDefault();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

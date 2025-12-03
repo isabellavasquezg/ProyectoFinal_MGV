@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Solicitud de Traslado{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-plus-circle text-primary"></i>
+            Nueva Solicitud de Traslado
+        </h1>
+        <a href="{% url 'listar_traslados' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-exchange-alt me-2"></i>Información del Traslado
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Selección de equipo -->
+                        <div class="mb-4">
+                            <label for="equipo" class="form-label fw-bold">Equipo a trasladar *</label>
+                            {% if equipo_seleccionado %}
+                                <!-- Equipo preseleccionado desde detalle -->
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Equipo seleccionado:</strong> {{ equipo_seleccionado.nombre_equipo }}
+                                    {% if equipo_seleccionado.codigo_interno %} - {{ equipo_seleccionado.codigo_interno }}{% endif %}
+                                    ({{ equipo_seleccionado.sede|default:"Sin sede" }})
+                                </div>
+                                <input type="hidden" name="equipo" value="{{ equipo_seleccionado.id }}">
+                            {% else %}
+                                <!-- Selector normal de equipo -->
+                                <select name="equipo" id="equipo" class="form-select" required>
+                                    <option value="">Seleccione un equipo...</option>
+                                    {% for equipo in equipos %}
+                                        <option value="{{ equipo.id }}" 
+                                                data-sede="{{ equipo.sede|default:'' }}"
+                                                data-ubicacion="{{ equipo.ubicacion|default:'' }}"
+                                                data-responsable="{{ equipo.responsable|default:'' }}">
+                                            {{ equipo.nombre_equipo }}
+                                            {% if equipo.codigo_interno %} - {{ equipo.codigo_interno }}{% endif %}
+                                            ({{ equipo.sede|default:"Sin sede" }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Seleccione el equipo que desea trasladar</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Información de origen (se llena automáticamente) -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary fw-bold mb-3">
+                                    <i class="fas fa-map-marker-alt me-2"></i>Ubicación Actual
+                                </h6>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="sede_origen_display" class="form-label">Sede Actual</label>
+                                <input type="text" id="sede_origen_display" class="form-control bg-light" 
+                                       readonly placeholder="Seleccione un equipo"
+                                       {% if equipo_seleccionado %}value="{{ equipo_seleccionado.sede|default:'Sin sede' }}"{% endif %}>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="ubicacion_origen_display" class="form-label">Ubicación Actual</label>
+                                <input type="text" id="ubicacion_origen_display" class="form-control bg-light" 
+                                       readonly placeholder="Seleccione un equipo"
+                                       {% if equipo_seleccionado %}value="{{ equipo_seleccionado.ubicacion|default:'Sin ubicación' }}"{% endif %}>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="responsable_origen_display" class="form-label">Responsable Actual</label>
+                                <input type="text" id="responsable_origen_display" class="form-control bg-light" 
+                                       readonly placeholder="Seleccione un equipo"
+                                       {% if equipo_seleccionado %}value="{{ equipo_seleccionado.responsable|default:'Sin responsable' }}"{% endif %}>
+                            </div>
+                        </div>
+
+                        <!-- Información de destino -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-success fw-bold mb-3">
+                                    <i class="fas fa-map-marker-alt me-2"></i>Nueva Ubicación
+                                </h6>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="sede_destino" class="form-label">Nueva Sede *</label>
+                                <select name="sede_destino" id="sede_destino" class="form-select" required>
+                                    <option value="">Seleccione sede...</option>
+                                    {% for sede in sedes %}
+                                        <option value="{{ sede }}">{{ sede }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="ubicacion_destino" class="form-label">Nueva Ubicación</label>
+                                <input type="text" name="ubicacion_destino" id="ubicacion_destino" 
+                                       class="form-control" placeholder="Ej: Piso 2, Sala 201">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="responsable_destino" class="form-label">Nuevo Responsable</label>
+                                <input type="text" name="responsable_destino" id="responsable_destino" 
+                                       class="form-control" placeholder="Nombre del responsable">
+                            </div>
+                        </div>
+
+                        <!-- Justificación -->
+                        <div class="mb-4">
+                            <label for="justificacion" class="form-label fw-bold">Justificación del Traslado *</label>
+                            <textarea name="justificacion" id="justificacion" class="form-control" 
+                                      rows="4" required placeholder="Describa las razones por las cuales solicita este traslado..."></textarea>
+                            <div class="form-text">Explique detalladamente por qué necesita trasladar este equipo</div>
+                        </div>
+
+                        <!-- Observaciones -->
+                        <div class="mb-4">
+                            <label for="observaciones" class="form-label">Observaciones Adicionales</label>
+                            <textarea name="observaciones" id="observaciones" class="form-control" 
+                                      rows="3" placeholder="Información adicional relevante para el traslado..."></textarea>
+                        </div>
+
+                        <!-- Información del solicitante -->
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Solicitante:</strong> {{ username }}
+                            <br>
+                            <strong>Fecha de solicitud:</strong> {{ "now"|date:"d/m/Y" }}
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'listar_traslados' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Enviar Solicitud
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const equipoSelect = document.getElementById('equipo');
+    const sedeOrigenDisplay = document.getElementById('sede_origen_display');
+    const ubicacionOrigenDisplay = document.getElementById('ubicacion_origen_display');
+    const responsableOrigenDisplay = document.getElementById('responsable_origen_display');
+
+    equipoSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        
+        if (selectedOption.value) {
+            sedeOrigenDisplay.value = selectedOption.dataset.sede || 'Sin sede';
+            ubicacionOrigenDisplay.value = selectedOption.dataset.ubicacion || 'Sin ubicación';
+            responsableOrigenDisplay.value = selectedOption.dataset.responsable || 'Sin responsable';
+        } else {
+            sedeOrigenDisplay.value = '';
+            ubicacionOrigenDisplay.value = '';
+            responsableOrigenDisplay.value = '';
+        }
+    });
+
+    // Validación del formulario
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const equipoId = document.getElementById('equipo').value;
+        const sedeDestino = document.getElementById('sede_destino').value;
+        const justificacion = document.getElementById('justificacion').value.trim();
+
+        if (!equipoId) {
+            e.preventDefault();
+            alert('Por favor seleccione un equipo');
+            return false;
+        }
+
+        if (!sedeDestino) {
+            e.preventDefault();
+            alert('Por favor seleccione la sede de destino');
+            return false;
+        }
+
+        if (!justificacion) {
+            e.preventDefault();
+            alert('Por favor proporcione una justificación para el traslado');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

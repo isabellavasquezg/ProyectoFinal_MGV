@@ -1,0 +1,400 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar {{ seccion_titulo }} - {{ equipo.nombre_equipo }} - Gestor LIME{% endblock %}
+
+{% block extra_css %}
+<style>
+    .modal-backdrop {
+        background-color: rgba(0, 0, 0, 0.7) !important;
+    }
+    
+    .modal-xl-custom {
+        max-width: 90%;
+    }
+    
+    .form-section {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .form-section h6 {
+        color: #0d6efd;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .readonly-field {
+        background-color: #e9ecef;
+        border-left: 3px solid #6c757d !important;
+    }
+    
+    .modal-body {
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    
+    .equipo-info {
+        background-color: #e3f2fd;
+        border: 1px solid #bbdefb;
+        border-radius: 6px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Modal de Editar Sección -->
+<div class="modal fade show" id="editSeccionModal" tabindex="-1" style="display: block;" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-xl-custom">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h4 class="modal-title">
+                    <i class="fas fa-edit"></i> Editar {{ seccion_titulo }}
+                </h4>
+                <a href="{% url 'equipo_detalle' equipo.id %}?tab={{ seccion }}" class="btn-close btn-close-white"></a>
+            </div>
+            
+            <form method="post" id="seccionForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    
+                    <!-- Información del Equipo -->
+                    <div class="equipo-info">
+                        <h6 class="mb-2">
+                            <i class="fas fa-info-circle"></i> Información del Equipo
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <strong>ID:</strong> {{ equipo.id }}
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Nombre:</strong> {{ equipo.nombre_equipo|truncatechars:40 }}
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Proceso:</strong> {{ equipo.proceso }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Campos de Identificación (Solo Lectura) -->
+                    <div class="form-section">
+                        <h6><i class="fas fa-lock"></i> Identificación (Solo Lectura)</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Proceso</label>
+                                    {{ form.proceso }}
+                                    <small class="text-muted">Campo de solo lectura para identificación</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Número de Serie</label>
+                                    {{ form.serie }}
+                                    <small class="text-muted">Campo de solo lectura para identificación</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Campos Editables de la Sección -->
+                    <div class="form-section">
+                        <h6><i class="fas fa-edit"></i> Campos Editables - {{ seccion_titulo }}</h6>
+                        
+                        {% if seccion == 'general' %}
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.sede.label }}</label>
+                                        {{ form.sede }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.marca.label }}</label>
+                                        {{ form.marca }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.responsable.label }}</label>
+                                        {{ form.responsable }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.ubicacion.label }}</label>
+                                        {{ form.ubicacion }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.clasificacion_misional.label }}</label>
+                                        {{ form.clasificacion_misional }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.modelo.label }}</label>
+                                        {{ form.modelo }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.nombre_equipo.label }}</label>
+                                        {{ form.nombre_equipo }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.codigo_interno.label }}</label>
+                                        {{ form.codigo_interno }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.codigo_ips.label }}</label>
+                                        {{ form.codigo_ips }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.clasificacion_ips.label }}</label>
+                                        {{ form.clasificacion_ips }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.codigo_ecri.label }}</label>
+                                        {{ form.codigo_ecri }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.clasificacion_riesgo.label }}</label>
+                                        {{ form.clasificacion_riesgo }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.registro_invima.label }}</label>
+                                        {{ form.registro_invima }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if seccion == 'historico' %}
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.tiempo_vida_util.label }}</label>
+                                        {{ form.tiempo_vida_util }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.fecha_adquisicion.label }}</label>
+                                        {{ form.fecha_adquisicion }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.propietario.label }}</label>
+                                        {{ form.propietario }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.forma_adquisicion.label }}</label>
+                                        {{ form.forma_adquisicion }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.fecha_fabricacion.label }}</label>
+                                        {{ form.fecha_fabricacion }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.nit.label }}</label>
+                                        {{ form.nit }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.proveedor.label }}</label>
+                                        {{ form.proveedor }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.tipo_documento.label }}</label>
+                                        {{ form.tipo_documento }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.en_garantia.label }}</label>
+                                        {{ form.en_garantia }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.fecha_fin_garantia.label }}</label>
+                                        {{ form.fecha_fin_garantia }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.numero_documento.label }}</label>
+                                        {{ form.numero_documento }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if seccion == 'metrologia_admin' %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.mantenimiento.label }}</label>
+                                        {{ form.mantenimiento }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.frecuencia_mantenimiento.label }}</label>
+                                        {{ form.frecuencia_mantenimiento }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.calibracion.label }}</label>
+                                        {{ form.calibracion }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.frecuencia_calibracion.label }}</label>
+                                        {{ form.frecuencia_calibracion }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if seccion == 'metrologia_tecnica' %}
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.magnitud.label }}</label>
+                                        {{ form.magnitud }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.resolucion.label }}</label>
+                                        {{ form.resolucion }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.rango.label }}</label>
+                                        {{ form.rango }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.error_maximo.label }}</label>
+                                        {{ form.error_maximo }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.rango_trabajo.label }}</label>
+                                        {{ form.rango_trabajo }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if seccion == 'documentacion' %}
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.hoja_vida.label }}</label>
+                                        {{ form.hoja_vida }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.manual_operacion.label }}</label>
+                                        {{ form.manual_operacion }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.instructivo.label }}</label>
+                                        {{ form.instructivo }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.registro_importacion.label }}</label>
+                                        {{ form.registro_importacion }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.manual_mantenimiento.label }}</label>
+                                        {{ form.manual_mantenimiento }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.protocolo_mto.label }}</label>
+                                        {{ form.protocolo_mto }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.guia_rapida.label }}</label>
+                                        {{ form.guia_rapida }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.frecuencia_metrologica.label }}</label>
+                                        {{ form.frecuencia_metrologica }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if seccion == 'funcionamiento' %}
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.voltaje.label }}</label>
+                                        {{ form.voltaje }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.humedad.label }}</label>
+                                        {{ form.humedad }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.peso.label }}</label>
+                                        {{ form.peso }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.corriente.label }}</label>
+                                        {{ form.corriente }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.temperatura.label }}</label>
+                                        {{ form.temperatura }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.otros.label }}</label>
+                                        {{ form.otros }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.dimensiones.label }}</label>
+                                        {{ form.dimensiones }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <a href="{% url 'equipo_detalle' equipo.id %}?tab={{ seccion }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Overlay para el fondo -->
+<div class="modal-backdrop fade show"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Aplicar estilos a campos readonly
+    const readonlyFields = document.querySelectorAll('input[readonly], textarea[readonly]');
+    readonlyFields.forEach(field => {
+        field.classList.add('readonly-field');
+    });
+    
+    // Validación básica del formulario
+    const form = document.getElementById('seccionForm');
+    form.addEventListener('submit', function(e) {
+        // Aquí puedes agregar validaciones específicas por sección si es necesario
+        console.log('Guardando cambios en sección: {{ seccion }}');
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,432 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear Equipo - Gestor LIME{% endblock %}
+
+{% block extra_css %}
+<style>
+    .modal-backdrop {
+        background-color: rgba(0, 0, 0, 0.7) !important;
+    }
+    
+    .modal-xl-custom {
+        max-width: 95%;
+    }
+    
+    .form-section {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .form-section h5 {
+        color: #0d6efd;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .required-field {
+        border-left: 3px solid #dc3545 !important;
+    }
+    
+    .modal-body {
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Modal de Crear Equipo -->
+<div class="modal fade show" id="createEquipoModal" tabindex="-1" style="display: block;" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-xl-custom">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h4 class="modal-title">
+                    <i class="fas fa-plus-circle"></i> Añadir Nuevo Equipo
+                </h4>
+                <a href="{% url 'equipos' %}" class="btn-close btn-close-white"></a>
+            </div>
+            
+            <form method="post" id="equipoForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    
+                    <!-- Sección 1: Información General -->
+                    <div class="form-section">
+                        <h5><i class="fas fa-info-circle"></i> Información General</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.proceso.label }} *</label>
+                                    {{ form.proceso }}
+                                    {% if form.proceso.errors %}
+                                        <div class="text-danger small">{{ form.proceso.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.codigo_interno.label }}</label>
+                                    {{ form.codigo_interno }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.codigo_ecri.label }}</label>
+                                    {{ form.codigo_ecri }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.nombre_equipo.label }} *</label>
+                                    {{ form.nombre_equipo }}
+                                    {% if form.nombre_equipo.errors %}
+                                        <div class="text-danger small">{{ form.nombre_equipo.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.codigo_ips.label }}</label>
+                                    {{ form.codigo_ips }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.sede.label }}</label>
+                                    {{ form.sede }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.responsable.label }}</label>
+                                    {{ form.responsable }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.ubicacion.label }}</label>
+                                    {{ form.ubicacion }}
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form.activo }}
+                                        <label class="form-check-label" for="{{ form.activo.id_for_label }}">
+                                            {{ form.activo.label }}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección 2: Especificaciones Técnicas -->
+                    <div class="form-section">
+                        <h5><i class="fas fa-cogs"></i> Especificaciones Técnicas</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.marca.label }}</label>
+                                    {{ form.marca }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.serie.label }}</label>
+                                    {{ form.serie }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.dimensiones.label }}</label>
+                                    {{ form.dimensiones }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.modelo.label }}</label>
+                                    {{ form.modelo }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.peso.label }}</label>
+                                    {{ form.peso }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.otros.label }}</label>
+                                    {{ form.otros }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.clasificacion_misional.label }}</label>
+                                    {{ form.clasificacion_misional }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.clasificacion_ips.label }}</label>
+                                    {{ form.clasificacion_ips }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.clasificacion_riesgo.label }}</label>
+                                    {{ form.clasificacion_riesgo }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección 3: Información Regulatoria -->
+                    <div class="form-section">
+                        <h5><i class="fas fa-certificate"></i> Información Regulatoria</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.registro_invima.label }}</label>
+                                    {{ form.registro_invima }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.fecha_fabricacion.label }}</label>
+                                    {{ form.fecha_fabricacion }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.tiempo_vida_util.label }}</label>
+                                    {{ form.tiempo_vida_util }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.registro_importacion.label }}</label>
+                                    {{ form.registro_importacion }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.en_garantia.label }}</label>
+                                    {{ form.en_garantia }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.fecha_fin_garantia.label }}</label>
+                                    {{ form.fecha_fin_garantia }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección 4: Información de Compra -->
+                    <div class="form-section">
+                        <h5><i class="fas fa-shopping-cart"></i> Información de Compra</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.fecha_adquisicion.label }}</label>
+                                    {{ form.fecha_adquisicion }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.nit.label }}</label>
+                                    {{ form.nit }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.forma_adquisicion.label }}</label>
+                                    {{ form.forma_adquisicion }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.propietario.label }}</label>
+                                    {{ form.propietario }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.proveedor.label }}</label>
+                                    {{ form.proveedor }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.tipo_documento.label }}</label>
+                                    {{ form.tipo_documento }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.valor_compra.label }}</label>
+                                    {{ form.valor_compra }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.numero_documento.label }}</label>
+                                    {{ form.numero_documento }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección 5: Documentación Técnica -->
+                    <div class="form-section">
+                        <h5><i class="fas fa-file-alt"></i> Documentación Técnica</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.hoja_vida.label }}</label>
+                                    {{ form.hoja_vida }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.guia_rapida.label }}</label>
+                                    {{ form.guia_rapida }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.manual_operacion.label }}</label>
+                                    {{ form.manual_operacion }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.instructivo.label }}</label>
+                                    {{ form.instructivo }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.manual_mantenimiento.label }}</label>
+                                    {{ form.manual_mantenimiento }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.protocolo_mto.label }}</label>
+                                    {{ form.protocolo_mto }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección 6: Mantenimiento y Calibración -->
+                    <div class="form-section">
+                        <h5><i class="fas fa-wrench"></i> Mantenimiento y Calibración</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.mantenimiento.label }}</label>
+                                    {{ form.mantenimiento }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.calibracion.label }}</label>
+                                    {{ form.calibracion }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.frecuencia_mantenimiento.label }}</label>
+                                    {{ form.frecuencia_mantenimiento }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.frecuencia_calibracion.label }}</label>
+                                    {{ form.frecuencia_calibracion }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.frecuencia_metrologica.label }}</label>
+                                    {{ form.frecuencia_metrologica }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección 7: Especificaciones Metrológicas -->
+                    <div class="form-section">
+                        <h5><i class="fas fa-ruler"></i> Especificaciones Metrológicas</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.magnitud.label }}</label>
+                                    {{ form.magnitud }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.resolucion.label }}</label>
+                                    {{ form.resolucion }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.rango.label }}</label>
+                                    {{ form.rango }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.error_maximo.label }}</label>
+                                    {{ form.error_maximo }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.rango_trabajo.label }}</label>
+                                    {{ form.rango_trabajo }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección 8: Especificaciones Eléctricas y Ambientales -->
+                    <div class="form-section">
+                        <h5><i class="fas fa-bolt"></i> Especificaciones Eléctricas y Ambientales</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.voltaje.label }}</label>
+                                    {{ form.voltaje }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.humedad.label }}</label>
+                                    {{ form.humedad }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.corriente.label }}</label>
+                                    {{ form.corriente }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.temperatura.label }}</label>
+                                    {{ form.temperatura }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <!-- Espacio para campos adicionales si es necesario -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <a href="{% url 'equipos' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Añadir Equipo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Overlay para el fondo -->
+<div class="modal-backdrop fade show"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación del formulario
+    const form = document.getElementById('equipoForm');
+    
+    form.addEventListener('submit', function(e) {
+        const proceso = document.querySelector('[name="proceso"]').value;
+        const nombre_equipo = document.querySelector('[name="nombre_equipo"]').value;
+        
+        if (!proceso.trim()) {
+            e.preventDefault();
+            alert('El campo Proceso es obligatorio');
+            document.querySelector('[name="proceso"]').focus();
+            return;
+        }
+        
+        if (!nombre_equipo.trim()) {
+            e.preventDefault();
+            alert('El campo Nombre del Equipo es obligatorio');
+            document.querySelector('[name="nombre_equipo"]').focus();
+            return;
+        }
+    });
+    
+    // Marcar campos requeridos visualmente
+    const requiredFields = ['proceso', 'nombre_equipo'];
+    requiredFields.forEach(field => {
+        const input = document.querySelector(`[name="${field}"]`);
+        if (input) {
+            input.classList.add('required-field');
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Historial de Traslados - {{ equipo.nombre_equipo }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .equipo-header {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .traslado-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .traslado-card:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
+    }
+    
+    .traslado-header {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .traslado-body {
+        padding: 1.25rem;
+    }
+    
+    .estado-badge {
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+    }
+    
+    .estado-pendiente {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+    
+    .estado-aprobado {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .estado-ejecutado {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+    
+    .estado-cancelado {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f1b0b7;
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        padding: 0.25rem 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+        min-width: 140px;
+    }
+    
+    .info-value {
+        color: #212529;
+        text-align: right;
+        flex: 1;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-left: 2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: 0.5rem;
+        top: 0.5rem;
+        width: 0.75rem;
+        height: 0.75rem;
+        background-color: #007bff;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 0 0 2px #007bff;
+    }
+    
+    .no-traslados {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+    
+    .no-traslados i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Encabezado del equipo -->
+    <div class="equipo-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">
+                    <i class="fas fa-history"></i>
+                    Historial de Traslados
+                </h1>
+                <h3 class="mb-1">{{ equipo.nombre_equipo }}</h3>
+                <p class="mb-0">
+                    <i class="fas fa-barcode"></i> {{ equipo.codigo_interno|default:"Sin código" }} |
+                    <i class="fas fa-map-marker-alt"></i> {{ equipo.sede|default:"Sin sede" }} - {{ equipo.ubicacion|default:"Sin ubicación" }}
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'equipo_detalle' equipo.id %}" class="btn btn-light btn-lg me-2">
+                    <i class="fas fa-arrow-left"></i> Volver al Equipo
+                </a>
+                {% if user_rol == 'admin' or user_rol == 'tecnico' %}
+                    <a href="{% url 'solicitar_traslado_desde_equipo' equipo.id %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-plus"></i> Nuevo Traslado
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="row">
+        <div class="col-12">
+            {% if traslados %}
+                <!-- Estadísticas rápidas -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card text-center border-info">
+                            <div class="card-body">
+                                <h5 class="card-title text-info">{{ traslados|length }}</h5>
+                                <p class="card-text">Total Traslados</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center border-warning">
+                            <div class="card-body">
+                                <h5 class="card-title text-warning">
+                                    {% for t in traslados %}{% if t.estado == 'pendiente' %}{{ forloop.counter0|add:1 }}{% endif %}{% empty %}0{% endfor %}
+                                </h5>
+                                <p class="card-text">Pendientes</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center border-success">
+                            <div class="card-body">
+                                <h5 class="card-title text-success">
+                                    {% for t in traslados %}{% if t.estado == 'ejecutado' %}{{ forloop.counter0|add:1 }}{% endif %}{% empty %}0{% endfor %}
+                                </h5>
+                                <p class="card-text">Ejecutados</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center border-danger">
+                            <div class="card-body">
+                                <h5 class="card-title text-danger">
+                                    {% for t in traslados %}{% if t.estado == 'cancelado' %}{{ forloop.counter0|add:1 }}{% endif %}{% empty %}0{% endfor %}
+                                </h5>
+                                <p class="card-text">Cancelados</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de traslados -->
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">
+                            <i class="fas fa-list"></i> Registro de Traslados
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        {% for traslado in traslados %}
+                            <div class="traslado-card">
+                                <div class="traslado-header">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            Traslado #{{ traslado.id }}
+                                            <small class="text-muted">- {{ traslado.fecha_solicitud|date:"d/m/Y" }}</small>
+                                        </h6>
+                                        <small class="text-muted">Solicitado por: {{ traslado.usuario_solicitante }}</small>
+                                    </div>
+                                    <span class="estado-badge estado-{{ traslado.estado }}">
+                                        {% if traslado.estado == 'pendiente' %}
+                                            <i class="fas fa-clock"></i> Pendiente
+                                        {% elif traslado.estado == 'aprobado' %}
+                                            <i class="fas fa-check"></i> Aprobado
+                                        {% elif traslado.estado == 'ejecutado' %}
+                                            <i class="fas fa-check-double"></i> Ejecutado
+                                        {% elif traslado.estado == 'cancelado' %}
+                                            <i class="fas fa-times"></i> Cancelado
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                
+                                <div class="traslado-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6 class="text-primary">
+                                                <i class="fas fa-map-marker-alt"></i> Origen
+                                            </h6>
+                                            <div class="info-row">
+                                                <span class="info-label">Sede:</span>
+                                                <span class="info-value">{{ traslado.sede_origen|default:"No especificado" }}</span>
+                                            </div>
+                                            <div class="info-row">
+                                                <span class="info-label">Ubicación:</span>
+                                                <span class="info-value">{{ traslado.ubicacion_origen|default:"No especificado" }}</span>
+                                            </div>
+                                            <div class="info-row">
+                                                <span class="info-label">Responsable:</span>
+                                                <span class="info-value">{{ traslado.responsable_origen|default:"No especificado" }}</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <h6 class="text-success">
+                                                <i class="fas fa-arrow-right"></i> Destino
+                                            </h6>
+                                            <div class="info-row">
+                                                <span class="info-label">Sede:</span>
+                                                <span class="info-value">{{ traslado.sede_destino|default:"No especificado" }}</span>
+                                            </div>
+                                            <div class="info-row">
+                                                <span class="info-label">Ubicación:</span>
+                                                <span class="info-value">{{ traslado.ubicacion_destino|default:"No especificado" }}</span>
+                                            </div>
+                                            <div class="info-row">
+                                                <span class="info-label">Responsable:</span>
+                                                <span class="info-value">{{ traslado.responsable_destino|default:"No especificado" }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if traslado.justificacion %}
+                                        <div class="mt-3">
+                                            <h6 class="text-info">
+                                                <i class="fas fa-comment"></i> Justificación
+                                            </h6>
+                                            <p class="text-muted mb-2">{{ traslado.justificacion }}</p>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if traslado.observaciones %}
+                                        <div class="mt-2">
+                                            <h6 class="text-warning">
+                                                <i class="fas fa-sticky-note"></i> Observaciones
+                                            </h6>
+                                            <p class="text-muted mb-2">{{ traslado.observaciones }}</p>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if traslado.estado == 'ejecutado' and traslado.fecha_traslado %}
+                                        <div class="mt-2">
+                                            <small class="text-success">
+                                                <i class="fas fa-calendar-check"></i>
+                                                Ejecutado el {{ traslado.fecha_traslado|date:"d/m/Y" }}
+                                                {% if traslado.ejecutado_por %}
+                                                    por {{ traslado.ejecutado_por }}
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <!-- Acciones -->
+                                    <div class="mt-3 text-end">
+                                        <a href="{% url 'detalle_traslado' traslado.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> Ver Detalle
+                                        </a>
+                                        
+                                        {% if user_rol == 'admin' %}
+                                            {% if traslado.estado == 'pendiente' %}
+                                                <a href="{% url 'aprobar_traslado' traslado.id %}" class="btn btn-sm btn-success ms-1">
+                                                    <i class="fas fa-check"></i> Aprobar
+                                                </a>
+                                            {% elif traslado.estado == 'aprobado' %}
+                                                <a href="{% url 'ejecutar_traslado' traslado.id %}" class="btn btn-sm btn-info ms-1">
+                                                    <i class="fas fa-play"></i> Ejecutar
+                                                </a>
+                                            {% endif %}
+                                            
+                                            {% if traslado.estado != 'ejecutado' %}
+                                                <a href="{% url 'cancelar_traslado' traslado.id %}" class="btn btn-sm btn-outline-danger ms-1">
+                                                    <i class="fas fa-times"></i> Cancelar
+                                                </a>
+                                            {% endif %}
+                                        {% elif traslado.usuario_solicitante == username and traslado.estado == 'pendiente' %}
+                                            <a href="{% url 'cancelar_traslado' traslado.id %}" class="btn btn-sm btn-outline-danger ms-1">
+                                                <i class="fas fa-times"></i> Cancelar
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <!-- Sin traslados -->
+                <div class="no-traslados">
+                    <i class="fas fa-exchange-alt"></i>
+                    <h4>Sin Historial de Traslados</h4>
+                    <p class="text-muted">Este equipo no tiene traslados registrados aún.</p>
+                    {% if user_rol == 'admin' or user_rol == 'tecnico' %}
+                        <a href="{% url 'solicitar_traslado_equipo' equipo.id %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Crear Primer Traslado
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animaciones suaves para las tarjetas
+    const cards = document.querySelectorAll('.traslado-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // Tooltips para estados
+    const badges = document.querySelectorAll('.estado-badge');
+    badges.forEach(badge => {
+        badge.setAttribute('data-bs-toggle', 'tooltip');
+        badge.setAttribute('data-bs-placement', 'top');
+        
+        const estado = badge.textContent.trim().toLowerCase();
+        let title = '';
+        switch(estado) {
+            case 'pendiente':
+                title = 'Esperando aprobación del administrador';
+                break;
+            case 'aprobado':
+                title = 'Aprobado, listo para ejecutar';
+                break;
+            case 'ejecutado':
+                title = 'Traslado completado exitosamente';
+                break;
+            case 'cancelado':
+                title = 'Traslado cancelado';
+                break;
+        }
+        badge.setAttribute('title', title);
+    });
+    
+    // Inicializar tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

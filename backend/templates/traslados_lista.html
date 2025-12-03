@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Traslados{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-exchange-alt text-primary"></i>
+            Gestión de Traslados
+        </h1>
+        <a href="{% url 'crear_traslado' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Nueva Solicitud
+        </a>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="estado" class="form-label">Estado:</label>
+                    <select name="estado" id="estado" class="form-select">
+                        <option value="">Todos los estados</option>
+                        {% for value, label in estados %}
+                            <option value="{{ value }}" {% if value == estado_actual %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="equipo" class="form-label">Buscar equipo:</label>
+                    <input type="text" name="equipo" id="equipo" class="form-control" 
+                           value="{{ equipo_busqueda }}" 
+                           placeholder="Nombre del equipo o código interno">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-search me-1"></i>Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de traslados -->
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                Lista de Traslados ({{ traslados.count }} resultados)
+            </h6>
+        </div>
+        <div class="card-body">
+            {% if traslados %}
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Fecha Solicitud</th>
+                                <th>Equipo</th>
+                                <th>De</th>
+                                <th>A</th>
+                                <th>Solicitante</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for traslado in traslados %}
+                            <tr>
+                                <td>{{ traslado.fecha_solicitud|date:"d/m/Y" }}</td>
+                                <td>
+                                    <strong>{{ traslado.equipo.nombre_equipo|truncatechars:40 }}</strong>
+                                    {% if traslado.equipo.codigo_interno %}
+                                        <br><small class="text-muted">{{ traslado.equipo.codigo_interno }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ traslado.sede_origen }}</strong>
+                                    {% if traslado.ubicacion_origen %}
+                                        <br><small>{{ traslado.ubicacion_origen|truncatechars:30 }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ traslado.sede_destino }}</strong>
+                                    {% if traslado.ubicacion_destino %}
+                                        <br><small>{{ traslado.ubicacion_destino|truncatechars:30 }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ traslado.usuario_solicitante }}</td>
+                                <td>
+                                    {% if traslado.estado == 'pendiente' %}
+                                        <span class="badge bg-warning">Pendiente</span>
+                                    {% elif traslado.estado == 'aprobado' %}
+                                        <span class="badge bg-info">Aprobado</span>
+                                    {% elif traslado.estado == 'ejecutado' %}
+                                        <span class="badge bg-success">Ejecutado</span>
+                                    {% elif traslado.estado == 'cancelado' %}
+                                        <span class="badge bg-danger">Cancelado</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'detalle_traslado' traslado.id %}" 
+                                           class="btn btn-outline-primary" title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        
+                                        {% if user_rol == 'admin' and traslado.estado == 'pendiente' %}
+                                            <a href="{% url 'aprobar_traslado' traslado.id %}" 
+                                               class="btn btn-outline-success" title="Aprobar">
+                                                <i class="fas fa-check"></i>
+                                            </a>
+                                        {% endif %}
+                                        
+                                        {% if user_rol == 'admin' and traslado.estado == 'aprobado' %}
+                                            <a href="{% url 'ejecutar_traslado' traslado.id %}" 
+                                               class="btn btn-outline-info" title="Ejecutar">
+                                                <i class="fas fa-play"></i>
+                                            </a>
+                                        {% endif %}
+                                        
+                                        {% if traslado.estado in 'pendiente,aprobado' %}
+                                            {% if user_rol == 'admin' or traslado.usuario_solicitante == username %}
+                                                <a href="{% url 'cancelar_traslado' traslado.id %}" 
+                                                   class="btn btn-outline-danger" title="Cancelar">
+                                                    <i class="fas fa-times"></i>
+                                                </a>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-exchange-alt fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay traslados registrados</h5>
+                    <p class="text-muted">Los traslados aparecerán aquí una vez que se soliciten.</p>
+                    <a href="{% url 'crear_traslado' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Crear Primera Solicitud
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar DataTable si hay datos
+    {% if traslados %}
+        $('#dataTable').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
+            },
+            "pageLength": 25,
+            "order": [[0, "desc"]] // Ordenar por fecha de solicitud descendente
+        });
+    {% endif %}
+});
+</script>
+{% endblock %}
