@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <title>{% block title %}Gestor LIME{% endblock %}</title>
+    <title>{% block title %}Gestor de Inventario - LIME{% endblock %}</title>
     
     {% load static %}
     
@@ -109,19 +109,40 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 15px;
-            padding-bottom: 10px;
+            gap: 28px;
+            padding: 14px 0 6px 0;
         }
         
-        /* Ajustar los logos a un tamaño razonable */
+        /* Ajustar los logos a un tamaño más visible y elegante */
         .footer-logos img {
-            max-height: 40px; 
-            opacity: 0.7;
-            transition: opacity 0.3s;
+            max-height: 64px; 
+            opacity: 0.9;
+            transition: transform 0.18s ease, opacity 0.18s ease;
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.06));
         }
         
         .footer-logos img:hover {
             opacity: 1;
+            transform: translateY(-3px) scale(1.02);
+        }
+
+        /* Estilo para los nombres de los creadores */
+        .footer-creators {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            margin-top: 6px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #004D79;
+            letter-spacing: 0.2px;
+        }
+        .footer-creators .creator-name {
+            font-size: 0.95rem;
+            color: #365f7a;
+        }
+        .footer-meta {
+            margin-top: 6px;
         }
 
         /* ------------------- ANIMACIONES ------------------- */
@@ -138,9 +159,7 @@
         {% if user %}
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow-sm">
             <div class="container-fluid">
-                <a class="navbar-brand" href="{% url 'dashboard' %}">
-                    <i class="fas fa-microscope me-2"></i> Gestor LIME
-                </a>
+                <a class="navbar-brand" href="{% url 'dashboard' %}"> Gestor LIME</a>
                 
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -280,18 +299,26 @@
         <footer class="footer mt-auto py-3 bg-light text-dark">
             <div class="container-fluid text-center">
                 
-                <div class="footer-logos mb-3">
+                <div class="footer-logos mb-2">
                     {# Asegúrate de que las rutas a las imágenes sean correctas con {% static %} si usas Django #}
                     <img src="{% static 'img/logos/lime.png' %}" alt="Logo LIME" class="footer-logo">
                     <img src="{% static 'img/logos/alma.png' %}" alt="Logo Alma" class="footer-logo">
                     <img src="{% static 'img/logos/universidad.png' %}" alt="Logo Universidad" class="footer-logo">
                 </div>
-                
+
+                <div class="footer-creators">
+                    <span class="creator-name">Dairon Montes</span>
+                    <span class="creator-name">Kevin Garcia</span>
+                    <span class="creator-name">Isabella Vásquez</span>
+                </div>
+
                 <hr class="my-2">
-                
-                <span class="text-muted small">
-                    <i class="fas fa-code me-1"></i> &copy; {% now "Y" %} **Gestor LIME** | Desarrollado con <span style="color: red;">&#10084;</span> | Versión 1.0
-                </span>
+
+                <div class="footer-meta">
+                    <span class="text-muted small">
+                        <i class="fas fa-code me-1"></i> &copy; {% now "Y" %} Gestor LIME &nbsp;|&nbsp; Desarrollado con <span style="color: red;">&#10084;</span> &nbsp;|&nbsp; Versión 1.0
+                    </span>
+                </div>
             </div>
         </footer>
         {% endif %}
