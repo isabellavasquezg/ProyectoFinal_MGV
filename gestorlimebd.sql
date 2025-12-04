@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 03-12-2025 a las 17:00:00
+-- Tiempo de generación: 04-12-2025 a las 01:25:32
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -260,8 +260,11 @@ CREATE TABLE `api_usuario` (
 --
 
 INSERT INTO `api_usuario` (`id`, `nombreusuario`, `contraseña`, `rol`, `activo`, `fecha_creacion`, `cargo`, `creado_por`, `departamento`, `email`, `fecha_ultima_modificacion`, `nombre_completo`, `telefono`, `ultimo_acceso`) VALUES
-(1, 'admin', 'pbkdf2_sha256$600000$BRnZhTJH1JofsIbxZieY1W$dSBqPtLCOjm2PjznC//tcnxtmJskOyJaqFQRwWvo7U4=', 'admin', 1, '2025-11-30', NULL, NULL, NULL, NULL, '2025-12-03 15:50:30.827242', NULL, NULL, '2025-12-03 15:50:30.826966'),
-(3, 'test', 'pbkdf2_sha256$600000$DKuitPdt98Y7ijYuGK8XAO$S9D3WFNNJ7c1pYmVjU9IfiZZL18LeRfldED75lyRwv4=', 'editor', 1, '2025-12-03', NULL, 'Sistema', NULL, 'test@lime.udea.edu.co', '2025-12-03 15:54:04.130854', 'Usuario de Prueba', NULL, '2025-12-03 15:53:10.928665');
+(1, 'admin', 'pbkdf2_sha256$600000$BRnZhTJH1JofsIbxZieY1W$dSBqPtLCOjm2PjznC//tcnxtmJskOyJaqFQRwWvo7U4=', 'admin', 1, '2025-11-30', NULL, NULL, NULL, NULL, '2025-12-03 23:07:32.791226', NULL, NULL, '2025-12-03 23:07:32.791029'),
+(3, 'test', 'pbkdf2_sha256$600000$DKuitPdt98Y7ijYuGK8XAO$S9D3WFNNJ7c1pYmVjU9IfiZZL18LeRfldED75lyRwv4=', 'editor', 1, '2025-12-03', NULL, 'Sistema', NULL, 'test@lime.udea.edu.co', '2025-12-03 15:54:04.130854', 'Usuario de Prueba', NULL, '2025-12-03 15:53:10.928665'),
+(4, 'isabella.vasquezg', 'pbkdf2_sha256$600000$4oUNQ3GO0OwjrctSJnFtma$4x/1iZTxfuYxAJtIj1nTNMA+rPF/DPU214qSPNKa7Rk=', 'admin', 1, '2025-12-03', 'Ingeniera Biomédica', 'admin', 'Ingeniería Biomédica', 'isabella.vasquezg@udea.edu.co', '2025-12-03 23:54:41.040212', 'Isabella Vásquez García', '3053668802', '2025-12-03 23:54:41.040097'),
+(5, 'dairon.montes', 'pbkdf2_sha256$600000$b78JJBQI7obaSPGGbN1hCY$v57ZtxjvF6+s3gLh7ozo7iMcLdg7o+zps8IDyWo/6Co=', 'admin', 1, '2025-12-03', 'Ingeniero Biomédico', 'admin', 'Ingeniería Biomédica', 'dairon.montes@udea.edu.co', '2025-12-03 23:15:02.865831', 'Dairon Montes Barrada', '3014748419', '2025-12-03 23:15:02.865609'),
+(6, 'kevin.garciaj', 'pbkdf2_sha256$600000$exalOzsVBVXJdioMCcXMTP$R2pSBIIua6kFVxHMXZVx6i+F911PzokBli3dp0homOM=', 'admin', 1, '2025-12-03', 'Ingeniero Biomédico', 'admin', 'Ingeniería Biomédica', 'kevin.garciaj@udea.edu.co', '2025-12-03 23:15:42.888044', 'Kevin García Jaramillo', '3205131927', '2025-12-03 23:15:42.887935');
 
 -- --------------------------------------------------------
 
@@ -532,7 +535,9 @@ CREATE TABLE `django_session` (
 INSERT INTO `django_session` (`session_key`, `session_data`, `expire_date`) VALUES
 ('e78d0mhvyppoklatt4fw5mskoz2bnd6d', '.eJyrViotTi2Kz0xRsjLUAbPzEnNTlayUElNyM_OUdJSK8nPgvFoAagwPLg:1vQbio:xqcRu-2zReX05IGOa8n5Jav5s94KD8fzhX_5mZ7uvNw', '2025-12-03 02:31:58.669489'),
 ('ghvog21lkfl4quc6kgwjqqy9g5v4yu6c', '.eJyrViotTi2Kz0xRsjLUAbPzEnNTlayUElNyM_OUdJSK8nPgvFoAagwPLg:1vQenC:owmst5XlnL9DprWmv0gfPzjsmbZURh4uSosCcEi3wtU', '2025-12-03 05:48:42.588941'),
-('qny8c2s3cfh9f9i833iya0q8a770t5zs', '.eJyrViotTi2Kz0xRsjLUAbPzEnNTlayUElNyM_OUdJSK8nPgvFoAagwPLg:1vQlLN:LlijS3UFM6vVpADH2H0h3JBuvBdFk_NcyroA-h9t-XU', '2025-12-03 12:48:25.999278');
+('qny8c2s3cfh9f9i833iya0q8a770t5zs', '.eJyrViotTi2Kz0xRsjLUAbPzEnNTlayUElNyM_OUdJSK8nPgvFoAagwPLg:1vQlLN:LlijS3UFM6vVpADH2H0h3JBuvBdFk_NcyroA-h9t-XU', '2025-12-03 12:48:25.999278'),
+('syf0ja4vywwqkkiua1mvu8myi09f2y3b', '.eJwti0sKgCAUAK8ibx1h0MoLRBdoFchTHyH4Kc0WRXdPpN0MwzxQMiVpDYixaxzQEwiwGRU5h_2F-Sh0b9BBiq4WNN6GaiF6lUjq6HdHZ6xl_h-2rIVzGtrIJky6uUF4P5IvJsY:1vQwgD:e-6-mCwH7wPK9Yi33LJKKzHWk_NPvSbz2Yn2z0VGWsc', '2025-12-04 00:54:41.082485'),
+('v06dzowqgsp7otck5r69qp6a8eepy6p3', '.eJyrViotTi2Kz0xRsjLUAbPzEnNTlayUElNyM_OUdJSK8nOQeHn5uUlFqfHJ-bkFOakl-XCZWgBvlxhq:1vQt0K:lu-uO2UaeZpuN5AmXPaTF08fZdQttZYjnxSVrGjD_us', '2025-12-03 20:59:12.129574');
 
 --
 -- Índices para tablas volcadas
@@ -678,7 +683,7 @@ ALTER TABLE `api_trasladoequipo`
 -- AUTO_INCREMENT de la tabla `api_usuario`
 --
 ALTER TABLE `api_usuario`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `auth_group`
