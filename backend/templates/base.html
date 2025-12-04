@@ -7,6 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}Gestor de Inventario - LIME{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'img/logos/lime.png' %}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/logos/lime.png' %}">
     
     {% load static %}
     
@@ -145,6 +147,21 @@
             margin-top: 6px;
         }
 
+        /* Asegurar que los botones muestren siempre icono + texto */
+        .btn {
+            white-space: nowrap;
+            overflow: visible;
+        }
+        .btn i {
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 0.45rem;
+        }
+        /* Algunos botones usan clases pequeñas; garantizar espacio mínimo */
+        .btn, .btn > span {
+            min-width: 60px;
+        }
+
         /* ------------------- ANIMACIONES ------------------- */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
@@ -232,9 +249,9 @@
                     <div class="navbar-nav ms-auto">
                         <div class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user-circle"></i> 
+                                <i class="fas fa-user-circle me-1"></i>
                                 {% if user.username %}
-                                    <span class="d-none d-lg-inline">{{ user.username }}</span>
+                                    <span>{{ user.username }}</span>
                                     {% if user.rol %}
                                         <span class="badge bg-light text-dark ms-1">{{ user.rol|title }}</span>
                                     {% endif %}
